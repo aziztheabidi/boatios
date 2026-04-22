@@ -116,7 +116,6 @@ struct BusinessHours: Codable, Equatable {
     }
 }
 
-// API response struct for upload
 struct UploadApiResponse: Codable {
     let status: Int
     let message: String
@@ -129,7 +128,6 @@ struct UploadApiResponse: Codable {
     }
 }
 
-// DockItem.swift
 struct DockDropdownResponse: Codable {
     let status: Int
     let message: String
@@ -177,3 +175,4 @@ struct DeleteImageResponse: Codable {
         case obj = "obj"
     }
 }
+

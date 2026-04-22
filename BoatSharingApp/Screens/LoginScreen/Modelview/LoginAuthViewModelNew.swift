@@ -53,17 +53,17 @@ final class LoginAuthViewModelNew: ObservableObject {
 
     // MARK: - Dependencies
 
-    private let apiClient: APIClientProtocol
+    private let authRepository: AuthRepositoryProtocol
     private let sessionManager: SessionManaging
     private let tokenStore: TokenStoring
     private var cancellables = Set<AnyCancellable>()
 
     init(
-        apiClient: APIClientProtocol,
+        authRepository: AuthRepositoryProtocol,
         sessionManager: SessionManaging,
         tokenStore: TokenStoring
     ) {
-        self.apiClient = apiClient
+        self.authRepository = authRepository
         self.sessionManager = sessionManager
         self.tokenStore = tokenStore
 
@@ -79,22 +79,7 @@ final class LoginAuthViewModelNew: ObservableObject {
         errorMessage = nil
         Task {
             do {
-                let response: LoginResponse = try await apiClient.request(
-                    endpoint: AppConfiguration.API.Endpoints.login,
-                    method: .post,
-                    parameters: ["Email": email, "Password": password],
-                    requiresAuth: false
-                )
-                guard response.Status == 200 else {
-                    self.errorMessage = response.Message.isEmpty ? "Login failed" : response.Message
-                    self.isLoading = false
-                    return
-                }
-                guard let userData = response.obj else {
-                    self.errorMessage = "Invalid response from server"
-                    self.isLoading = false
-                    return
-                }
+                let userData = try await authRepository.login(email: email, password: password)
                 sessionManager.saveTokens(
                     accessToken: userData.Accesstoken ?? "",
                     refreshToken: userData.Refreshtoken ?? ""
@@ -133,12 +118,7 @@ final class LoginAuthViewModelNew: ObservableObject {
     private func performUpdateDeviceToken(userId: String, token: String) {
         Task {
             do {
-                let _: DeviceTokenResponse = try await apiClient.request(
-                    endpoint: AppConfiguration.API.Endpoints.updateDeviceToken,
-                    method: .post,
-                    parameters: ["UserId": userId, "DeviceToken": token],
-                    requiresAuth: true
-                )
+                _ = try await authRepository.updateDeviceToken(userId: userId, token: token)
             } catch {
                 // Background operation — suppress user-facing error
             }
@@ -152,7 +132,7 @@ final class LoginAuthViewModelNew: ObservableObject {
         }
     }
 
-    // MARK: - Legacy call-site compat
+    // MARK: - Public action helpers
 
     func login(email: String, password: String) { send(.login(email: email, password: password)) }
     func logout() { send(.logout) }
@@ -180,3 +160,4 @@ struct LoginUserData: Codable {
         case UserId, Username, Email, Role, Accesstoken, Refreshtoken, MissingStep
     }
 }
+

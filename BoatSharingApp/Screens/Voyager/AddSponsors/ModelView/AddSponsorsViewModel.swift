@@ -47,11 +47,11 @@ final class AddSponsorsViewModel: ObservableObject {
 
     // MARK: - Dependencies
 
-    private let apiClient: APIClientProtocol
+    private let networkRepository: AppNetworkRepositoryProtocol
     private let sessionPreferences: SessionPreferenceStoring
 
-    init(apiClient: APIClientProtocol, sessionPreferences: SessionPreferenceStoring) {
-        self.apiClient = apiClient
+    init(networkRepository: AppNetworkRepositoryProtocol, sessionPreferences: SessionPreferenceStoring) {
+        self.networkRepository = networkRepository
         self.sessionPreferences = sessionPreferences
     }
 
@@ -73,12 +73,7 @@ final class AddSponsorsViewModel: ObservableObject {
         }
         Task {
             do {
-                let response: AddSponsorsModel = try await apiClient.request(
-                    endpoint: "/VoyagerDashboard/GetFollowedVoyagers?UserId=\(userId)",
-                    method: .get,
-                    parameters: nil,
-                    requiresAuth: true
-                )
+                let response = try await networkRepository.voyagerDashboard_getFollowedVoyagers(userId: userId)
                 self.isLoading = false
                 if response.status == 200 {
                     self.myProfile = response.obj.mySelf
@@ -94,7 +89,8 @@ final class AddSponsorsViewModel: ObservableObject {
         }
     }
 
-    // MARK: - Legacy call-site compat
+    // MARK: - Public action helpers
 
     func getFollowedVoyagers() { send(.onAppear) }
 }
+

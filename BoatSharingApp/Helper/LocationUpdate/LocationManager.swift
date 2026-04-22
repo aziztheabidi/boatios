@@ -11,9 +11,12 @@ import CoreLocation
 class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     private let locationManager = CLLocationManager()
     private let db = Firestore.firestore()
+    /// When non-nil, location updates are mirrored to Firestore under this user's document.
+    private let sessionPreferences: SessionPreferenceStoring?
     @Published var currentLocation: CLLocationCoordinate2D?
 
-    override init() {
+    init(sessionPreferences: SessionPreferenceStoring? = nil) {
+        self.sessionPreferences = sessionPreferences
         super.init()
         locationManager.delegate = self
         locationManager.desiredAccuracy = kCLLocationAccuracyBest
@@ -24,9 +27,10 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     }
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         guard let location = locations.last else { return }
-
-        DispatchQueue.main.async { [self] in
-            self.currentLocation = location.coordinate
+        let coordinate = location.coordinate
+        Task { @MainActor [weak self] in
+            guard let self else { return }
+            self.currentLocation = coordinate
             self.startUpdatingLocationToFirebase()
         }
     }
@@ -36,8 +40,9 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     }
 
     func updateLocationInFirebase() {
+        guard let sessionPreferences else { return }
         guard let location = currentLocation else { return }
-        let userId = AppSessionSnapshot.userID
+        let userId = sessionPreferences.userID.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !userId.isEmpty else { return }
 
         let locationData: [String: Any] = [

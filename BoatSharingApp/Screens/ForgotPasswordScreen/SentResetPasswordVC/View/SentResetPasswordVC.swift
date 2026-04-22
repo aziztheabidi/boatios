@@ -67,7 +67,7 @@ struct SentResetPasswordVC: View {
                 }) {
                     Text("By using Boatit, you agree to\n")
                         .foregroundColor(.gray) +
-                    Text("Privicy Policy")
+                    Text("Privacy Policy")
                         .fontWeight(.bold)
                         .foregroundColor(.black)
                 }
@@ -97,3 +97,4 @@ struct ResetPasswordSentView_Previews: PreviewProvider {
         SentResetPasswordVC()
     }
 }
+

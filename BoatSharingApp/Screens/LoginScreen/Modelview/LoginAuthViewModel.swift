@@ -9,7 +9,7 @@ final class LoginAuthViewModel: ObservableObject {
         var isValid: Bool { emailError == nil && passwordError == nil }
     }
 
-    struct State {
+    struct State: Equatable {
         var isAuthenticated: Bool
         var isLoading: Bool
         var errorMessage: String?
@@ -19,63 +19,53 @@ final class LoginAuthViewModel: ObservableObject {
         var emailError: String?
         var passwordError: String?
         var showValidationErrors: Bool
+        var route: Route?
     }
 
-    enum Action {
+    enum Action: Equatable {
         case submitLogin(email: String, password: String)
         case login(email: String, password: String)
         case logout
         case updateFcmForAuthenticatedUser
     }
 
-    enum Route {
+    enum Route: Equatable {
         case authenticatedHome
         case login
     }
 
-    @Published var isAuthenticated = false
-    @Published var isLoading = false
-    @Published var errorMessage: String?
-    @Published var role: String = ""
-    @Published var userId: String = ""
-    @Published var missingStep: Int = 1
-    @Published var emailError: String?
-    @Published var passwordError: String?
-    @Published var showValidationErrors = false
-    @Published var route: Route?
+    @Published private(set) var state: State
 
-    var state: State {
-        State(
-            isAuthenticated: isAuthenticated,
-            isLoading: isLoading,
-            errorMessage: errorMessage,
-            role: role,
-            userId: userId,
-            missingStep: missingStep,
-            emailError: emailError,
-            passwordError: passwordError,
-            showValidationErrors: showValidationErrors
-        )
-    }
-
-    private let apiClient: APIClientProtocol
+    private let authRepository: AuthRepositoryProtocol
     private let sessionManager: SessionManaging
     private let preferences: PreferenceStoring
     private let tokenStore: TokenStoring
     private let routingNotifier: AppRoutingNotifying
 
     init(
-        apiClient: APIClientProtocol,
+        authRepository: AuthRepositoryProtocol,
         sessionManager: SessionManaging,
         preferences: PreferenceStoring,
         tokenStore: TokenStoring,
         routingNotifier: AppRoutingNotifying
     ) {
-        self.apiClient = apiClient
+        self.authRepository = authRepository
         self.sessionManager = sessionManager
         self.preferences = preferences
         self.tokenStore = tokenStore
         self.routingNotifier = routingNotifier
+        self.state = State(
+            isAuthenticated: false,
+            isLoading: false,
+            errorMessage: nil,
+            role: "",
+            userId: "",
+            missingStep: 1,
+            emailError: nil,
+            passwordError: nil,
+            showValidationErrors: false,
+            route: nil
+        )
     }
 
     func send(_ action: Action) {
@@ -91,27 +81,25 @@ final class LoginAuthViewModel: ObservableObject {
         }
     }
 
-    // MARK: - Legacy entry points (delegate to `send`; keeps tests and callers unchanged)
+    func submitLogin(email: String, password: String) { send(.submitLogin(email: email, password: password)) }
+    func login(email: String, password: String) { send(.login(email: email, password: password)) }
+    func logout() { send(.logout) }
 
-    func submitLogin(email: String, password: String) {
-        send(.submitLogin(email: email, password: password))
+    private func mutate(_ update: (inout State) -> Void) {
+        var next = state
+        update(&next)
+        state = next
     }
-
-    func login(email: String, password: String) {
-        send(.login(email: email, password: password))
-    }
-
-    func logout() {
-        send(.logout)
-    }
-
-    // MARK: - Private
 
     private func performSubmitLogin(email: String, password: String) {
-        showValidationErrors = true
+        mutate {
+            $0.showValidationErrors = true
+        }
         let validation = validate(email: email, password: password)
-        emailError = validation.emailError
-        passwordError = validation.passwordError
+        mutate {
+            $0.emailError = validation.emailError
+            $0.passwordError = validation.passwordError
+        }
         guard validation.isValid else { return }
         performLogin(email: email, password: password)
     }
@@ -140,22 +128,14 @@ final class LoginAuthViewModel: ObservableObject {
     }
 
     private func performLogin(email: String, password: String) {
-        isLoading = true
-        errorMessage = nil
+        mutate {
+            $0.isLoading = true
+            $0.errorMessage = nil
+        }
 
-        Task {
+        Task { @MainActor in
             do {
-                let parameters: Parameters = [
-                    "Email": email,
-                    "Password": password
-                ]
-                let response: BaseResponse<UserData> = try await apiClient.request(
-                    endpoint: AppConfiguration.API.Endpoints.login,
-                    method: .post,
-                    parameters: parameters,
-                    requiresAuth: false
-                )
-                let user = try APIResponseValidator.requireSuccess(response)
+                let user = try await authRepository.loginDecodedUserData(email: email, password: password)
 
                 sessionManager.saveTokens(
                     accessToken: user.accessToken ?? "",
@@ -169,21 +149,29 @@ final class LoginAuthViewModel: ObservableObject {
                     missingStep: user.MissingStep
                 )
 
-                role = user.role ?? ""
-                userId = user.userId ?? ""
-                missingStep = user.MissingStep ?? 1
-                isAuthenticated = true
-                isLoading = false
-                route = .authenticatedHome
+                let role = user.role ?? ""
+                let userId = user.userId ?? ""
+                let missing = user.MissingStep ?? 1
 
                 preferences.isLoggedIn = true
                 preferences.userRole = role
-                preferences.missingStep = missingStep
+                preferences.missingStep = missing
                 routingNotifier.syncRoutingFromStorageIfNeeded()
+
+                mutate {
+                    $0.role = role
+                    $0.userId = userId
+                    $0.missingStep = missing
+                    $0.isAuthenticated = true
+                    $0.isLoading = false
+                    $0.route = .authenticatedHome
+                }
             } catch {
-                errorMessage = ErrorHandler.extractErrorMessage(from: error)
-                isAuthenticated = false
-                isLoading = false
+                mutate {
+                    $0.errorMessage = ErrorHandler.extractErrorMessage(from: error)
+                    $0.isAuthenticated = false
+                    $0.isLoading = false
+                }
             }
         }
     }
@@ -194,25 +182,16 @@ final class LoginAuthViewModel: ObservableObject {
     }
 
     private func performUpdateFcmToken(userId: String, token: String) {
-        Task {
+        Task { @MainActor in
             do {
-                let parameters: Parameters = [
-                    "UserId": userId,
-                    "DeviceToken": token
-                ]
-                let _: DeviceTokenResponse = try await apiClient.request(
-                    endpoint: AppConfiguration.API.Endpoints.updateDeviceToken,
-                    method: .post,
-                    parameters: parameters,
-                    requiresAuth: true
-                )
+                _ = try await authRepository.updateDeviceToken(userId: userId, token: token)
             } catch {
             }
         }
     }
 
     private func performUpdateFcmForAuthenticatedUser() {
-        let trimmedUserId = userId.trimmingCharacters(in: .whitespacesAndNewlines)
+        let trimmedUserId = state.userId.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmedUserId.isEmpty else { return }
         let deviceToken = tokenStore.deviceToken ?? "DeviceToken"
         performUpdateFcmToken(userId: trimmedUserId, token: deviceToken)
@@ -221,7 +200,10 @@ final class LoginAuthViewModel: ObservableObject {
     private func performLogout() {
         sessionManager.logout()
         routingNotifier.syncRoutingFromStorageIfNeeded()
-        isAuthenticated = false
-        route = .login
+        mutate {
+            $0.isAuthenticated = false
+            $0.route = .login
+        }
     }
 }
+

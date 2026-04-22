@@ -14,7 +14,7 @@ final class CaptainHomeViewModel: ObservableObject {
         let isButtonBlue: Bool
         let showOfflinePopup: Bool
         let isUpdatingStatus: Bool
-        let moveToMenu: Bool
+        let stackDestination: StackDestination?
     }
 
     var state: State {
@@ -27,7 +27,7 @@ final class CaptainHomeViewModel: ObservableObject {
             isButtonBlue: isButtonBlue,
             showOfflinePopup: showOfflinePopup,
             isUpdatingStatus: isUpdatingStatus,
-            moveToMenu: moveToMenu
+            stackDestination: stackDestination
         )
     }
 
@@ -43,7 +43,8 @@ final class CaptainHomeViewModel: ObservableObject {
 
     func send(_ action: Action) {
         switch action {
-        case .menuTapped:           moveToMenu = true; route = .menu
+        case .menuTapped:
+            stackDestination = .spinMenu
         case .offlinePromptShown:   showOfflinePopup = true
         case .offlinePromptDismissed: showOfflinePopup = false
         case .welcomeWheelTapped:   handleWheelTap()
@@ -51,10 +52,13 @@ final class CaptainHomeViewModel: ObservableObject {
         }
     }
 
-    // MARK: - Route
+    // MARK: - Stack navigation
 
-    enum Route { case menu }
-    @Published var route: Route?
+    enum StackDestination: Hashable {
+        case spinMenu
+    }
+
+    @Published var stackDestination: StackDestination?
 
     // MARK: - Published state
 
@@ -66,16 +70,15 @@ final class CaptainHomeViewModel: ObservableObject {
     @Published var isButtonBlue: Bool = false
     @Published var showOfflinePopup: Bool = false
     @Published var isUpdatingStatus: Bool = false
-    @Published var moveToMenu: Bool = false
 
     // MARK: - Dependencies
 
     private let preferences: PreferenceStoring
-    private let apiClient: APIClientProtocol
+    private let networkRepository: AppNetworkRepositoryProtocol
 
-    init(preferences: PreferenceStoring, apiClient: APIClientProtocol) {
+    init(preferences: PreferenceStoring, networkRepository: AppNetworkRepositoryProtocol) {
         self.preferences = preferences
-        self.apiClient = apiClient
+        self.networkRepository = networkRepository
         let isCaptainOnline = preferences.captainStatus
         showWelcomeScreen = !isCaptainOnline
         isButtonBlue = isCaptainOnline
@@ -121,13 +124,10 @@ final class CaptainHomeViewModel: ObservableObject {
     /// Returns true on success, false on failure. Sets errorMessage on failure.
     @discardableResult
     private func performUpdateCaptainStatus(userId: String, isAvailable: String) async -> Bool {
-        let parameters: [String: Any] = ["UserId": userId, "IsAvailable": isAvailable]
         do {
-            let _: DeviceTokenResponse = try await apiClient.request(
-                endpoint: "/CaptainProfile/Availability",
-                method: .post,
-                parameters: parameters,
-                requiresAuth: true
+            _ = try await networkRepository.captainProfile_setAvailability(
+                userId: userId,
+                isAvailable: isAvailable
             )
             self.isAuthenticated = true
             return true
@@ -137,11 +137,13 @@ final class CaptainHomeViewModel: ObservableObject {
         }
     }
 
-    /// Completion-based entry point for callers that predate async/await.
-    func updateCaptainStatus(userId: String, isAvailable: String, completion: @escaping (Bool) -> Void) {
-        Task {
-            let success = await performUpdateCaptainStatus(userId: userId, isAvailable: isAvailable)
-            completion(success)
-        }
-    }
 }
+
+extension CaptainHomeViewModel {
+    func handleMenuTapped() { send(.menuTapped) }
+    func handleOfflinePromptShown() { send(.offlinePromptShown) }
+    func handleOfflinePromptDismissed() { send(.offlinePromptDismissed) }
+    func handleWelcomeWheelTapped() { send(.welcomeWheelTapped) }
+    func confirmGoOffline() { send(.confirmGoOffline) }
+}
+

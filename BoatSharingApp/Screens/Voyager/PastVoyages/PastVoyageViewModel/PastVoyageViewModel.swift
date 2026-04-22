@@ -53,13 +53,13 @@ final class PastVoyageViewModel: ObservableObject {
 
     // MARK: - Dependencies
 
-    private let apiClient: APIClientProtocol
+    private let networkRepository: AppNetworkRepositoryProtocol
     private let identityProvider: SessionPreferenceStoring
     private let initialRole: String
     private var hasCompletedInitialAppear = false
 
-    init(apiClient: APIClientProtocol, identityProvider: SessionPreferenceStoring, initialRole: String) {
-        self.apiClient = apiClient
+    init(networkRepository: AppNetworkRepositoryProtocol, identityProvider: SessionPreferenceStoring, initialRole: String) {
+        self.networkRepository = networkRepository
         self.identityProvider = identityProvider
         self.initialRole = initialRole
         self.selectedController = initialRole
@@ -99,12 +99,7 @@ final class PastVoyageViewModel: ObservableObject {
         errorMessage = nil
         Task {
             do {
-                let response: PastVoyageResponse = try await apiClient.request(
-                    endpoint: "/VoyagerDashboard/GetPastVoyages?UserId=\(userId)",
-                    method: .get,
-                    parameters: nil,
-                    requiresAuth: true
-                )
+                let response = try await networkRepository.voyagerDashboard_getPastVoyages(userId: userId)
                 self.isPastVoyageLoading = false
                 if response.voyages.isEmpty {
                     self.errorMessage = "No past voyages found."
@@ -125,12 +120,7 @@ final class PastVoyageViewModel: ObservableObject {
         errorMessage = nil
         Task {
             do {
-                let response: CaptainCompletedVoyagesResponse = try await apiClient.request(
-                    endpoint: "/Captain/GetPastVoyages",
-                    method: .get,
-                    parameters: nil,
-                    requiresAuth: true
-                )
+                let response = try await networkRepository.captain_getPastVoyages()
                 self.isPastVoyageLoading = false
                 if response.voyages.isEmpty {
                     self.errorMessage = "No past voyages found."
@@ -146,7 +136,7 @@ final class PastVoyageViewModel: ObservableObject {
         }
     }
 
-    // MARK: - Legacy call-site compat
+    // MARK: - Public action helpers
 
     func getPastVoyages(userId: String) { fetchVoyagerPastVoyages(userId: userId) }
     func getCaptainPastVoyages() { fetchCaptainPastVoyages() }
@@ -155,3 +145,4 @@ final class PastVoyageViewModel: ObservableObject {
     func onAppearLoad_public() { send(.onAppear) }
     func resetInitialLoadForDismiss() { send(.onDisappear) }
 }
+

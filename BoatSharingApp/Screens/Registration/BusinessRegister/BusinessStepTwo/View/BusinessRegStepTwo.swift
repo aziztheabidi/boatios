@@ -17,7 +17,10 @@ struct BusinessRegStepTwo: View {
 
     init(lastController: NSString, dependencies: AppDependencies = .live) {
         self.lastController = lastController
-        _viewModel = StateObject(wrappedValue: BusinessStepTwoViewModel(apiClient: dependencies.apiClient))
+        _viewModel = StateObject(wrappedValue: BusinessStepTwoViewModel(
+            networkRepository: dependencies.networkRepository,
+            sessionPreferences: dependencies.sessionPreferences
+        ))
     }
 
     var isFormValid: Bool {
@@ -116,7 +119,7 @@ struct BusinessRegStepTwo: View {
         .navigationBarBackButtonHidden(true)
         .onAppear {
             if lastController == "BusinessSpinMenu" {
-                let userId = AppSessionSnapshot.userID
+                let userId = viewModel.sessionUserId
                 guard !userId.isEmpty else { return }
                 viewModel.getBusinessInfo(userId: userId)
             }
@@ -156,7 +159,7 @@ struct BusinessRegStepTwo: View {
         UIApplication.shared.dismissKeyboard()
         
         validateFields()
-        let userId = AppSessionSnapshot.userID
+        let userId = viewModel.sessionUserId
 
         if errors.isEmpty && !userId.isEmpty {
             viewModel.saveBusiness(
@@ -189,3 +192,5 @@ struct BusinessRegStepTwo_Previews: PreviewProvider {
         BusinessRegStepTwo(lastController: "BusinessSpinMenu")
     }
 }
+
+

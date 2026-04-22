@@ -7,11 +7,13 @@ final class BusinessStepFourViewModelTests: XCTestCase {
     func testSuccessfulUploadUpdatesPreferencesAndRoutingLoginFlag() async {
         let preferences = ViewModelSessionPreferenceStore()
         preferences.isLoggedIn = false
+        preferences.userID = "user-1"
         let routing = BusinessStepFourRoutingSpy()
         let model = BusinessStepFourModel(Status: 200, Message: "Done", obj: "")
         let uploader = MockBusinessSaveMediaUploader(result: .success(model))
         let viewModel = BusinessStepFourViewModel(
             preferences: preferences,
+            sessionPreferences: preferences,
             routingNotifier: routing,
             mediaUploader: uploader
         )
@@ -28,11 +30,13 @@ final class BusinessStepFourViewModelTests: XCTestCase {
     func testNon200ResponseLeavesLoggedOutAndSkipsRoutingLogin() async {
         let preferences = ViewModelSessionPreferenceStore()
         preferences.isLoggedIn = false
+        preferences.userID = "user-1"
         let routing = BusinessStepFourRoutingSpy()
         let model = BusinessStepFourModel(Status: 400, Message: "Bad", obj: "")
         let uploader = MockBusinessSaveMediaUploader(result: .success(model))
         let viewModel = BusinessStepFourViewModel(
             preferences: preferences,
+            sessionPreferences: preferences,
             routingNotifier: routing,
             mediaUploader: uploader
         )
@@ -63,11 +67,10 @@ private final class MockBusinessSaveMediaUploader: BusinessSaveMediaUploading {
     func uploadBusinessMedia(
         userID: String,
         logoImage: UIImage,
-        businessImages: [UIImage],
-        completion: @escaping (Result<BusinessStepFourModel, Error>) -> Void
-    ) {
+        businessImages: [UIImage]
+    ) async throws -> BusinessStepFourModel {
         capturedUserID = userID
-        completion(result)
+        return try result.get()
     }
 }
 

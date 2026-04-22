@@ -2,46 +2,56 @@ import Foundation
 
 @MainActor
 final class SplashViewModel: ObservableObject {
-    struct State {
+
+    struct State: Equatable {
         var isActive = false
         var fcmToken: String = "Fetching..."
+        var route: Route?
     }
 
-    enum Action {
+    enum Action: Equatable {
         case onAppear
         case didReceiveFcmToken(String)
         case didReceivePushNotification(Any?)
     }
 
-    enum Route {
+    enum Route: Equatable {
         case intro
     }
 
     @Published private(set) var state = State()
-    @Published var route: Route?
 
-    /// FCM token is now in DeviceIdentifierStoring (PreferenceStore), not TokenStore.
     private let deviceIdentifierStore: DeviceIdentifierStoring
 
-    init(deviceIdentifierStore: DeviceIdentifierStoring = AppDependencies.live.deviceIdentifierStore) {
+    init(deviceIdentifierStore: DeviceIdentifierStoring) {
         self.deviceIdentifierStore = deviceIdentifierStore
     }
 
     func send(_ action: Action) {
         switch action {
-        case .onAppear:               handleAppear()
-        case .didReceiveFcmToken(let token):  handleFcmToken(token)
-        case .didReceivePushNotification:     break // no-op – payload not used
+        case .onAppear: handleAppear()
+        case .didReceiveFcmToken(let token): handleFcmToken(token)
+        case .didReceivePushNotification: break
         }
     }
 
+    private func mutate(_ update: (inout State) -> Void) {
+        var next = state
+        update(&next)
+        state = next
+    }
+
     private func handleAppear() {
-        state.fcmToken = deviceIdentifierStore.fcmToken ?? "No token available"
-        state.isActive = true
-        route = .intro
+        mutate {
+            $0.fcmToken = deviceIdentifierStore.fcmToken ?? "No token available"
+            $0.isActive = true
+            $0.route = .intro
+        }
     }
 
     private func handleFcmToken(_ token: String) {
-        state.fcmToken = token
+        mutate { $0.fcmToken = token }
     }
 }
+
+

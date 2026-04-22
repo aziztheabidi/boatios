@@ -6,7 +6,7 @@ import Alamofire
 final class SponsorsPaymentViewModelTests: XCTestCase {
     func testFilteredPaymentsUsesSearchTextCaseInsensitive() {
         let viewModel = SponsorsPaymentViewModel(
-            apiClient: GenericEndpointAPIClient { _ in .failure(APIError.invalidResponse) },
+            networkRepository: AppNetworkRepository(apiClient: GenericEndpointAPIClient { _ in .failure(APIError.invalidResponse) }),
             sessionPreferences: ViewModelSessionPreferenceStore()
         )
         viewModel.sponsorPayments = [
@@ -56,11 +56,11 @@ final class SponsorsPaymentViewModelTests: XCTestCase {
         let preferences = ViewModelSessionPreferenceStore()
         preferences.userID = "   "
         let viewModel = SponsorsPaymentViewModel(
-            apiClient: GenericEndpointAPIClient { _ in .failure(APIError.invalidResponse) },
+            networkRepository: AppNetworkRepository(apiClient: GenericEndpointAPIClient { _ in .failure(APIError.invalidResponse) }),
             sessionPreferences: preferences
         )
         let paymentViewModel = NewRequestPopUpViewModel(
-            apiClient: GenericEndpointAPIClient { _ in .failure(APIError.invalidResponse) },
+            networkRepository: AppNetworkRepository(apiClient: GenericEndpointAPIClient { _ in .failure(APIError.invalidResponse) }),
             sessionPreferences: preferences
         )
 
@@ -71,7 +71,7 @@ final class SponsorsPaymentViewModelTests: XCTestCase {
 
     func testHandlePaymentCompletedRoutesImmediately() {
         let viewModel = SponsorsPaymentViewModel(
-            apiClient: GenericEndpointAPIClient { _ in .failure(APIError.invalidResponse) },
+            networkRepository: AppNetworkRepository(apiClient: GenericEndpointAPIClient { _ in .failure(APIError.invalidResponse) }),
             sessionPreferences: ViewModelSessionPreferenceStore()
         )
         viewModel.shouldPresentStripeSheet = true
@@ -93,7 +93,7 @@ final class SponsorsPaymentViewModelTests: XCTestCase {
         }
         let preferences = ViewModelSessionPreferenceStore()
         preferences.userID = "u-1"
-        let viewModel = SponsorsPaymentViewModel(apiClient: apiClient, sessionPreferences: preferences)
+        let viewModel = SponsorsPaymentViewModel(networkRepository: AppNetworkRepository(apiClient: apiClient), sessionPreferences: preferences)
 
         viewModel.getSponsorPayments()
         await waitUntil { !viewModel.isLoading }
@@ -111,7 +111,7 @@ final class SponsorsPaymentViewModelTests: XCTestCase {
         }
         let preferences = ViewModelSessionPreferenceStore()
         preferences.userID = "u-1"
-        let viewModel = SponsorsPaymentViewModel(apiClient: apiClient, sessionPreferences: preferences)
+        let viewModel = SponsorsPaymentViewModel(networkRepository: AppNetworkRepository(apiClient: apiClient), sessionPreferences: preferences)
 
         viewModel.getSponsorPayments()
         await waitUntil { !viewModel.isLoading }
@@ -121,7 +121,7 @@ final class SponsorsPaymentViewModelTests: XCTestCase {
 
     func testDismissScreenSetsDismissFlagAndClearResetsIt() {
         let viewModel = SponsorsPaymentViewModel(
-            apiClient: GenericEndpointAPIClient { _ in .failure(APIError.invalidResponse) },
+            networkRepository: AppNetworkRepository(apiClient: GenericEndpointAPIClient { _ in .failure(APIError.invalidResponse) }),
             sessionPreferences: ViewModelSessionPreferenceStore()
         )
 

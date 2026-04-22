@@ -15,7 +15,7 @@ struct BusinessVoyageView: View {
     }
 
     init(dependencies: AppDependencies = .live) {
-        _viewModel = StateObject(wrappedValue: BusinessVoyageViewModel(apiClient: dependencies.apiClient))
+        _viewModel = StateObject(wrappedValue: BusinessVoyageViewModel(networkRepository: dependencies.networkRepository))
     }
 
     var body: some View {
@@ -195,3 +195,5 @@ struct BusinessCardView: View {
         }
     }
 }
+
+

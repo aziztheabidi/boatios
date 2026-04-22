@@ -72,3 +72,4 @@ struct GetBusinessFirstResponse: Decodable {
     
     
 }
+

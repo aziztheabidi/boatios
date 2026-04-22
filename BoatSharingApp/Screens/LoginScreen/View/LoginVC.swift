@@ -11,12 +11,12 @@ struct LoginScreenView: View {
     @StateObject private var viewModel: LoginAuthViewModel
     @State private var ShowToast: Bool = false
     @State private var ToastMsg: String = ""
-    @State private var NavTointro: Bool = false
+    @State private var navigateToIntro: Bool = false
 
     init(dependencies: AppDependencies = .live) {
         _viewModel = StateObject(
             wrappedValue: LoginAuthViewModel(
-                apiClient: dependencies.apiClient,
+                authRepository: dependencies.authRepository,
                 sessionManager: dependencies.sessionManager,
                 preferences: dependencies.preferences,
                 tokenStore: dependencies.tokenStore,
@@ -31,7 +31,7 @@ struct LoginScreenView: View {
 
                 HStack {
                     Button(action: {
-                        NavTointro = true
+                        navigateToIntro = true
                     }) {
                         Image(systemName: "arrow.backward")
                             .foregroundColor(.black)
@@ -133,7 +133,7 @@ struct LoginScreenView: View {
                 }) {
                     Text("By using Boatit, you agree to\n")
                         .foregroundColor(.gray) +
-                    Text("Privicy Policy")
+                    Text("Privacy Policy")
                         .fontWeight(.bold)
                         .foregroundColor(.black)
                 }
@@ -141,15 +141,15 @@ struct LoginScreenView: View {
                 .padding(20)
                 
                 // **Navigation Links**
-                NavigationLink(destination: ResetPasswordVC(), isActive: $navigateToForgot) {
+                NavigationLink(destination: ResetPasswordVC(dependencies: dependencies), isActive: $navigateToForgot) {
                     EmptyView()
                 }
                 
-                NavigationLink(destination: BasicInfoVC(), isActive: $navigateToCreateAccount) {
+                NavigationLink(destination: BasicInfoVC(dependencies: dependencies), isActive: $navigateToCreateAccount) {
                     EmptyView()
                         .navigationBarBackButtonHidden(true)
                 }
-                NavigationLink(destination: PageControllerView(), isActive: $NavTointro) {
+                NavigationLink(destination: PageControllerView(), isActive: $navigateToIntro) {
                     EmptyView()
                         .navigationBarBackButtonHidden(true)
                 }
@@ -190,3 +190,5 @@ struct LoginScreenView: View {
 #Preview {
     LoginScreenView()
 }
+
+

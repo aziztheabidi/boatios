@@ -1,8 +1,6 @@
 import Combine
 import SwiftUI
 
-// MARK: - Phase enum (public, used by the view for layout decisions)
-
 enum TravelNowMainPhase: Equatable {
     case idle
     case loading
@@ -14,45 +12,27 @@ enum TravelNowMainPhase: Equatable {
 @MainActor
 final class TravelNowViewModel: ObservableObject {
 
-    // MARK: - State
-
     struct State {
-        let travelNowData: TravelNowVoyage?
-        let isLoading: Bool
-        let errorMessage: String?
-        let loadingVoyageId: String?
-        let isConfirming: Bool
-        let isCancelling: Bool
-        let showPaymentPopup: Bool
-        let showStripeSheet: Bool
-        let toastMessage: String
-        let isShowToast: Bool
-        let mainPhase: TravelNowMainPhase
-        let retryBannerMessage: String
-        let displayUsername: String
-        let shouldDismissScreen: Bool
+        var travelNowData: TravelNowVoyage?
+        var isLoading: Bool = false
+        var errorMessage: String?
+        var loadingVoyageId: String?
+        var isConfirming: Bool = false
+        var isCancelling: Bool = false
+        var showPaymentPopup: Bool = false
+        var showStripeSheet: Bool = false
+        var toastMessage: String = ""
+        var isShowToast: Bool = false
+        var stripeClientSecret: String?
+        var stripePaymentIntentId: String = ""
+        var shouldDismissScreen: Bool = false
+        var statusCode: Int?
+        var mainPhase: TravelNowMainPhase = .idle
+        var retryBannerMessage: String = "No voyage found"
+        var displayUsername: String = "Unknown user"
+        /// Set after voyage confirm (200) before sponsor flow completes.
+        var showPendingSponsorInvite: Bool = false
     }
-
-    var state: State {
-        State(
-            travelNowData: travelNowData,
-            isLoading: isLoading,
-            errorMessage: errorMessage,
-            loadingVoyageId: loadingVoyageId,
-            isConfirming: isConfirming,
-            isCancelling: isCancelling,
-            showPaymentPopup: showPaymentPopup,
-            showStripeSheet: showStripeSheet,
-            toastMessage: toastMessage,
-            isShowToast: isShowToast,
-            mainPhase: mainPhase,
-            retryBannerMessage: retryBannerMessage,
-            displayUsername: displayUsername,
-            shouldDismissScreen: shouldDismissScreen
-        )
-    }
-
-    // MARK: - Actions
 
     enum Action {
         case onAppear
@@ -60,6 +40,7 @@ final class TravelNowViewModel: ObservableObject {
         case retry
         case dismissForBackNavigation
         case dismissPaymentPopup
+        case dismissToast
         case confirmVoyage(String)
         case cancelVoyage(String)
         case payNow(String)
@@ -68,55 +49,21 @@ final class TravelNowViewModel: ObservableObject {
         case clearDismissRequest
     }
 
-    func send(_ action: Action) {
-        switch action {
-        case .onAppear:             onAppearLoad()
-        case .onDisappear:          onDisappearReset()
-        case .retry:                fetchTravelNowVoyage()
-        case .dismissForBackNavigation: onDisappearReset()
-        case .dismissPaymentPopup:  withAnimation { showPaymentPopup = false }
-        case .confirmVoyage(let id): performVoyageConfirmation(voyageId: id)
-        case .cancelVoyage(let id): performVoyageCancellation(voyageId: id)
-        case .payNow(let id):       startSponsorPaymentOnBehalf(voyageId: id)
-        case .handleStripeResult(let r): handleStripePaymentResult(r)
-        case .dismissScreen:        onDisappearReset(); shouldDismissScreen = true
-        case .clearDismissRequest:  shouldDismissScreen = false
-        }
-    }
+    @Published private(set) var state = State()
 
-    // MARK: - Published state
-
-    @Published var travelNowData: TravelNowVoyage?
-    @Published var isLoading: Bool = false
-    @Published var errorMessage: String?
-    @Published var loadingVoyageId: String?
-    @Published var isConfirming: Bool = false
-    @Published var isCancelling: Bool = false
-    @Published var payNow: Bool = false
-    @Published var showPaymentPopup: Bool = false
-    @Published var showStripeSheet: Bool = false
-    @Published var toastMessage: String = ""
-    @Published var isShowToast: Bool = false
-    @Published var stripeClientSecret: String?
-    @Published var stripePaymentIntentId: String = ""
-    @Published var shouldDismissScreen: Bool = false
-    @Published var statusCode: Int?
-
-    // MARK: - Dependencies
-
-    private let apiClient: APIClientProtocol
+    private let networkRepository: AppNetworkRepositoryProtocol
     private let identityProvider: SessionPreferenceStoring
     private let sponsorPaymentRequestViewModel: NewRequestPopUpViewModel
 
-    init(apiClient: APIClientProtocol, identityProvider: SessionPreferenceStoring) {
-        self.apiClient = apiClient
+    init(networkRepository: AppNetworkRepositoryProtocol, identityProvider: SessionPreferenceStoring) {
+        self.networkRepository = networkRepository
         self.identityProvider = identityProvider
         self.sponsorPaymentRequestViewModel = NewRequestPopUpViewModel(
-            apiClient: apiClient,
+            networkRepository: networkRepository,
             sessionPreferences: identityProvider
         )
-        bindPayNowPipeline()
         bindSponsorPaymentInitiationPipeline()
+        recomputeDerived()
     }
 
     deinit { postStripeSuccessTask?.cancel() }
@@ -126,35 +73,59 @@ final class TravelNowViewModel: ObservableObject {
     private var postStripeSuccessTask: Task<Void, Never>?
     private var cancellables = Set<AnyCancellable>()
 
-    // MARK: - Derived
+    func send(_ action: Action) {
+        switch action {
+        case .onAppear: onAppearLoad()
+        case .onDisappear: onDisappearReset()
+        case .retry: fetchTravelNowVoyage()
+        case .dismissForBackNavigation: onDisappearReset()
+        case .dismissPaymentPopup:
+            withAnimation { mutate { $0.showPaymentPopup = false } }
+        case .dismissToast:
+            mutate { $0.isShowToast = false }
+        case .confirmVoyage(let id): performVoyageConfirmation(voyageId: id)
+        case .cancelVoyage(let id): performVoyageCancellation(voyageId: id)
+        case .payNow(let id): startSponsorPaymentOnBehalf(voyageId: id)
+        case .handleStripeResult(let r): handleStripePaymentResult(r)
+        case .dismissScreen:
+            onDisappearReset()
+            mutate { $0.shouldDismissScreen = true }
+        case .clearDismissRequest:
+            mutate { $0.shouldDismissScreen = false }
+        }
+    }
 
-    var currentUserId: String? {
+    private func mutate(_ update: (inout State) -> Void) {
+        var next = state
+        update(&next)
+        state = next
+        recomputeDerived()
+    }
+
+    private func recomputeDerived() {
+        var next = state
+        let name = identityProvider.username.trimmingCharacters(in: .whitespacesAndNewlines)
+        next.displayUsername = name.isEmpty ? "Unknown user" : name
+
+        if next.isLoading { next.mainPhase = .loading }
+        else if next.statusCode == 404 { next.mainPhase = .noVoyageFound }
+        else if next.statusCode == 200 { next.mainPhase = next.travelNowData != nil ? .voyageContent : .noVoyageFound }
+        else if next.errorMessage != nil { next.mainPhase = .retryableError }
+        else if next.travelNowData != nil { next.mainPhase = .voyageContent }
+        else { next.mainPhase = .idle }
+
+        if let err = next.errorMessage, !err.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            next.retryBannerMessage = err
+        } else {
+            next.retryBannerMessage = "No voyage found"
+        }
+        state = next
+    }
+
+    private var currentUserId: String? {
         let id = identityProvider.userID.trimmingCharacters(in: .whitespacesAndNewlines)
         return id.isEmpty ? nil : id
     }
-
-    var displayUsername: String {
-        let name = identityProvider.username.trimmingCharacters(in: .whitespacesAndNewlines)
-        return name.isEmpty ? "Unknown user" : name
-    }
-
-    var mainPhase: TravelNowMainPhase {
-        if isLoading { return .loading }
-        if statusCode == 404 { return .noVoyageFound }
-        if statusCode == 200 { return travelNowData != nil ? .voyageContent : .noVoyageFound }
-        if errorMessage != nil { return .retryableError }
-        if travelNowData != nil { return .voyageContent }
-        return .idle
-    }
-
-    var retryBannerMessage: String {
-        guard let errorMessage, !errorMessage.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
-            return "No voyage found"
-        }
-        return errorMessage
-    }
-
-    // MARK: - Private lifecycle
 
     private func onAppearLoad() {
         guard !hasLoaded else { return }
@@ -164,162 +135,168 @@ final class TravelNowViewModel: ObservableObject {
 
     private func onDisappearReset() {
         hasLoaded = false
-        shouldDismissScreen = false
+        mutate { $0.shouldDismissScreen = false }
         postStripeSuccessTask?.cancel()
         postStripeSuccessTask = nil
     }
 
     private func startSponsorPaymentOnBehalf(voyageId: String) {
-        guard let sponsorId = currentUserId else { errorMessage = "Missing user id."; return }
+        guard let sponsorId = currentUserId else {
+            mutate { $0.errorMessage = "Missing user id." }
+            return
+        }
         voyageIdForPayment = voyageId
         withAnimation {
             sponsorPaymentRequestViewModel.getSponsorPaymentIds(voyagerId: voyageId, sponsorId: sponsorId, user: "VoyagerUserId")
-            showPaymentPopup = false
+            mutate { $0.showPaymentPopup = false }
         }
     }
 
     func makePaymentSheet() -> PaymentSheet? {
-        guard let secret = stripeClientSecret else { return nil }
+        guard let secret = state.stripeClientSecret else { return nil }
         var config = PaymentSheet.Configuration()
         config.merchantDisplayName = "Boat Sharing"
         return PaymentSheet(paymentIntentClientSecret: secret, configuration: config)
     }
 
     private func handleStripePaymentResult(_ result: PaymentSheetResult) {
-        showStripeSheet = false
-        stripeClientSecret = nil
-        let intentId = stripePaymentIntentId
+        let intentId = state.stripePaymentIntentId
         let voyageId = voyageIdForPayment
+        mutate {
+            $0.showStripeSheet = false
+            $0.stripeClientSecret = nil
+        }
         switch result {
         case .completed:
-            toastMessage = "Payment successful"; isShowToast = true
+            mutate {
+                $0.toastMessage = "Payment successful"
+                $0.isShowToast = true
+            }
             performSponsorPaymentConfirmation(voyageId: voyageId, paymentIntentId: intentId)
         case .canceled:
-            toastMessage = "Payment canceled"; isShowToast = true
+            mutate {
+                $0.toastMessage = "Payment canceled"
+                $0.isShowToast = true
+            }
         case .failed(let error):
-            toastMessage = "Payment failed: \(error.localizedDescription)"; isShowToast = true
+            mutate {
+                $0.toastMessage = "Payment failed: \(error.localizedDescription)"
+                $0.isShowToast = true
+            }
         }
     }
 
-    // MARK: - Combine wiring
-
-    private func bindPayNowPipeline() {
-        $payNow
-            .removeDuplicates()
-            .filter { $0 }
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] _ in withAnimation { self?.showPaymentPopup = true } }
-            .store(in: &cancellables)
-    }
-
     private func bindSponsorPaymentInitiationPipeline() {
-        sponsorPaymentRequestViewModel.$PaymentData
-            .receive(on: DispatchQueue.main)
+        sponsorPaymentRequestViewModel.paymentDataPublisher
+            .receive(on: RunLoop.main)
             .sink { [weak self] data in self?.applySponsorPaymentInitiation(data) }
             .store(in: &cancellables)
     }
 
     private func applySponsorPaymentInitiation(_ data: PaymentInitiationData?) {
         guard let secret = data?.clientSecret else { return }
-        stripePaymentIntentId = data?.PaymentIntentId ?? ""
-        stripeClientSecret = secret
-        showStripeSheet = true
+        mutate {
+            $0.stripePaymentIntentId = data?.paymentIntentId ?? ""
+            $0.stripeClientSecret = secret
+            $0.showStripeSheet = true
+        }
     }
 
-    // MARK: - Private network
-
     private func fetchTravelNowVoyage() {
-        isLoading = true
-        errorMessage = nil
-        statusCode = nil
-        Task {
+        mutate {
+            $0.isLoading = true
+            $0.errorMessage = nil
+            $0.statusCode = nil
+        }
+        Task { @MainActor in
             do {
-                let response: TravelVoyageResponse = try await apiClient.request(
-                    endpoint: "/Voyager/GetImmediatelyBookedVoyage",
-                    method: .get,
-                    parameters: nil,
-                    requiresAuth: true
-                )
-                self.isLoading = false
-                self.travelNowData = response.obj
-                self.statusCode = response.status
+                let response = try await networkRepository.voyager_getImmediatelyBookedVoyage()
+                mutate {
+                    $0.isLoading = false
+                    $0.travelNowData = response.obj
+                    $0.statusCode = response.status
+                    $0.showPendingSponsorInvite = false
+                }
             } catch {
-                self.isLoading = false
-                self.errorMessage = error.localizedDescription
-                self.statusCode = (error as? APIError).flatMap {
-                    if case .serverError(let code, _) = $0 { return code } else { return nil }
+                let code = (error as? APIError).flatMap {
+                    if case .serverError(let c, _) = $0 { return c } else { return nil }
                 } ?? 500
+                mutate {
+                    $0.isLoading = false
+                    $0.errorMessage = error.localizedDescription
+                    $0.statusCode = code
+                }
             }
         }
     }
 
     private func performVoyageCancellation(voyageId: String) {
-        loadingVoyageId = voyageId
-        isCancelling = true
-        Task {
+        mutate {
+            $0.loadingVoyageId = voyageId
+            $0.isCancelling = true
+        }
+        Task { @MainActor in
             do {
-                let _: VoyageValidationResponse = try await apiClient.request(
-                    endpoint: "/Voyage/Cancel",
-                    method: .post,
-                    parameters: ["Id": voyageId],
-                    requiresAuth: true
-                )
-                self.loadingVoyageId = nil
-                self.isCancelling = false
-                self.fetchTravelNowVoyage()
+                _ = try await networkRepository.voyage_cancel(voyageId: voyageId)
+                mutate {
+                    $0.loadingVoyageId = nil
+                    $0.isCancelling = false
+                }
+                fetchTravelNowVoyage()
             } catch {
-                self.loadingVoyageId = nil
-                self.isCancelling = false
-                self.errorMessage = error.localizedDescription
-                self.fetchTravelNowVoyage()
+                mutate {
+                    $0.loadingVoyageId = nil
+                    $0.isCancelling = false
+                    $0.errorMessage = error.localizedDescription
+                }
+                fetchTravelNowVoyage()
             }
         }
     }
 
     private func performVoyageConfirmation(voyageId: String) {
-        loadingVoyageId = voyageId
-        isConfirming = true
-        Task {
+        mutate {
+            $0.loadingVoyageId = voyageId
+            $0.isConfirming = true
+        }
+        Task { @MainActor in
             do {
-                let response: VoyageConfirmationResponse = try await apiClient.request(
-                    endpoint: "/Voyage/Confirm",
-                    method: .post,
-                    parameters: ["Id": voyageId],
-                    requiresAuth: true
-                )
-                self.loadingVoyageId = nil
-                self.isConfirming = false
+                let response = try await networkRepository.voyage_confirm(voyageId: voyageId)
+                mutate {
+                    $0.loadingVoyageId = nil
+                    $0.isConfirming = false
+                }
                 if response.status == 200 {
-                    self.payNow = true
+                    withAnimation {
+                        mutate {
+                            $0.showPaymentPopup = true
+                            $0.showPendingSponsorInvite = true
+                        }
+                    }
                 } else {
-                    self.fetchTravelNowVoyage()
+                    fetchTravelNowVoyage()
                 }
             } catch {
-                self.loadingVoyageId = nil
-                self.isConfirming = false
-                self.errorMessage = error.localizedDescription
-                self.fetchTravelNowVoyage()
+                mutate {
+                    $0.loadingVoyageId = nil
+                    $0.isConfirming = false
+                    $0.errorMessage = error.localizedDescription
+                }
+                fetchTravelNowVoyage()
             }
         }
     }
 
     private func performSponsorPaymentConfirmation(voyageId: String, paymentIntentId: String) {
-        Task {
+        Task { @MainActor in
             do {
-                let _: PaymentSuccessResponse = try await apiClient.request(
-                    endpoint: AppConfiguration.API.Endpoints.sponsorPaymentConfirmation,
-                    method: .post,
-                    parameters: ["Id": voyageId, "PaymentIntentId": paymentIntentId],
-                    requiresAuth: true
-                )
-                self.fetchTravelNowVoyage()
+                _ = try await networkRepository.voyage_sponsorPaymentConfirm(voyageId: voyageId, paymentIntentId: paymentIntentId)
+                fetchTravelNowVoyage()
             } catch {
-                self.errorMessage = error.localizedDescription
+                mutate { $0.errorMessage = error.localizedDescription }
             }
         }
     }
-
-    // MARK: - Legacy surface
 
     func getTravelNowVoyage() { fetchTravelNowVoyage() }
     func voyageValidation(voyageId: String) { send(.cancelVoyage(voyageId)) }
@@ -328,3 +305,4 @@ final class TravelNowViewModel: ObservableObject {
         performSponsorPaymentConfirmation(voyageId: voyageId, paymentIntentId: paymentIntentId)
     }
 }
+

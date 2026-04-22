@@ -7,16 +7,19 @@ struct BusinessRegStepThree: View {
     @State private var errors: [String: String] = [:]
     @Environment(\.presentationMode) var presentationMode
     @ObservedObject var viewModel: BusinessStepThreeViewModel
-    @State private var showToast = false  // ✅ Show toast on API response
+    @State private var showToast = false
 
     init(dependencies: AppDependencies = .live) {
-        _viewModel = ObservedObject(wrappedValue: BusinessStepThreeViewModel(apiClient: dependencies.apiClient))
+        _viewModel = ObservedObject(wrappedValue: BusinessStepThreeViewModel(
+            networkRepository: dependencies.networkRepository,
+            sessionPreferences: dependencies.sessionPreferences
+        ))
     }
 
     var isFormValid: Bool {
         return !businessDescription.isEmpty && (dockStatus == "Yes" || dockStatus == "No")
     }
-    
+
     var body: some View {
         NavigationView {
             VStack {
@@ -27,11 +30,11 @@ struct BusinessRegStepThree: View {
                 }
                 .padding(.leading)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                
+
                 // Progress Bar
                 Text("Please Add Business Info 3/4")
                     .padding(.top, -20)
-                
+
                 HStack(spacing: 10) {
                     ForEach(0..<4, id: \.self) { index in
                         Capsule()
@@ -40,7 +43,7 @@ struct BusinessRegStepThree: View {
                     }
                 }
                 .padding()
-                
+
                 // Business Description
                 HStack {
                     Text("Business Description")
@@ -49,13 +52,13 @@ struct BusinessRegStepThree: View {
                     Spacer()
                 }
                 .padding(.horizontal)
-                
+
                 TextEditor(text: $businessDescription)
                     .frame(height: 150)
                     .padding()
                     .background(RoundedRectangle(cornerRadius: 10).stroke(errors["businessDescription"] == nil ? Color.gray : Color.red, lineWidth: 1))
                     .padding(.horizontal)
-                
+
                 if let errorMessage = errors["businessDescription"] {
                     Text(errorMessage)
                         .foregroundColor(.red)
@@ -63,7 +66,7 @@ struct BusinessRegStepThree: View {
                         .padding(.leading)
                         .padding(.top, 5)
                 }
-                
+
                 // Dock Question
                 HStack {
                     Text("Does this business have a dock?")
@@ -72,7 +75,7 @@ struct BusinessRegStepThree: View {
                     Spacer()
                 }
                 .padding(.horizontal)
-                
+
                 TextField("", text: $dockStatus)
                     .disabled(true)
                     .padding()
@@ -80,7 +83,7 @@ struct BusinessRegStepThree: View {
                     .background(RoundedRectangle(cornerRadius: 10).stroke(errors["dockStatus"] == nil ? Color.gray : Color.red, lineWidth: 1))
                     .onTapGesture { showDockPopup = true }
                     .padding(.horizontal)
-                
+
                 if let dockError = errors["dockStatus"] {
                     Text(dockError)
                         .foregroundColor(.red)
@@ -88,9 +91,9 @@ struct BusinessRegStepThree: View {
                         .padding(.leading)
                         .padding(.top, 5)
                 }
-                
+
                 Spacer()
-                
+
                 Button(action: submitForm) {
                     if viewModel.isLoading {
                         ProgressView()
@@ -108,7 +111,7 @@ struct BusinessRegStepThree: View {
                 }
                 .padding()
                 .disabled(!isFormValid || viewModel.isLoading)
-                
+
                 NavigationLink(destination: BusinessStepRegFour(), isActive: $viewModel.shouldNavigate) {
                     EmptyView().navigationBarBackButtonHidden(true)
                 }
@@ -135,20 +138,20 @@ struct BusinessRegStepThree: View {
         }
         .navigationBarBackButtonHidden(true)
     }
-    
+
     func submitForm() {
         // Dismiss keyboard
         UIApplication.shared.dismissKeyboard()
-        
+
         validateFields()
-        let userId = AppSessionSnapshot.userID
+        let userId = viewModel.sessionUserId
 
         if errors.isEmpty && !userId.isEmpty {
             viewModel.send(.saveBusiness(description: businessDescription, isDock: dockStatus == "Yes", userId: userId))
         }
         showToast = true
     }
-    
+
     func validateFields() {
         errors = [:]
         if businessDescription.isEmpty { errors["businessDescription"] = "Business description is required" }
@@ -161,3 +164,5 @@ struct BusinessRegThree_Previews: PreviewProvider {
         BusinessRegStepThree()
     }
 }
+
+

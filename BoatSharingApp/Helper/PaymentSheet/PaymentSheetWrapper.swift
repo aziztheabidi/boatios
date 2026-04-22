@@ -11,7 +11,7 @@ import SwiftUI
 import Stripe
 import StripePaymentSheet
 #else
-// Temporary Stripe-off fallback types.
+/// Stub types used when Stripe frameworks are not linked (e.g. selective local builds).
 enum StripeAPI {
     static var defaultPublishableKey: String = ""
 }
@@ -48,7 +48,7 @@ struct PaymentSheetWrapper: UIViewControllerRepresentable {
 
     func makeUIViewController(context: Context) -> UIViewController {
         let controller = UIViewController()
-        DispatchQueue.main.async {
+        Task { @MainActor in
             paymentSheet.present(from: controller) { result in
                 onCompletion(result)
             }

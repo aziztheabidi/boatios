@@ -55,10 +55,16 @@ final class BusinessStepTwoViewModel: ObservableObject {
 
     // MARK: - Dependencies
 
-    private let apiClient: APIClientProtocol
+    private let networkRepository: AppNetworkRepositoryProtocol
+    private let sessionPreferences: SessionPreferenceStoring
 
-    init(apiClient: APIClientProtocol) {
-        self.apiClient = apiClient
+    init(networkRepository: AppNetworkRepositoryProtocol, sessionPreferences: SessionPreferenceStoring) {
+        self.networkRepository = networkRepository
+        self.sessionPreferences = sessionPreferences
+    }
+
+    var sessionUserId: String {
+        sessionPreferences.userID.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
     // MARK: - Private network
@@ -72,10 +78,7 @@ final class BusinessStepTwoViewModel: ObservableObject {
         ]
         Task {
             do {
-                let response: BusinessStepTwoModel = try await apiClient.request(
-                    endpoint: "/BusinessInfo/Save", method: .post,
-                    parameters: parameters, requiresAuth: true
-                )
+                let response = try await networkRepository.businessInfo_save(parameters: parameters)
                 self.isLoading    = false
                 self.message      = response.Message
                 self.isSuccess    = response.Status == 200
@@ -93,10 +96,7 @@ final class BusinessStepTwoViewModel: ObservableObject {
         errorMessage = nil
         Task {
             do {
-                let response: GetBusinessInfoResponse = try await apiClient.request(
-                    endpoint: "/BusinessInfo/GetByUserId?UserId=\(userId)",
-                    method: .get, parameters: nil, requiresAuth: true
-                )
+                let response = try await networkRepository.businessInfo_getByUserId(userId: userId)
                 self.isBusinessInfoLoading = false
                 self.businessInfo = response.obj
             } catch {
@@ -108,3 +108,4 @@ final class BusinessStepTwoViewModel: ObservableObject {
 
     func getBusinessInfo(userId: String) { send(.loadBusinessInfo(userId: userId)) }
 }
+

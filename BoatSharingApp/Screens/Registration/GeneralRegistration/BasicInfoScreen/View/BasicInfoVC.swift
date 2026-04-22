@@ -13,7 +13,7 @@ struct BasicInfoVC: View {
 
     init(dependencies: AppDependencies = .live) {
         self.dependencies = dependencies
-        _viewModel = StateObject(wrappedValue: BasicInfoViewModel(apiClient: dependencies.apiClient))
+        _viewModel = StateObject(wrappedValue: BasicInfoViewModel(networkRepository: dependencies.networkRepository))
     }
 
     var isFormValid: Bool {
@@ -86,7 +86,7 @@ struct BasicInfoVC: View {
                         
                         CustomLabeledTextFields(
                             label: "",
-                            placeholder: "example@abc.com", // ✅ placeholder
+                            placeholder: "example@abc.com",
                             text: $email,
                             error: Binding(
                                 get: { errors["Email"] },
@@ -112,7 +112,7 @@ struct BasicInfoVC: View {
                         
                         CustomLabeledTextFields(
                             label: "",
-                            placeholder: "(XXX) XXX-XXXX", // ✅ placeholder
+                            placeholder: "(XXX) XXX-XXXX",
                             text: Binding(
                                 get: { phone },
                                 set: { newValue in
@@ -144,7 +144,7 @@ struct BasicInfoVC: View {
                 // **Register Button with API Call**
                 Button(action: registerUser) {
                     HStack {
-                        if viewModel.isLoading {
+                        if viewModel.state.isLoading {
                             ProgressView()
                                 .progressViewStyle(CircularProgressViewStyle(tint: .white))
                         }
@@ -159,25 +159,31 @@ struct BasicInfoVC: View {
                 }
                 .padding(.horizontal, 33)
                 .padding(.top, 30)
-                .disabled(!isFormValid || viewModel.isLoading)
+                .disabled(!isFormValid || viewModel.state.isLoading)
                 
                 Spacer()
                 
                 // **Navigation to Next Screen**
-                NavigationLink(destination: OTPVC(email: email, dependencies: dependencies), isActive: $viewModel.shouldNavigate) {
+                NavigationLink(
+                    destination: OTPVC(email: email, dependencies: dependencies),
+                    isActive: Binding(
+                        get: { viewModel.state.shouldNavigate },
+                        set: { if !$0 { viewModel.send(.resetNavigation) } }
+                    )
+                ) {
                     EmptyView()
                         .navigationBarBackButtonHidden(true)
                 }
             }
             .navigationBarBackButtonHidden(true)
             .overlay(
-                ToastView(message: viewModel.message, isPresented: $showToast)
+                ToastView(message: viewModel.state.message, isPresented: $showToast)
                     .padding(.bottom, 50),
                 alignment: .bottom
             )
         }
-        .onChange(of: viewModel.message) { _, newMessage in
-            if !newMessage.isEmpty && !viewModel.isSuccess {
+        .onChange(of: viewModel.state.message) { _, newMessage in
+            if !newMessage.isEmpty && !viewModel.state.isSuccess {
                 showToast = true
             }
         }
@@ -249,4 +255,6 @@ struct RegistrationView_Previews: PreviewProvider {
         BasicInfoVC()
     }
 }
+
+
 

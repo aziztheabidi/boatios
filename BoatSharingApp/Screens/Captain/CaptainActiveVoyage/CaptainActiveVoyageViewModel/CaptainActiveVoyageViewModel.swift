@@ -135,19 +135,19 @@ final class CaptainActiveVoyageViewModel: ObservableObject {
 
     // MARK: - Dependencies
 
-    private let apiClient: APIClientProtocol
+    private let networkRepository: AppNetworkRepositoryProtocol
     private let identityProvider: SessionPreferenceStoring
     private let locationProvider: CaptainLocationProviding
     private var hasLoaded = false
 
     init(
-        apiClient: APIClientProtocol,
+        networkRepository: AppNetworkRepositoryProtocol,
         identityProvider: SessionPreferenceStoring,
-        locationProvider: CaptainLocationProviding = LocationManager()
+        locationProvider: CaptainLocationProviding? = nil
     ) {
-        self.apiClient = apiClient
+        self.networkRepository = networkRepository
         self.identityProvider = identityProvider
-        self.locationProvider = locationProvider
+        self.locationProvider = locationProvider ?? LocationManager(sessionPreferences: identityProvider)
     }
 
     // MARK: - Derived
@@ -236,12 +236,7 @@ final class CaptainActiveVoyageViewModel: ObservableObject {
         voyageErrorMessage = nil
         Task {
             do {
-                let response: CaptainActiveVoyagesResponse = try await apiClient.request(
-                    endpoint: "/Captain/GetActiveVoyages",
-                    method: .get,
-                    parameters: nil,
-                    requiresAuth: true
-                )
+                let response = try await networkRepository.captain_getActiveVoyages()
                 self.isLoading = false
                 self.pendingVoyages  = response.obj.pending
                 self.acceptedVoyages = response.obj.accepted
@@ -265,12 +260,7 @@ final class CaptainActiveVoyageViewModel: ObservableObject {
         ]
         Task {
             do {
-                let _: AcceptVoyageResponse = try await apiClient.request(
-                    endpoint: "/Voyage/Accept",
-                    method: .post,
-                    parameters: params,
-                    requiresAuth: true
-                )
+                _ = try await networkRepository.voyage_accept(parameters: params)
                 self.isAcceptLoading = false
                 self.VoyageAccepted = true
                 self.fetchActiveVoyages()
@@ -286,12 +276,7 @@ final class CaptainActiveVoyageViewModel: ObservableObject {
         isLoading = true
         Task {
             do {
-                let _: VoyageValidationResponse = try await apiClient.request(
-                    endpoint: "/Voyage/Cancel",
-                    method: .post,
-                    parameters: ["Id": voyageId],
-                    requiresAuth: true
-                )
+                _ = try await networkRepository.voyage_cancel(voyageId: voyageId)
                 self.isLoading = false
                 self.fetchActiveVoyages()
             } catch {
@@ -306,12 +291,7 @@ final class CaptainActiveVoyageViewModel: ObservableObject {
         isLoading = true
         Task {
             do {
-                let _: VoyageValidationResponse = try await apiClient.request(
-                    endpoint: "/Voyage/Start",
-                    method: .post,
-                    parameters: ["Id": voyageId, "OTP": otp],
-                    requiresAuth: true
-                )
+                _ = try await networkRepository.voyage_start(parameters: ["Id": voyageId, "OTP": otp])
                 self.isLoading = false
                 self.fetchActiveVoyages()
             } catch {
@@ -326,12 +306,7 @@ final class CaptainActiveVoyageViewModel: ObservableObject {
         isLoading = true
         Task {
             do {
-                let _: VoyageValidationResponse = try await apiClient.request(
-                    endpoint: "/Voyage/Complete",
-                    method: .post,
-                    parameters: ["Id": voyageId],
-                    requiresAuth: true
-                )
+                _ = try await networkRepository.voyage_complete(parameters: ["Id": voyageId])
                 self.isLoading = false
                 self.VoyageCompleted = true
                 self.shouldNavigateToFeedback = true
@@ -345,7 +320,7 @@ final class CaptainActiveVoyageViewModel: ObservableObject {
         }
     }
 
-    // MARK: - Legacy call-site compat
+    // MARK: - Public action helpers
 
     func getCaptainActiveVoyages() { fetchActiveVoyages() }
     func acceptVoyage(voyageId: String, captainId: String, captainBookingLatitude: Double, captainBookingLongitude: Double) {
@@ -367,3 +342,4 @@ final class CaptainActiveVoyageViewModel: ObservableObject {
     func handleTrackRidePin(_ pin: String) { send(.handleTrackRidePin(pin)) }
     func handleSessionExpiredAcknowledged() { send(.handleSessionExpiredAcknowledged) }
 }
+

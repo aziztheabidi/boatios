@@ -1,6 +1,13 @@
 import Foundation
 
-/// Non-sensitive persisted application state.
+/// Persisted **non-secret** app state (UserDefaults).
+///
+/// Boundaries:
+/// - **Access / refresh tokens** live in `TokenStore` / Keychain only — never here.
+/// - **Session identity fields** (`userID`, `userEmail`, `username`, role, onboarding step) are persisted for
+///   launch routing and API identity; they are cleared by `clearSessionPreferences()` on logout / session expiry.
+///   Transient booking / popup UI belongs in view models and `UIFlowState`, not re-derived from these keys.
+/// - **FCM registration token** is a public push identifier (`DeviceIdentifierStoring`), not a Keychain secret.
 final class PreferenceStore: SessionPreferenceStoring, PreferenceStoring, DeviceIdentifierStoring {
     private let defaults: UserDefaults
 
@@ -16,11 +23,7 @@ final class PreferenceStore: SessionPreferenceStoring, PreferenceStoring, Device
     var userRole: String {
         get {
             let raw = defaults.string(forKey: AppConfiguration.PreferenceKeys.userRole) ?? ""
-            let normalized = AppConfiguration.UserRole.normalize(raw)
-            if normalized != raw {
-                defaults.set(normalized, forKey: AppConfiguration.PreferenceKeys.userRole)
-            }
-            return normalized
+            return AppConfiguration.UserRole.normalize(raw)
         }
         set {
             defaults.set(
@@ -71,5 +74,6 @@ final class PreferenceStore: SessionPreferenceStoring, PreferenceStoring, Device
         defaults.removeObject(forKey: AppConfiguration.PreferenceKeys.userRole)
         defaults.removeObject(forKey: AppConfiguration.PreferenceKeys.missingStep)
         defaults.set(false, forKey: AppConfiguration.PreferenceKeys.isLoggedIn)
+        defaults.set(false, forKey: AppConfiguration.PreferenceKeys.captainStatus)
     }
 }

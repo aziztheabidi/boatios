@@ -22,7 +22,7 @@ class SessionManager: ObservableObject {
     private let refreshService: RefreshTokenServicing
     private var isRefreshing = false
     private var refreshContinuations: [CheckedContinuation<Bool, Never>] = []
-    private let refreshStateQueue = DispatchQueue(label: "com.boatit.session.refresh-state")
+    private let refreshLock = NSLock()
     
     init(
         tokenStore: TokenStoring,
@@ -86,56 +86,51 @@ class SessionManager: ObservableObject {
     }
     
     func refreshToken() async -> Bool {
-        // If already refreshing, wait for the result.
-        let currentlyRefreshing = refreshStateQueue.sync { isRefreshing }
-        if currentlyRefreshing {
+        refreshLock.lock()
+        if isRefreshing {
+            refreshLock.unlock()
             return await withCheckedContinuation { continuation in
-                refreshStateQueue.sync {
-                    refreshContinuations.append(continuation)
-                }
+                refreshLock.lock()
+                refreshContinuations.append(continuation)
+                refreshLock.unlock()
             }
         }
+        isRefreshing = true
+        refreshLock.unlock()
 
-        refreshStateQueue.sync {
-            isRefreshing = true
-        }
-        
         guard let accessToken = self.accessToken,
               let refreshToken = self.refreshToken else {
             expireSessionForRefreshFailure()
             completeRefresh(success: false)
             return false
         }
-        
-        return await withCheckedContinuation { continuation in
-            Task {
-                do {
-                    let refreshed = try await self.refreshService.refreshToken(
-                        accessToken: accessToken,
-                        refreshToken: refreshToken
-                    )
-                    self.saveTokens(
-                        accessToken: refreshed.Accesstoken,
-                        refreshToken: refreshed.Refreshtoken
-                    )
-                    self.eventPublisher.send(.tokenRefreshed)
-                    self.completeRefresh(success: true)
-                    continuation.resume(returning: true)
-                } catch {
-                    self.expireSessionForRefreshFailure()
-                    self.completeRefresh(success: false)
-                    continuation.resume(returning: false)
-                }
-            }
+
+        do {
+            let refreshed = try await refreshService.refreshToken(
+                accessToken: accessToken,
+                refreshToken: refreshToken
+            )
+            saveTokens(
+                accessToken: refreshed.Accesstoken,
+                refreshToken: refreshed.Refreshtoken
+            )
+            eventPublisher.send(.tokenRefreshed)
+            completeRefresh(success: true)
+            return true
+        } catch {
+            expireSessionForRefreshFailure()
+            completeRefresh(success: false)
+            return false
         }
     }
-    
+
     private func completeRefresh(success: Bool) {
-        refreshStateQueue.sync {
-            isRefreshing = false
-            refreshContinuations.forEach { $0.resume(returning: success) }
-            refreshContinuations.removeAll()
-        }
+        refreshLock.lock()
+        isRefreshing = false
+        let waiters = refreshContinuations
+        refreshContinuations.removeAll()
+        refreshLock.unlock()
+        waiters.forEach { $0.resume(returning: success) }
     }
     
     /// Force-expire session with storage clearing first, then event emission.

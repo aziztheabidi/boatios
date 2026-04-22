@@ -11,7 +11,7 @@ struct OTPVC: View {
 
     init(email: String, dependencies: AppDependencies = .live) {
         self.email = email
-        _viewModel = StateObject(wrappedValue: OTPViewModel(apiClient: dependencies.apiClient, tokenStore: dependencies.tokenStore))
+        _viewModel = StateObject(wrappedValue: OTPViewModel(networkRepository: dependencies.networkRepository, tokenStore: dependencies.tokenStore))
     }
 
     var isVerifyButtonEnabled: Bool {
@@ -160,7 +160,7 @@ struct OTPVC: View {
                 }) {
                     Text("By using Boatit, you agree to\n")
                         .foregroundColor(.gray) +
-                    Text("Privicy Policy")
+                    Text("Privacy Policy")
                         .fontWeight(.bold)
                         .foregroundColor(.black)
                 }
@@ -186,18 +186,6 @@ struct OTPVC: View {
         }
     }
 
-    // **Validate OTP and Call API**
-//    private func validateOTP() {
-//        let enteredOTP = otp.joined()
-//        if let otpInt = Int(enteredOTP), enteredOTP.count == 5 {
-//            viewModel.EnterOTP(email: email, OTP: otpInt)
-//            showToast = true
-//        } else {
-//            viewModel.message = "Invalid OTP Format"
-//            showToast = true
-//        }
-//    }
-
     private func validateOTP() {
         // Dismiss keyboard
         UIApplication.shared.dismissKeyboard()
@@ -216,3 +204,5 @@ struct OTPScreenController_Previews: PreviewProvider {
         OTPVC(email: "test@example.com")
     }
 }
+
+

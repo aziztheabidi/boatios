@@ -62,6 +62,7 @@ final class FutureVoyageViewModel: ObservableObject {
         case confirmCancel
         case pendingPrimaryConfirm(String)
         case handleStripeResult(PaymentSheetResult)
+        case dismissToast
     }
 
     func send(_ action: Action) {
@@ -76,6 +77,7 @@ final class FutureVoyageViewModel: ObservableObject {
         case .confirmCancel:                    performVoyageCancellation(voyageId: selectedVoyageIdForCancel)
         case .pendingPrimaryConfirm(let id):    handlePendingPrimaryConfirm(voyageId: id)
         case .handleStripeResult(let result):   handleStripePaymentResult(result)
+        case .dismissToast:                    isShowToast = false
         }
     }
 
@@ -109,17 +111,17 @@ final class FutureVoyageViewModel: ObservableObject {
 
     // MARK: - Dependencies
 
-    private let apiClient: APIClientProtocol
+    private let networkRepository: AppNetworkRepositoryProtocol
     private let identityProvider: SessionPreferenceStoring
     private let sponsorPaymentRequestViewModel: NewRequestPopUpViewModel
     private var cancellables = Set<AnyCancellable>()
     private var stripePaymentCompletionTask: Task<Void, Never>?
 
-    init(apiClient: APIClientProtocol, identityProvider: SessionPreferenceStoring) {
-        self.apiClient = apiClient
+    init(networkRepository: AppNetworkRepositoryProtocol, identityProvider: SessionPreferenceStoring) {
+        self.networkRepository = networkRepository
         self.identityProvider = identityProvider
         self.sponsorPaymentRequestViewModel = NewRequestPopUpViewModel(
-            apiClient: apiClient,
+            networkRepository: networkRepository,
             sessionPreferences: identityProvider
         )
         bindPaymentConfirmedPipeline()
@@ -220,7 +222,7 @@ final class FutureVoyageViewModel: ObservableObject {
     private func bindPaymentConfirmedPipeline() {
         $PaymentConfirmed
             .dropFirst()
-            .receive(on: DispatchQueue.main)
+            .receive(on: RunLoop.main)
             .sink { [weak self] confirmed in
                 guard let self, confirmed else { return }
                 self.performVoyageConfirmation(voyageId: self.voyageIdForPayment)
@@ -233,21 +235,21 @@ final class FutureVoyageViewModel: ObservableObject {
         $payNowTrigger
             .removeDuplicates()
             .filter { $0 }
-            .receive(on: DispatchQueue.main)
+            .receive(on: RunLoop.main)
             .sink { [weak self] _ in withAnimation { self?.showPaymentPopup = true } }
             .store(in: &cancellables)
     }
 
     private func bindSponsorPaymentInitiationPipeline() {
-        sponsorPaymentRequestViewModel.$PaymentData
-            .receive(on: DispatchQueue.main)
+        sponsorPaymentRequestViewModel.paymentDataPublisher
+            .receive(on: RunLoop.main)
             .sink { [weak self] data in self?.handlePaymentInitiationData(data) }
             .store(in: &cancellables)
     }
 
     private func handlePaymentInitiationData(_ data: PaymentInitiationData?) {
         guard let secret = data?.clientSecret else { return }
-        stripePaymentIntentId = data?.PaymentIntentId ?? ""
+        stripePaymentIntentId = data?.paymentIntentId ?? ""
         stripeClientSecret = secret
         showStripeSheet = true
     }
@@ -259,12 +261,7 @@ final class FutureVoyageViewModel: ObservableObject {
         voyageErrorMessage = nil
         Task {
             do {
-                let response: FutureVoyageResponse = try await apiClient.request(
-                    endpoint: "/Voyager/GetFutureBookedVoyagesByUserId?UserId=\(userid)",
-                    method: .get,
-                    parameters: nil,
-                    requiresAuth: true
-                )
+                let response = try await networkRepository.voyager_getFutureBookedVoyages(userId: userid)
                 self.isFutureVoyageLoading = false
                 self.futureVoyageDetails = response.obj
             } catch {
@@ -279,12 +276,7 @@ final class FutureVoyageViewModel: ObservableObject {
         isCancelling = true
         Task {
             do {
-                let _: VoyageValidationResponse = try await apiClient.request(
-                    endpoint: "/Voyage/Cancel",
-                    method: .post,
-                    parameters: ["Id": voyageId],
-                    requiresAuth: true
-                )
+                _ = try await networkRepository.voyage_cancel(voyageId: voyageId)
                 self.loadingVoyageId = nil
                 self.isCancelling = false
                 if let userID = self.requiredUserId { self.fetchFutureVoyages(userid: userID) }
@@ -303,12 +295,7 @@ final class FutureVoyageViewModel: ObservableObject {
         isConfirming = true
         Task {
             do {
-                let response: VoyageValidationResponse = try await apiClient.request(
-                    endpoint: "/Voyage/Confirm",
-                    method: .post,
-                    parameters: ["Id": voyageId],
-                    requiresAuth: true
-                )
+                let response: VoyageConfirmationResponse = try await networkRepository.voyage_confirm(voyageId: voyageId)
                 self.loadingVoyageId = nil
                 self.isConfirming = false
                 if response.status == 200 {
@@ -343,12 +330,7 @@ final class FutureVoyageViewModel: ObservableObject {
     private func performSponsorPaymentConfirmation(voyageId: String, paymentIntentId: String) {
         Task {
             do {
-                let _: PaymentSuccessResponse = try await apiClient.request(
-                    endpoint: AppConfiguration.API.Endpoints.sponsorPaymentConfirmation,
-                    method: .post,
-                    parameters: ["Id": voyageId, "PaymentIntentId": paymentIntentId],
-                    requiresAuth: true
-                )
+                _ = try await networkRepository.voyage_sponsorPaymentConfirm(voyageId: voyageId, paymentIntentId: paymentIntentId)
                 self.PaymentConfirmed = true
             } catch {
                 self.voyageErrorMessage = error.localizedDescription
@@ -356,13 +338,13 @@ final class FutureVoyageViewModel: ObservableObject {
         }
     }
 
-    // MARK: - Legacy surface (keeps call-sites green)
+    // MARK: - Public action helpers
 
     func getActiveVoyager(userid: String) { fetchFutureVoyages(userid: userid) }
     func VoyageValidation(Voyageid: String) { send(.confirmCancel) }
     func VoyageConfirmation(Voyageid: String) { send(.pendingPrimaryConfirm(Voyageid)) }
-    func sponsorsPaymentSuccess(voyageId: String, PaymentIntentId: String) {
-        performSponsorPaymentConfirmation(voyageId: voyageId, paymentIntentId: PaymentIntentId)
+    func sponsorsPaymentSuccess(voyageId: String, paymentIntentId: String) {
+        performSponsorPaymentConfirmation(voyageId: voyageId, paymentIntentId: paymentIntentId)
     }
     func onAppearLoadVoyagesIfNeeded() { send(.onAppear) }
     func resetInitialLoadForDismiss() { send(.dismissForBackNavigation) }
@@ -375,3 +357,4 @@ final class FutureVoyageViewModel: ObservableObject {
     func handlePendingPrimaryConfirm(voyageId: String) { send(.pendingPrimaryConfirm(voyageId)) }
     func handleStripePaymentResult(_ result: PaymentSheetResult) { send(.handleStripeResult(result)) }
 }
+

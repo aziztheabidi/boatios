@@ -21,15 +21,16 @@ struct VoyagerRateResponse: Codable {
 
 struct DockRate: Codable {
     let perHourRate: Double
-    let totalFair: Double
-    
+    /// Server field is `TotalFair`; Swift name uses correct spelling.
+    let totalFare: Double
+
     enum CodingKeys: String, CodingKey {
         case perHourRate = "PerHourRate"
-        case totalFair = "TotalFair"
+        case totalFare = "TotalFair"
     }
 }
 
-// immedidely Booking / Find boat,...
+// MARK: - Find boat / immediate booking
 
 struct FindBoatResponse: Codable {
     let status: Int
@@ -56,5 +57,6 @@ struct VoyageBookingResponse: Codable {
         case obj = "obj"
     }
 }
+
 
 

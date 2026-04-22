@@ -2,30 +2,29 @@ import SwiftUI
 
 struct SponsorPaymentInvitationView: View {
     @Environment(\.presentationMode) var presentationMode
-    @State private var NavToVoyager: Bool = false
-    let VoyageID: String
+    @State private var navigateToVoyagerHome: Bool = false
+    let voyageId: String
+    private let receiptEmail: String
 
     @StateObject var viewModel: NewRequestPopUpViewModel
 
-    init(VoyageID: String, dependencies: AppDependencies = .live) {
-        self.VoyageID = VoyageID
+    init(voyageId: String, dependencies: AppDependencies = .live) {
+        self.voyageId = voyageId
+        self.receiptEmail = dependencies.sessionPreferences.userEmail.trimmingCharacters(in: .whitespacesAndNewlines)
         _viewModel = StateObject(wrappedValue: NewRequestPopUpViewModel(
-            apiClient: dependencies.apiClient,
+            networkRepository: dependencies.networkRepository,
             sessionPreferences: dependencies.sessionPreferences
         ))
     }
-    @State private var Paymenttype: TypeOfController?
-    @State private var stripeSheet: PaymentSheet?
-      @State private var showStripeSheet = false
-       @State private var paymentResultMessage: String?
-    @State private var paymentResult: PaymentSheetResult?
-    @State private var isShowToast = false
-    @State private var ToastMsg = ""
-    @State private var paymentIntentID = ""
-    @State private var intentID = ""
 
-    
+    @State private var stripeSheet: PaymentSheet?
+    @State private var showStripeSheet = false
+    @State private var isToastPresented = false
+    @State private var toastMessage = ""
+    @State private var paymentIntentId = ""
+
     @State private var navigateToPayment = false
+
     var body: some View {
         NavigationStack {
             VStack(spacing: 20) {
@@ -79,7 +78,7 @@ struct SponsorPaymentInvitationView: View {
                 // Buttons
                 HStack(spacing: 12) {
                     Button(action: {
-                        NavToVoyager = true
+                        navigateToVoyagerHome = true
                     }) {
                         Text("Later")
                             .foregroundColor(.blue)
@@ -95,10 +94,13 @@ struct SponsorPaymentInvitationView: View {
                     }
 
                     Button(action: {
-                        let userId = AppSessionSnapshot.userID
+                        let userId = viewModel.sessionUserId
                         guard !userId.isEmpty else { return }
-                        viewModel.getSponsorPaymentIds(voyagerId: VoyageID, sponsorId: userId, user: "SponsorUserId")
-
+                        viewModel.getSponsorPaymentIds(
+                            voyagerId: voyageId,
+                            sponsorId: userId,
+                            user: BackendContractCoding.SponsorPaymentInitiateKey.sponsorUserIdCanonical
+                        )
                     }) {
                         Text("Pay Now")
                             .foregroundColor(.white)
@@ -113,72 +115,67 @@ struct SponsorPaymentInvitationView: View {
 
                 Spacer()
             }
-            
-            .onChange(of: viewModel.PaymentConfirmed) { _, confirmed in
-                            if confirmed {
-                                navigateToPayment = true
-                            }
-                        }
-            
-            .onChange(of: viewModel.PaymentData) { _, data in
-                        guard let secret = data?.clientSecret else { return }
-                paymentIntentID = data?.PaymentIntentId ?? "ID"
-                intentID = data?.PaymentIntentId ?? ""
-                        var config = PaymentSheet.Configuration()
-                        config.merchantDisplayName = "Boat Sharing"
-                        stripeSheet = PaymentSheet(paymentIntentClientSecret: secret, configuration: config)
-                        showStripeSheet = true
-                    }
-            
+
+            .onChange(of: viewModel.state.paymentConfirmed) { _, confirmed in
+                if confirmed {
+                    navigateToPayment = true
+                }
+            }
+
+            .onChange(of: viewModel.state.paymentData) { _, data in
+                guard let secret = data?.clientSecret else { return }
+                paymentIntentId = data?.paymentIntentId ?? ""
+                var config = PaymentSheet.Configuration()
+                config.merchantDisplayName = "Boat Sharing"
+                stripeSheet = PaymentSheet(paymentIntentClientSecret: secret, configuration: config)
+                showStripeSheet = true
+            }
+
             .sheet(isPresented: $showStripeSheet) {
                 if let sheet = stripeSheet {
                     PaymentSheetWrapper(paymentSheet: sheet) { result in
-                        paymentResult = result
                         showStripeSheet = false
 
                         switch result {
                         case .completed:
-                            ToastMsg = "Payment successful"
-                            isShowToast = true
-                            
-                            viewModel.sponsorPaymentSuccess(voyageId: VoyageID, PaymentIntentId: intentID)
-                            viewModel.handleSponsorPaymentSuccessDelay(debugPaymentIntentId: paymentIntentID)
+                            toastMessage = "Payment successful"
+                            isToastPresented = true
+                            Task {
+                                await viewModel.completeSponsorPaymentAfterDelay(
+                                    voyageId: voyageId,
+                                    paymentIntentId: paymentIntentId
+                                )
+                            }
                         case .canceled:
-                            ToastMsg = "Payment canceled"
-                            isShowToast = true
+                            toastMessage = "Payment canceled"
+                            isToastPresented = true
                         case .failed(let error):
-                            ToastMsg = "Payment failed: \(error.localizedDescription)"
-                            isShowToast = true
+                            toastMessage = "Payment failed: \(error.localizedDescription)"
+                            isToastPresented = true
                         }
                     }
                 }
             }
-            
-            
-            
-            
-            
-            NavigationLink(destination: PaymentPopUpVC(type: .SponsorPayment), isActive: $navigateToPayment) {
+
+            NavigationLink(destination: PaymentPopUpVC(type: .SponsorPayment, receiptEmail: receiptEmail), isActive: $navigateToPayment) {
                 EmptyView()
                     .navigationBarBackButtonHidden(true)
             }
-            
-            
-            NavigationLink(destination: VoyagerHomeView(), isActive: $NavToVoyager) {
+
+            NavigationLink(destination: VoyagerHomeView(), isActive: $navigateToVoyagerHome) {
                 EmptyView()
                     .navigationBarBackButtonHidden(true)
             }
-            
-            
+
             .padding()
             .background(Color.white.ignoresSafeArea())
         }
         .navigationBarHidden(true)
-
     }
 }
 
 #Preview {
-    SponsorPaymentInvitationView(VoyageID: "sdfgsdghsdgbsdhnad")
+    SponsorPaymentInvitationView(voyageId: "sdfgsdghsdgbsdhnad")
 }
+
 

@@ -17,11 +17,10 @@ struct CreateVoyageView: View {
         ZStack {
             
             VStack(spacing: 0) {
-                
-                // 🔥 Custom Header
+
                 HStack {
                     Button(action: {
-                        presentationMode.wrappedValue.dismiss() // 👈 Back action
+                        presentationMode.wrappedValue.dismiss()
                     }) {
                         
                         Image(systemName: "arrow.backward")
@@ -44,8 +43,7 @@ struct CreateVoyageView: View {
                 .background(Color.white)
                 
                 Divider()
-                
-                // 🔥 Original Content Here
+
                 VStack(alignment: .leading, spacing: 16) {
                     Toggle("Travel Now", isOn: $viewModel.isTravelNow)
                         .padding(.horizontal)
@@ -123,16 +121,14 @@ struct CreateVoyageView: View {
                     NavigationLink(
                         destination: VoyagerRateView(
                             dependencies: dependencies,
-                            SponsorsSelecte: { selectedSponsors in },
-                            isSpendOnWater: viewModel.isSpendOnWater,
-                            BookNow: viewModel.isTravelNow
+                            onSponsorsSelected: { _ in },
+                            isSpendOnWater: viewModel.isSpendOnWater
                         ),
                         isActive: $viewModel.moveToNextScreen
                     ) { EmptyView() }
                 }
             }
 
-            // 🔥 Popups (unchanged)
             if viewModel.showCalendar {
                 DatePicker("", selection: Binding($viewModel.selectedDate, replacingNilWith: Date()), displayedComponents: .date)
                     .datePickerStyle(.graphical)
@@ -177,8 +173,8 @@ struct CreateVoyageView: View {
         .overlay(
             ToastView(message: viewModel.toastMessage, isPresented: $viewModel.showToast)
         )
-        .navigationBarBackButtonHidden(true)   // ❌ Hide navigation bar
-        .toolbar(.hidden)                      // ❌ Full hide toolbar
+        .navigationBarBackButtonHidden(true)
+        .toolbar(.hidden)
     }
 }
 
@@ -196,4 +192,6 @@ extension Binding where Value: Equatable {
         )
     }
 }
+
+
 

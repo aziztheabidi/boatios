@@ -15,7 +15,12 @@ struct DashboardVC: View {
     init(dependencies: AppDependencies = .live) {
         self.dependencies = dependencies
         _viewModel = StateObject(wrappedValue: DashboardVCViewModel(businessRepository: dependencies.businessRepository))
-        _stepFourViewModel = StateObject(wrappedValue: BusinessStepFourViewModel(preferences: dependencies.preferences, routingNotifier: dependencies.routingNotifier, mediaUploader: dependencies.businessSaveMediaUploader))
+        _stepFourViewModel = StateObject(wrappedValue: BusinessStepFourViewModel(
+            preferences: dependencies.preferences,
+            sessionPreferences: dependencies.sessionPreferences,
+            routingNotifier: dependencies.routingNotifier,
+            mediaUploader: dependencies.businessSaveMediaUploader
+        ))
     }
     @State private var name: String = ""
     @State private var zoneId: Int? = nil
@@ -30,7 +35,12 @@ struct DashboardVC: View {
     @State private var ZoneName: String = ""
     @State private var ShoreName: String = ""
     @State private var IslandName: String = ""
-    @State private var moveToNext: Bool = false
+
+    private enum DashboardStackDestination: Hashable {
+        case spinMenu
+    }
+
+    @State private var stackDestination: DashboardStackDestination?
     @State private var showTimingPopup: Bool = false
     @State private var showLocationPopup: Bool = false
     @State private var showZonePopup: Bool = false
@@ -54,7 +64,7 @@ struct DashboardVC: View {
     private var headerView: some View {
         HStack {
             Button(action: {
-                moveToNext = true
+                stackDestination = .spinMenu
             }) {
                 Image("Group1")
                     .resizable()
@@ -106,87 +116,6 @@ struct DashboardVC: View {
         }
     }
 
-//    private var gallerySectionView: some View {
-//        VStack(spacing: 20) {
-//            HStack {
-//                Text("Gallery")
-//                    .font(.title2)
-//                    .fontWeight(.bold)
-//                Spacer()
-//            }
-//            .padding(.top, 0)
-//            
-//            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())], spacing: 20) {
-//                ForEach(viewModel.dashboard?.imagesPath ?? [], id: \.self) { imagePath in
-//                    galleryImageView(imagePath: imagePath, isNew: false)
-//                }
-//                ForEach(newImagePaths, id: \.self) { imagePath in
-//                    galleryImageView(imagePath: imagePath, isNew: true)
-//                }
-//                if (viewModel.dashboard?.imagesPath.count ?? 0) + newImagePaths.count < 6 {
-//                    PhotosPicker(
-//                        selection: $selectedPhotos,
-//                        maxSelectionCount: 6 - ((viewModel.dashboard?.imagesPath.count ?? 0) + newImagePaths.count),
-//                        matching: .images
-//                    ) {
-//                        VStack {
-//                            Image(systemName: "plus.circle.fill")
-//                                .resizable()
-//                                .scaledToFit()
-//                                .frame(width: 30, height: 30)
-//                                .foregroundColor(.blue)
-//                        }
-//                        .frame(height: 100)
-//                        .frame(maxWidth: .infinity)
-//                        .overlay(
-//                            RoundedRectangle(cornerRadius: 8)
-//                                .stroke(Color.gray, lineWidth: 1)
-//                        )
-//                    }
-//                    .onChange(of: selectedPhotos) { _, newPhotos in
-//                        Task {
-//                            var uiImages: [UIImage] = []
-//                            newImagePaths.removeAll()
-//                            for photo in newPhotos {
-//                                if let data = try? await photo.loadTransferable(type: Data.self),
-//                                   let uiImage = UIImage(data: data) {
-//                                    uiImages.append(uiImage)
-//                                    let imagePath = "uploaded_image_\(UUID().uuidString).jpg"
-//                                    newImagePaths.append(imagePath)
-//                                }
-//                            }
-//                        }
-//                    }
-//                }
-//            }
-//            .padding(.top, 0)
-//            
-//            if !newImagePaths.isEmpty {
-//                Button(action: {
-//                    if stepFourViewModel.isSuccess {
-//                        Task {
-//                            await viewModel.GetBusinessDashboard()
-//                            // Verify new images are in dashboard before clearing
-//                            if viewModel.dashboard?.imagesPath.contains(where: { newImagePaths.contains($0) }) ?? false {
-//                                newImagePaths.removeAll()
-//                            } else {
-//                            }
-//                        }
-//                    }
-//                }) {
-//                    Text("Update")
-//                        .font(.headline)
-//                        .foregroundColor(.white)
-//                        .padding()
-//                        .frame(maxWidth: .infinity)
-//                        .background(stepFourViewModel.isSuccess ? Color.blue : Color.gray)
-//                        .cornerRadius(10)
-//                }
-//                .padding(.top, 10)
-//                .disabled(stepFourViewModel.isLoading || !stepFourViewModel.isSuccess)
-//            }
-//        }
-//    }
     private var gallerySectionView: some View {
         VStack(spacing: 20) {
             HStack {
@@ -238,8 +167,7 @@ struct DashboardVC: View {
                     }
                     .onChange(of: selectedPhotos) { _, newPhotos in
                         guard !newPhotos.isEmpty else { return }
-                        
-                        Task {
+                        Task { @MainActor in
                             // Double check limit (in case user somehow selects more)
                             let existingCount = viewModel.dashboard?.imagesPath.count ?? 0
                             let currentUploadedCount = uploadedImages.count
@@ -249,9 +177,7 @@ struct DashboardVC: View {
                             if newPhotos.count > maxAllowed {
                                 // Limit exceeded
                                 showLimitAlert = true
-                                await MainActor.run {
-                                    selectedPhotos = []
-                                }
+                                selectedPhotos = []
                                 return
                             }
                             
@@ -266,32 +192,24 @@ struct DashboardVC: View {
                             
                             
                             guard !uiImages.isEmpty else {
-                                await MainActor.run {
-                                    selectedPhotos = []
-                                }
+                                selectedPhotos = []
                                 return
                             }
                             
                             // Show images immediately in UI
-                            await MainActor.run {
-                                uploadedImages.append(contentsOf: uiImages)
-                            }
+                            uploadedImages.append(contentsOf: uiImages)
                             
-                            let userId = AppSessionSnapshot.userID
+                            let userId = stepFourViewModel.sessionUserId
                             guard !userId.isEmpty else {
                                 return
                             }
-                            // Upload to server (this is not async, uses completion handler)
                             stepFourViewModel.uploadBusinesslogo(
                                 UserID: userId,
                                 image: UIImage(),
                                 images: uiImages
                             )
                             
-                            // Clear selection after starting upload
-                            await MainActor.run {
-                                selectedPhotos = []
-                            }
+                            selectedPhotos = []
                         }
                     }
                 }
@@ -389,22 +307,6 @@ struct DashboardVC: View {
 
     private var buttonsView: some View {
         HStack {
-//            Button(action: {
-//                newImagePaths.removeAll() // Clear unsaved images
-//                viewModel.GetBusinessDashboard()
-//            }) {
-//                Text("Cancel")
-//                    .padding()
-//                    .frame(maxWidth: .infinity)
-//                    .background(Color.blue)
-//                    .foregroundColor(.white)
-//                    .cornerRadius(10)
-//                    .overlay(
-//                        RoundedRectangle(cornerRadius: 10)
-//                            .stroke(Color.blue, lineWidth: 1)
-//                    )
-//            }
-            
             PrimaryButton(
                 title: "Save And Proceed",
                 isLoading: viewModel.isUploadLoading,
@@ -453,66 +355,6 @@ struct DashboardVC: View {
         .frame(width: 90, height: 90)
     }
 
-//    private func galleryImageView(imagePath: String, isNew: Bool) -> some View {
-//        let normalizedPath = normalizePath(imagePath)
-//        let imageUrlString = imageBasePath + normalizedPath
-//        return ZStack(alignment: .topLeading) {
-//            WebImage(url: URL(string: imageUrlString)) { image in
-//                image
-//                    .resizable()
-//                    .scaledToFill()
-//                    .frame(height: 100)
-//                    .cornerRadius(8)
-//                    .clipped()
-//                    .overlay(
-//                        RoundedRectangle(cornerRadius: 8)
-//                            .stroke(Color.gray, lineWidth: 1)
-//                    )
-//            } placeholder: {
-//                Image(systemName: "photo.fill")
-//                    .resizable()
-//                    .scaledToFill()
-//                    .frame(height: 100)
-//                    .foregroundColor(.gray)
-//                    .clipped()
-//                    .overlay(
-//                        RoundedRectangle(cornerRadius: 8)
-//                            .stroke(Color.gray, lineWidth: 1)
-//                    )
-//            }
-//            .onFailure { error in
-//            }
-//            .frame(height: 100)
-//            
-//            Button(action: {
-//                if isNew {
-//                    newImagePaths.removeAll { $0 == imagePath }
-//                } else {
-//                    viewModel.DeleteImage(Path: imagePath) { _ in
-//                        viewModel.GetBusinessDashboard()
-//                    }
-//                }
-//            }) {
-//                Image(systemName: "xmark.circle.fill")
-//                    .foregroundColor(.red)
-//                    .frame(width: 24, height: 24)
-//                    .background(Circle().fill(Color.white))
-//                    .offset(x: -8, y: 8)
-//            }
-//            .disabled(viewModel.isDeleteimageLoading)
-//        }
-//        .overlay {
-//            if viewModel.isDeleteimageLoading {
-//                ProgressView()
-//                    .progressViewStyle(CircularProgressViewStyle())
-//                    .tint(.white)
-//                    .scaleEffect(1.2)
-//                    .background(Color.black.opacity(0.3))
-//                    .cornerRadius(8)
-//            }
-//        }
-//    }
-    
     private func galleryImageView(imagePath: String, isNew: Bool) -> some View {
         let normalizedPath = normalizePath(imagePath)
         let encodedPath = normalizedPath.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? normalizedPath
@@ -530,7 +372,8 @@ struct DashboardVC: View {
                 )
             
             Button(action: {
-                viewModel.DeleteImage(Path: imagePath) { _ in
+                Task { @MainActor in
+                    _ = await viewModel.deleteImage(path: imagePath)
                     viewModel.GetBusinessDashboard()
                 }
             }) {
@@ -619,11 +462,6 @@ struct DashboardVC: View {
                         }
                         
                         buttonsView
-                        
-                        NavigationLink(destination: SpinWheelMenu(username: "Business"), isActive: $moveToNext) {
-                            EmptyView()
-                                .navigationBarBackButtonHidden(true)
-                        }
                     }
                     .padding(.horizontal, 16)
                     .padding(.top, 80)
@@ -817,6 +655,9 @@ struct DashboardVC: View {
                             .tint(.white)
                     }
                 }
+            }
+            .navigationDestination(item: $stackDestination) { _ in
+                SpinWheelMenu()
             }
         }
         .navigationBarBackButtonHidden(true)
@@ -1323,4 +1164,6 @@ extension CLLocationCoordinate2D: Equatable {
         return lhs.latitude == rhs.latitude && lhs.longitude == rhs.longitude
     }
 }
+
+
 

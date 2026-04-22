@@ -9,8 +9,8 @@ import SwiftUI
 
 struct SponsorsInvitationView: View {
     @Environment(\.presentationMode) var presentationMode
-    @State private var NavToVoyager: Bool = false
-    let VoyageID: String
+    @State private var navigateToSponsorPayment: Bool = false
+    let voyageId: String
     var body: some View {
         NavigationStack {
             VStack(spacing: 10) {
@@ -41,7 +41,7 @@ struct SponsorsInvitationView: View {
                 
                 Button(action: {
                     // Handle Done action (e.g., dismiss view)
-                    NavToVoyager = true
+                    navigateToSponsorPayment = true
                 }) {
                     Text("Done")
                         .foregroundColor(.white)
@@ -55,18 +55,12 @@ struct SponsorsInvitationView: View {
             }
             
             NavigationLink(
-                destination: SponsorPaymentInvitationView(VoyageID: VoyageID),
-                isActive: $NavToVoyager
+                destination: SponsorPaymentInvitationView(voyageId: voyageId),
+                isActive: $navigateToSponsorPayment
             ) {
                 EmptyView()
                     .navigationBarBackButtonHidden(true)
             }
-            
-            
-//            NavigationLink(destination: SponsorPaymentInvitationView(), isActive: $NavToVoyager) {
-//                EmptyView()
-//                    .navigationBarBackButtonHidden(true)
-//            }
             .padding()
             .background(Color.white.ignoresSafeArea())
             .navigationBarHidden(true)
@@ -75,5 +69,6 @@ struct SponsorsInvitationView: View {
 }
 
 #Preview {
-    SponsorsInvitationView(VoyageID: "sdfbgsdbfsdfbsvdfv")
+    SponsorsInvitationView(voyageId: "sdfbgsdbfsdfbsvdfv")
 }
+

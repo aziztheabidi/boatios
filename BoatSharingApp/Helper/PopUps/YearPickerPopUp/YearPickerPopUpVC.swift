@@ -4,8 +4,8 @@ struct YearPicker: View {
     @Environment(\.dismiss) var dismiss
     @Binding var selectedYear: Int?
     
-    let years: [Int] = Array(1950...Calendar.current.component(.year, from: Date())).reversed() // Years from 1950 to current year
-    @State private var tempSelectedYear: Int? // Temporary selection
+    let years: [Int] = Array(1950...Calendar.current.component(.year, from: Date())).reversed()
+    @State private var tempSelectedYear: Int?
 
     var body: some View {
         NavigationView {

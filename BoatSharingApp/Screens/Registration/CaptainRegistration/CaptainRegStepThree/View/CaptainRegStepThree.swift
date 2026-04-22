@@ -3,13 +3,15 @@ import SwiftUI
 struct CaptainRegStepThree: View {
     var lastController: NSString
 
+    @Environment(\.dismiss) private var dismiss
     @StateObject private var viewModel: CaptainRegStepThreeViewModel
 
     init(lastController: NSString, dependencies: AppDependencies = .live) {
         self.lastController = lastController
         _viewModel = StateObject(wrappedValue: CaptainRegStepThreeViewModel(
-            apiClient: dependencies.apiClient,
-            preferences: dependencies.preferences
+            networkRepository: dependencies.networkRepository,
+            preferences: dependencies.preferences,
+            sessionPreferences: dependencies.sessionPreferences
         ))
     }
 
@@ -37,7 +39,7 @@ struct CaptainRegStepThree: View {
             VStack {
                 // Top Bar
                 HStack {
-                    Button(action: { /* Add back navigation */ }) {
+                    Button(action: { dismiss() }) {
                         Image(systemName: "arrow.backward")
                             .foregroundColor(.black)
                             .font(.title2)
@@ -110,7 +112,7 @@ struct CaptainRegStepThree: View {
             }
             .onAppear {
                 if lastController == "CaptainProfileThree" {
-                    let userId = AppSessionSnapshot.userID
+                    let userId = viewModel.sessionUserId
                     guard !userId.isEmpty else { return }
                     viewModel.getCaptainBoat(userId: userId)
                 }
@@ -120,7 +122,7 @@ struct CaptainRegStepThree: View {
                 boatName = boat.name
                 boatMake = boat.make
                 boatModel = boat.model
-                boatYear = boat.year // ✅ Set Int directly
+                boatYear = boat.year
                 boatSize = String(boat.size)
                 boatCapacity = String(boat.capacity)
             }
@@ -131,7 +133,7 @@ struct CaptainRegStepThree: View {
     // MARK: - Save Boat Data
     private func saveBoat() {
         validateForm()
-        let userId = AppSessionSnapshot.userID
+        let userId = viewModel.sessionUserId
         guard !userId.isEmpty else { return }
         guard isFormValid else { return }
         
@@ -232,4 +234,6 @@ extension View {
 #Preview {
     CaptainRegStepThree(lastController: "CaptainProfileThree")
 }
+
+
 

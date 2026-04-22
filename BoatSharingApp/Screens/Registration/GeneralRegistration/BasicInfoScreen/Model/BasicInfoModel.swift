@@ -12,3 +12,4 @@ struct BasicInfoModel: Decodable {
     let Message: String
     let obj: String
 }
+

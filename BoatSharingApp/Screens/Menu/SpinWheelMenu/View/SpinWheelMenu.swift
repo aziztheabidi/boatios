@@ -1,32 +1,36 @@
 import SwiftUI
+import Combine
 
 struct SpinWheelMenu: View {
     @EnvironmentObject private var appState: AppState
+    private let dependencies: AppDependencies
     @StateObject private var viewModel: SpinWheelMenuViewModel
+
+    /// Canonical role from persisted session (`AppState`), not a caller-supplied string.
+    private var activeRole: String {
+        AppConfiguration.UserRole.normalize(appState.userRole)
+    }
     @State private var rotation: Angle = .zero
     @State private var lastRotation: Angle = .zero
     @State private var selectedItem: String? = nil
     @State private var showAlert: Bool = false
-    @State private var movetologin = false
-    @State private var movetoSponsor = false
-    @State private var movetoUpcoming = false
-    @State private var movetoRelationship = false
-    @State private var MovetoChat = false
-    @State private var movetosetting = false
-    @State private var MovetoActiveBusiness = false
-    @State private var MovetoVoyageBusiness = false
-    @State private var movetoCaptainVoyage = false
+    @State private var navigateToLogin = false
+    @State private var navigateToSponsorPayments = false
+    @State private var navigateToUpcomingVoyages = false
+    @State private var navigateToSponsorRelationship = false
+    @State private var navigateToVoyagerChat = false
+    @State private var navigateToSettings = false
+    @State private var navigateToBusinessActiveVoyages = false
+    @State private var navigateToBusinessVoyage = false
+    @State private var navigateToCaptainActiveVoyages = false
     @State private var navigateToResetPassword = false
-    @State private var moveToCaptainProfileOne = false
+    @State private var navigateToCaptainProfile = false
     @State private var navigateToBusinessProfile = false
     @State private var navigateToVoyagerProfile = false
     @State private var selectedType: RegistrationType?
-    @State private var tavelnow = false
-    @State private var MovetoPastVoyage = false
+    @State private var navigateToTravelNow = false
+    @State private var navigateToPastVoyages = false
 
-    var username: NSString
-
-    
     @State private var goToVoyagerDashboard = false
     @State private var goToCaptainDashboard = false
     @State private var goToBusinessDashboard = false
@@ -48,15 +52,15 @@ struct SpinWheelMenu: View {
     let wheelSize: CGFloat = 220
     @Environment(\.presentationMode) var presentationMode
 
-    init(username: NSString, dependencies: AppDependencies = .live) {
-        self.username = username
+    init(dependencies: AppDependencies = .live) {
+        self.dependencies = dependencies
         _viewModel = StateObject(
             wrappedValue: SpinWheelMenuViewModel(sessionManager: dependencies.sessionManager)
         )
     }
 
     var filteredMenuItems: [(name: String, image: String)] {
-        let normalizedUsername = AppConfiguration.UserRole.normalize(username as String)
+        let normalizedUsername = activeRole
         if normalizedUsername == AppConfiguration.UserRole.captain.rawValue {
             return menuItems.filter {
                 $0.name == "upcoming Voyage" || $0.name == "Past Voyage" ||
@@ -105,12 +109,11 @@ struct SpinWheelMenu: View {
                 navigationLinks
             }
             .navigationBarBackButtonHidden(true)
-            .sheet(isPresented: $movetosetting) {
+            .sheet(isPresented: $navigateToSettings) {
                 SettingsPopup(
-                    username: username,
-                    onDismiss: { movetosetting = false },
+                    onDismiss: { navigateToSettings = false },
                     navigateToResetPassword: $navigateToResetPassword,
-                    moveToCaptainProfileOne: $moveToCaptainProfileOne,
+                    navigateToCaptainProfile: $navigateToCaptainProfile,
                     navigateToBusinessProfile: $navigateToBusinessProfile,
                     navigateToVoyagerProfile: $navigateToVoyagerProfile,
                     selectedType: $selectedType
@@ -199,30 +202,30 @@ struct SpinWheelMenu: View {
             showAlert = true
             viewModel.logout()
             appState.syncFromStorage()
-            movetologin = true
+            navigateToLogin = true
         } else if name == "Connect with Voyagers" {
-            MovetoChat = true
+            navigateToVoyagerChat = true
         } else if name == "upcoming Voyage" {
-            let normalizedUsername = AppConfiguration.UserRole.normalize(username as String)
+            let normalizedUsername = AppConfiguration.UserRole.normalize(activeRole)
             if normalizedUsername == AppConfiguration.UserRole.captain.rawValue {
-                movetoCaptainVoyage = true
+                navigateToCaptainActiveVoyages = true
             } else if normalizedUsername == AppConfiguration.UserRole.business.rawValue {
-                MovetoActiveBusiness = true
+                navigateToBusinessActiveVoyages = true
             } else {
-                movetoUpcoming = true
+                navigateToUpcomingVoyages = true
             }
         } else if name == "Sponsors List" {
-            movetoRelationship = true
+            navigateToSponsorRelationship = true
         } else if name == "Sponsors" {
-            movetoSponsor = true
+            navigateToSponsorPayments = true
         } else if name == "Travel Now" {
-            tavelnow = true
+            navigateToTravelNow = true
         } else if name == "Setting" {
-            movetosetting = true
+            navigateToSettings = true
         } else if name == "Business" {
-            MovetoVoyageBusiness = true
+            navigateToBusinessVoyage = true
         } else if name == "Past Voyage" {
-            MovetoPastVoyage = true
+            navigateToPastVoyages = true
         }
     }
 
@@ -242,7 +245,7 @@ struct SpinWheelMenu: View {
         .zIndex(1)
     }
     private func handleCancelNavigation() {
-        let normalizedUsername = AppConfiguration.UserRole.normalize(username as String)
+        let normalizedUsername = activeRole
         if normalizedUsername == AppConfiguration.UserRole.captain.rawValue {
             goToCaptainDashboard = true
         } else if normalizedUsername == AppConfiguration.UserRole.business.rawValue {
@@ -256,81 +259,81 @@ struct SpinWheelMenu: View {
         Group {
             
             NavigationLink(
-                destination: CaptainHomeVC(),
+                destination: CaptainHomeVC(dependencies: dependencies),
                 isActive: $goToCaptainDashboard
             ) { EmptyView() }
 
             NavigationLink(
-                destination: DashboardVC(),
+                destination: DashboardVC(dependencies: dependencies),
                 isActive: $goToBusinessDashboard
             ) { EmptyView() }
 
             NavigationLink(
-                destination: VoyagerHomeView(),
+                destination: VoyagerHomeView(dependencies: dependencies),
                 isActive: $goToVoyagerDashboard
             ) { EmptyView() }
 
             
-            NavigationLink(destination: SponsorPaymentsView(), isActive: $movetoSponsor) {
+            NavigationLink(destination: SponsorPaymentsView(), isActive: $navigateToSponsorPayments) {
                 EmptyView().navigationBarBackButtonHidden(true)
             }
 
-            NavigationLink(destination: BusinessActiveVoyageView(), isActive: $MovetoActiveBusiness) {
+            NavigationLink(destination: BusinessActiveVoyageView(dependencies: dependencies), isActive: $navigateToBusinessActiveVoyages) {
                 EmptyView().navigationBarBackButtonHidden(true)
             }
 
-            NavigationLink(destination: LoginScreenView(), isActive: $movetologin) {
+            NavigationLink(destination: LoginScreenView(dependencies: dependencies), isActive: $navigateToLogin) {
                 EmptyView().navigationBarBackButtonHidden(true)
             }
 
-            NavigationLink(destination: FutureVoyagesView(), isActive: $movetoUpcoming) {
+            NavigationLink(destination: FutureVoyagesView(dependencies: dependencies), isActive: $navigateToUpcomingVoyages) {
                 EmptyView().navigationBarBackButtonHidden(true)
             }
 
-            NavigationLink(destination: SponsorRelationshipView(), isActive: $movetoRelationship) {
+            NavigationLink(destination: SponsorRelationshipView(dependencies: dependencies), isActive: $navigateToSponsorRelationship) {
                 EmptyView().navigationBarBackButtonHidden(true)
             }
 
-            NavigationLink(destination: CaptainActiveVoyageView(), isActive: $movetoCaptainVoyage) {
+            NavigationLink(destination: CaptainActiveVoyageView(dependencies: dependencies), isActive: $navigateToCaptainActiveVoyages) {
                 EmptyView().navigationBarBackButtonHidden(true)
             }
 
-            NavigationLink(destination: VoyagerChatView(), isActive: $MovetoChat) {
+            NavigationLink(destination: VoyagerChatView(dependencies: dependencies), isActive: $navigateToVoyagerChat) {
                 EmptyView().navigationBarBackButtonHidden(true)
             }
 
-            NavigationLink(destination: TravelNowView(), isActive: $tavelnow) {
+            NavigationLink(destination: TravelNowView(dependencies: dependencies), isActive: $navigateToTravelNow) {
                 EmptyView().navigationBarBackButtonHidden(true)
             }
 
-            NavigationLink(destination: BusinessVoyageView(), isActive: $MovetoVoyageBusiness) {
+            NavigationLink(destination: BusinessVoyageView(dependencies: dependencies), isActive: $navigateToBusinessVoyage) {
                 EmptyView().navigationBarBackButtonHidden(true)
             }
 
-            NavigationLink(destination: ResetPasswordVC(), isActive: $navigateToResetPassword) {
+            NavigationLink(destination: ResetPasswordVC(dependencies: dependencies), isActive: $navigateToResetPassword) {
                 EmptyView().navigationBarBackButtonHidden(true)
             }
 
-            NavigationLink(destination: PastVoyagesView(lastController: username), isActive: $MovetoPastVoyage) {
+            NavigationLink(destination: PastVoyagesView(lastController: activeRole as NSString, dependencies: dependencies), isActive: $navigateToPastVoyages) {
                 EmptyView().navigationBarBackButtonHidden(true)
             }
 
             NavigationLink(
-                destination: CaptainRegStepOne(lastController: "CaptainProfileOne"),
-                isActive: $moveToCaptainProfileOne
+                destination: CaptainRegStepOne(lastController: "CaptainProfileOne", dependencies: dependencies),
+                isActive: $navigateToCaptainProfile
             ) {
                 EmptyView().navigationBarBackButtonHidden(true)
             }
 
             NavigationLink(
-                destination: BusinessRegStepOne(registrationType: selectedType ?? .business, lastController: "BusinessSpinMenu"),
+                destination: BusinessRegStepOne(registrationType: selectedType ?? .business, lastController: "BusinessSpinMenu", dependencies: dependencies),
                 isActive: $navigateToBusinessProfile
             ) {
                 EmptyView().navigationBarBackButtonHidden(true)
             }
 
             NavigationLink(
-                destination: BusinessRegStepOne(registrationType: selectedType ?? .voyager, lastController: "VoyagerSpinMenu"),
+                destination: BusinessRegStepOne(registrationType: selectedType ?? .voyager, lastController: "VoyagerSpinMenu", dependencies: dependencies),
                 isActive: $navigateToVoyagerProfile
             ) {
                 EmptyView().navigationBarBackButtonHidden(true)
@@ -372,10 +375,10 @@ struct SpinWheelMenu: View {
 
 
 struct SettingsPopup: View {
-    var username: NSString
+    @EnvironmentObject private var appState: AppState
     var onDismiss: () -> Void
     @Binding var navigateToResetPassword: Bool
-    @Binding var moveToCaptainProfileOne: Bool
+    @Binding var navigateToCaptainProfile: Bool
     @Binding var navigateToBusinessProfile: Bool
     @Binding var navigateToVoyagerProfile: Bool
     @Binding var selectedType: RegistrationType?
@@ -429,9 +432,9 @@ struct SettingsPopup: View {
                     }
 
                     Button(action: {
-                        let normalizedUsername = AppConfiguration.UserRole.normalize(username as String)
+                        let normalizedUsername = AppConfiguration.UserRole.normalize(appState.userRole)
                         if normalizedUsername == AppConfiguration.UserRole.captain.rawValue {
-                            moveToCaptainProfileOne = true
+                            navigateToCaptainProfile = true
                         } else if normalizedUsername == AppConfiguration.UserRole.business.rawValue {
                             selectedType = .business
                             navigateToBusinessProfile = true
@@ -510,8 +513,31 @@ struct WheelMenuItem: View {
     }
 }
 
+private final class SpinWheelPreviewSessionManager: SessionManaging {
+    let eventPublisher = PassthroughSubject<SessionEvent, Never>()
+    var accessToken: String? { "preview-access" }
+    var refreshToken: String? { "preview-refresh" }
+    func saveTokens(accessToken: String, refreshToken: String) {}
+    func saveUserData(userID: String, username: String, email: String, role: String, missingStep: Int?) {}
+    func clearTokens() {}
+    func clearUserData() {}
+    func refreshToken() async -> Bool { false }
+    func hasValidSession() -> Bool { true }
+    func logout() {}
+}
+
 struct SpinWheelMenu_Previews: PreviewProvider {
     static var previews: some View {
-        SpinWheelMenu(username: "Voyager")
+        let defaults = UserDefaults(suiteName: "SpinWheelMenuPreview")!
+        defaults.removePersistentDomain(forName: "SpinWheelMenuPreview")
+        let prefs = PreferenceStore(defaults: defaults)
+        prefs.isLoggedIn = true
+        prefs.userRole = "Voyager"
+        prefs.missingStep = 0
+        let appState = AppState(preferences: prefs, sessionManager: SpinWheelPreviewSessionManager())
+        return SpinWheelMenu()
+            .environmentObject(appState)
     }
 }
+
+

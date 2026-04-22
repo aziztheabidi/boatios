@@ -99,13 +99,13 @@ final class SponsorsPaymentViewModel: ObservableObject {
 
     // MARK: - Dependencies
 
-    private let apiClient: APIClientProtocol
+    private let networkRepository: AppNetworkRepositoryProtocol
     private let sessionPreferences: SessionPreferenceStoring
     private var hasLoaded = false
     private var navigateToSuccessTask: Task<Void, Never>?
 
-    init(apiClient: APIClientProtocol, sessionPreferences: SessionPreferenceStoring) {
-        self.apiClient = apiClient
+    init(networkRepository: AppNetworkRepositoryProtocol, sessionPreferences: SessionPreferenceStoring) {
+        self.networkRepository = networkRepository
         self.sessionPreferences = sessionPreferences
     }
 
@@ -174,15 +174,9 @@ final class SponsorsPaymentViewModel: ObservableObject {
     private func fetchSponsorPayments() {
         isLoading = true
         guard let userId = currentUserId else { isLoading = false; errorMessage = "Missing user id."; return }
-        let url = "\(AppConfiguration.API.Endpoints.voyagerSponsorPaymentsByUserId)?UserId=\(userId)"
         Task {
             do {
-                let response: SponsorPaymentResponse = try await apiClient.request(
-                    endpoint: url,
-                    method: .get,
-                    parameters: nil,
-                    requiresAuth: true
-                )
+                let response = try await networkRepository.voyager_getSponsorPayments(userId: userId)
                 self.isLoading = false
                 if response.status == 200 {
                     self.sponsorPayments = response.obj
@@ -196,3 +190,4 @@ final class SponsorsPaymentViewModel: ObservableObject {
         }
     }
 }
+

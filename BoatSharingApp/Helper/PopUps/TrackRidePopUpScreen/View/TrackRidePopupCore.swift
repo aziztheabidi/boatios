@@ -1,4 +1,5 @@
 import SwiftUI
+import Combine
 import GoogleMaps
 
 enum TrackRidePopupMode {
@@ -249,7 +250,7 @@ struct TrackRidePopupCore: View {
 }
 
 @MainActor
-final class TrackRidePopupCoreViewModel: ScreenViewModel {
+final class TrackRidePopupCoreViewModel: ObservableObject {
     struct State { let route: Route? }
     enum Action { case onAppear; case onDisappear }
     enum Route { case none }

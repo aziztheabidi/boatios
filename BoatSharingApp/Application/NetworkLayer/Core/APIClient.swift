@@ -5,7 +5,7 @@ import Alamofire
 //
 // Single pipeline for app HTTP:
 // - `APIClient`: one Alamofire `Session`, attaches Bearer when `requiresAuth`, decodes `T`.
-//   Encoding is derived automatically: GET / DELETE → URLEncoding.queryString, all others → JSONEncoding.default.
+//   Encoding is derived automatically: GET / DELETE use URLEncoding.queryString, all others use JSONEncoding.default.
 // - `APIClientWithRetry`: wraps `APIClient` only; on `APIError.unauthorized` with `requiresAuth`,
 //   calls `SessionManaging.refreshToken()` once, then repeats the **same** `APIClient.request`.
 // - Token refresh HTTP itself lives on `APIClient` (`refreshSessionTokens`) so it is not a
@@ -82,7 +82,7 @@ final class APIClient: APIClientProtocol {
     }
 
     /// Performs the refresh-token POST using the same base URL and timeouts as authenticated traffic,
-    /// but **never** goes through `APIClientWithRetry` (avoids refresh → 401 → refresh recursion).
+    /// but **never** goes through `APIClientWithRetry` (avoids refresh, 401, refresh recursion).
     static func refreshSessionTokens(accessToken: String, refreshToken: String) async throws -> SessionTokenData {
         let url = "\(AppConfiguration.API.baseURL)\(AppConfiguration.API.Endpoints.refreshToken)"
         let parameters: Parameters = [
@@ -111,8 +111,8 @@ final class APIClient: APIClientProtocol {
 
     /// Central request entry point.
     /// Encoding is derived from `method` by default:
-    ///   - GET / DELETE → URLEncoding.queryString  (params become `?key=value`)
-    ///   - All others   → JSONEncoding.default     (params go in the JSON body)
+    ///   - GET / DELETE use URLEncoding.queryString  (params become `?key=value`)
+    ///   - All others use JSONEncoding.default       (params go in the JSON body)
     func request<T: Decodable>(
         endpoint: String,
         method: HTTPMethod,
@@ -224,7 +224,7 @@ final class APIClientWithRetry: APIClientProtocol {
     }
 }
 
-// MARK: - Error mapping (legacy completion bridge in LegacyCompatibility.swift)
+// MARK: - Error mapping (completion bridge / AFError interop)
 
 enum NetworkErrorMapper {
     static func mapToAFError(_ error: Error) -> AFError {

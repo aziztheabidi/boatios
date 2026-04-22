@@ -146,22 +146,19 @@ class DashboardVCViewModel: ObservableObject {
         GetBusinessDashboard()
     }
 
-    func DeleteImage(Path: String, completion: @escaping (Bool) -> Void) {
+    func deleteImage(path: String) async -> Bool {
         isDeleteimageLoading = true
         errorMessage = nil
         DeleteSuccessMsg = nil
-        
-        Task {
-            do {
-                let successMessage = try await businessRepository.deleteImage(path: Path)
-                self.isDeleteimageLoading = false
-                self.DeleteSuccessMsg = successMessage
-                completion(true)
-            } catch {
-                self.isDeleteimageLoading = false
-                self.errorMessage = self.extractErrorMessage(error)
-                completion(false)
-            }
+        do {
+            let successMessage = try await businessRepository.deleteImage(path: path)
+            isDeleteimageLoading = false
+            DeleteSuccessMsg = successMessage
+            return true
+        } catch {
+            isDeleteimageLoading = false
+            errorMessage = extractErrorMessage(error)
+            return false
         }
     }
 
@@ -174,4 +171,5 @@ class DashboardVCViewModel: ObservableObject {
         return ErrorHandler.extractErrorMessage(from: error)
     }
 }
+
 

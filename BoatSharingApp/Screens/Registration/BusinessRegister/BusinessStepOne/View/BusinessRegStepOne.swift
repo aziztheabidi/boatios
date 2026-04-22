@@ -18,8 +18,9 @@ struct BusinessRegStepOne: View {
         self.registrationType = registrationType
         self.lastController = lastController
         _viewModel = StateObject(wrappedValue: BusinessStepOneViewModel(
-            apiClient: dependencies.apiClient,
-            preferences: dependencies.preferences
+            networkRepository: dependencies.networkRepository,
+            preferences: dependencies.preferences,
+            sessionPreferences: dependencies.sessionPreferences
         ))
     }
     @State private var lastName = ""
@@ -296,11 +297,11 @@ struct BusinessRegStepOne: View {
         .navigationBarBackButtonHidden(true)
         .onAppear {
             if lastController == "BusinessSpinMenu" {
-                let userId = AppSessionSnapshot.userID
+                let userId = viewModel.sessionUserId
                 guard !userId.isEmpty else { return }
                 viewModel.getBusinessProfile(userid: userId)
             } else if lastController == "VoyagerSpinMenu" {
-                let userId = AppSessionSnapshot.userID
+                let userId = viewModel.sessionUserId
                 guard !userId.isEmpty else { return }
 
                 viewModel.GetVoyagerProfile(userid: userId)
@@ -329,7 +330,7 @@ struct BusinessRegStepOne: View {
         // Dismiss keyboard
         UIApplication.shared.dismissKeyboard()
         
-        let userId = AppSessionSnapshot.userID
+        let userId = viewModel.sessionUserId
         guard !userId.isEmpty else { return }
 
         let userType: BusinessStepOneViewModel.UserType
@@ -396,4 +397,6 @@ struct BusinessRegistrationView_Previews: PreviewProvider {
         BusinessRegStepOne(registrationType: .voyager, lastController: "Business")
     }
 }
+
+
 

@@ -38,10 +38,16 @@ final class BusinessStepThreeViewModel: ObservableObject {
 
     // MARK: - Dependencies
 
-    private let apiClient: APIClientProtocol
+    private let networkRepository: AppNetworkRepositoryProtocol
+    private let sessionPreferences: SessionPreferenceStoring
 
-    init(apiClient: APIClientProtocol) {
-        self.apiClient = apiClient
+    init(networkRepository: AppNetworkRepositoryProtocol, sessionPreferences: SessionPreferenceStoring) {
+        self.networkRepository = networkRepository
+        self.sessionPreferences = sessionPreferences
+    }
+
+    var sessionUserId: String {
+        sessionPreferences.userID.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
     // MARK: - Private network
@@ -55,10 +61,7 @@ final class BusinessStepThreeViewModel: ObservableObject {
         ]
         Task {
             do {
-                let response: BusinessStepThreeModel = try await apiClient.request(
-                    endpoint: "/BusinessInfo/SaveAbout", method: .post,
-                    parameters: parameters, requiresAuth: true
-                )
+                let response = try await networkRepository.businessInfo_saveAbout(parameters: parameters)
                 self.isLoading      = false
                 self.message        = response.Message
                 self.isSuccess      = response.Status == 200
@@ -72,3 +75,4 @@ final class BusinessStepThreeViewModel: ObservableObject {
     }
 
 }
+

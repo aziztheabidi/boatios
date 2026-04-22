@@ -33,22 +33,20 @@ final class AppRoutingNotifier: AppRoutingNotifying {
     }
 
     func setRoutingIsLoggedIn(_ value: Bool) {
-        runOnMain { [weak self] in
+        Task { @MainActor [weak self] in
             self?.appState?.isLoggedIn = value
         }
     }
 
     private func runOnMain(_ block: @escaping () -> Void) {
-        if Thread.isMainThread {
+        Task { @MainActor in
             block()
-        } else {
-            DispatchQueue.main.async(execute: block)
         }
     }
 }
 
 struct AppDependencies {
-    /// Production: `APIClientWithRetry` wrapping a single `APIClient` (token attach → request → 401 → refresh → retry).
+    /// Production: `APIClientWithRetry` wrapping a single `APIClient` (token attach, request, 401, refresh, retry).
     let apiClient: APIClientProtocol
     let sessionManager: SessionManaging
     let preferences: PreferenceStoring
@@ -59,6 +57,9 @@ struct AppDependencies {
     let routingNotifier: AppRoutingNotifier
     let businessSaveMediaUploader: BusinessSaveMediaUploading
     let businessRepository: BusinessRepositoryProtocol
+    let authRepository: AuthRepositoryProtocol
+    /// Feature networking surface (voyager/captain/business flows). ViewModels use this instead of `apiClient`.
+    let networkRepository: AppNetworkRepositoryProtocol
     /// Non-secret device identifiers (FCM token etc) — NOT the Keychain.
     let deviceIdentifierStore: DeviceIdentifierStoring
 
@@ -77,6 +78,8 @@ struct AppDependencies {
         let baseHTTPClient = APIClient(sessionManager: sessionManager, routingNotifier: routingNotifier)
         let apiClient = APIClientWithRetry(baseClient: baseHTTPClient, sessionManager: sessionManager)
         let businessRepository = BusinessRepository(apiClient: apiClient)
+        let authRepository = AuthRepository(apiClient: apiClient, sessionManager: sessionManager)
+        let networkRepository = AppNetworkRepository(apiClient: apiClient)
         return AppDependencies(
             apiClient: apiClient,
             sessionManager: sessionManager,
@@ -87,6 +90,8 @@ struct AppDependencies {
             routingNotifier: routingNotifier,
             businessSaveMediaUploader: businessSaveMediaUploader,
             businessRepository: businessRepository,
+            authRepository: authRepository,
+            networkRepository: networkRepository,
             deviceIdentifierStore: preferencesStore
         )
     }()

@@ -6,7 +6,7 @@ import Alamofire
 final class FutureVoyageViewModelTests: XCTestCase {
     func testSelectSectionUpdatesState() {
         let viewModel = FutureVoyageViewModel(
-            apiClient: GenericEndpointAPIClient { _ in .failure(APIError.invalidResponse) },
+            networkRepository: AppNetworkRepository(apiClient: GenericEndpointAPIClient { _ in .failure(APIError.invalidResponse) }),
             identityProvider: ViewModelSessionPreferenceStore()
         )
 
@@ -17,7 +17,7 @@ final class FutureVoyageViewModelTests: XCTestCase {
 
     func testPresentCancelConfirmationSetsPopupAndVoyageId() {
         let viewModel = FutureVoyageViewModel(
-            apiClient: GenericEndpointAPIClient { _ in .failure(APIError.invalidResponse) },
+            networkRepository: AppNetworkRepository(apiClient: GenericEndpointAPIClient { _ in .failure(APIError.invalidResponse) }),
             identityProvider: ViewModelSessionPreferenceStore()
         )
 
@@ -31,7 +31,7 @@ final class FutureVoyageViewModelTests: XCTestCase {
         let preferences = ViewModelSessionPreferenceStore()
         preferences.userID = ""
         let viewModel = FutureVoyageViewModel(
-            apiClient: GenericEndpointAPIClient { _ in .failure(APIError.invalidResponse) },
+            networkRepository: AppNetworkRepository(apiClient: GenericEndpointAPIClient { _ in .failure(APIError.invalidResponse) }),
             identityProvider: preferences
         )
         viewModel.voyageIdForPayment = "voyage-1"
@@ -60,7 +60,7 @@ final class FutureVoyageViewModelTests: XCTestCase {
         }
         let preferences = ViewModelSessionPreferenceStore()
         preferences.userID = "u-1"
-        let viewModel = FutureVoyageViewModel(apiClient: apiClient, identityProvider: preferences)
+        let viewModel = FutureVoyageViewModel(networkRepository: AppNetworkRepository(apiClient: apiClient), identityProvider: preferences)
         viewModel.voyageIdForPayment = "voyage-1"
         viewModel.stripePaymentIntentId = "pi_1"
 
@@ -81,12 +81,12 @@ final class FutureVoyageViewModelTests: XCTestCase {
         }
         let preferences = ViewModelSessionPreferenceStore()
         preferences.userID = "u-1"
-        let viewModel = FutureVoyageViewModel(apiClient: apiClient, identityProvider: preferences)
+        let viewModel = FutureVoyageViewModel(networkRepository: AppNetworkRepository(apiClient: apiClient), identityProvider: preferences)
 
         viewModel.VoyageConfirmation(Voyageid: "voyage-1")
         await waitUntil { !viewModel.isConfirming }
 
-        XCTAssertTrue(viewModel.payNow)
+        XCTAssertTrue(viewModel.payNowTrigger)
         XCTAssertTrue(viewModel.showPaymentPopup)
     }
 
@@ -102,7 +102,7 @@ final class FutureVoyageViewModelTests: XCTestCase {
         }
         let preferences = ViewModelSessionPreferenceStore()
         preferences.userID = "u-1"
-        let viewModel = FutureVoyageViewModel(apiClient: apiClient, identityProvider: preferences)
+        let viewModel = FutureVoyageViewModel(networkRepository: AppNetworkRepository(apiClient: apiClient), identityProvider: preferences)
 
         viewModel.VoyageValidation(Voyageid: "voyage-1")
         await waitUntil { !viewModel.isCancelling }

@@ -41,3 +41,4 @@ struct VoyageDetail: Codable, Identifiable {
         case bookingDateTime = "BookingDateTime"
     }
 }
+

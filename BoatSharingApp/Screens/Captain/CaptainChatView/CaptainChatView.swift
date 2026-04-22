@@ -20,7 +20,7 @@ struct CaptainChatView: View {
         self.chatId = chatId
         self.currentUserId = currentUserId
         self.receiver = receiver
-        _chatService = StateObject(wrappedValue: ChatServiceViewModel(apiClient: dependencies.apiClient))
+        _chatService = StateObject(wrappedValue: ChatServiceViewModel(networkRepository: dependencies.networkRepository))
     }
 
     @State private var showFlagAlert = false
@@ -104,10 +104,10 @@ struct CaptainChatView: View {
                     .cornerRadius(12)
             }
         }
-        .onAppear {
-            chatService.send(.listenForMessages(chatId: chatId, completion: { fetchedMessages in
-                self.messages = fetchedMessages
-            }))
+        .task(id: chatId) {
+            for await fetchedMessages in chatService.messagesStream(chatId: chatId) {
+                messages = fetchedMessages
+            }
         }
         .alert("Do you want to add flag on this message?", isPresented: $showFlagAlert) {
             Button("Yes", role: .destructive) {
@@ -124,9 +124,9 @@ struct CaptainChatView: View {
             guard awaitingFlagResult, !isLoading else { return }
             awaitingFlagResult = false
             if let errorMessage = chatService.TagErrorMessage {
-                resultMessage = "❌ Failed: \(errorMessage)"
+                resultMessage = "Failed: \(errorMessage)"
             } else {
-                resultMessage = "✅ Flag submitted successfully!"
+                resultMessage = "Flag submitted successfully."
             }
             showResultAlert = true
         }
@@ -144,4 +144,6 @@ struct CaptainChatView: View {
         chatService.send(.tagMessage(voyagerId: receiver, description: message.text))
     }
 }
+
+
 

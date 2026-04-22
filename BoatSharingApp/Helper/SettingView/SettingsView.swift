@@ -120,8 +120,7 @@ struct SettingsView: View {
                     ) {
                         EmptyView()
                     }
-                   // .navigationBarBackButtonHidden(true)
-                    
+
                     NavigationLink(
                         destination: BusinessRegStepOne(registrationType: selectedType ?? .business, lastController: "BusinessSpinMenu"),
                         isActive: $navigateToBusinessProfile

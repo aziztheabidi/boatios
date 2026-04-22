@@ -15,10 +15,9 @@ struct FindBoatPopUpVC: View {
     // MARK: - Bindings / injected data
 
     @Binding var showSheet: Bool
-    @Binding var pickupLocation: Dock?
-    @Binding var dropoffLocation: Dock?
-    @Binding var moveToNext: Bool
-    @Binding var moveToMenu: Bool
+    @Binding var pickupLocation: DockLocation?
+    @Binding var dropoffLocation: DockLocation?
+    let onNavigateToCreateVoyage: () -> Void
 
     @EnvironmentObject var homeViewModel: VoyagerHomeViewModel
     @EnvironmentObject var uiFlowState: UIFlowState
@@ -27,18 +26,16 @@ struct FindBoatPopUpVC: View {
 
     init(
         showSheet: Binding<Bool>,
-        pickupLocation: Binding<Dock?>,
-        dropoffLocation: Binding<Dock?>,
-        moveToNext: Binding<Bool>,
-        moveToMenu: Binding<Bool>,
+        pickupLocation: Binding<DockLocation?>,
+        dropoffLocation: Binding<DockLocation?>,
+        onNavigateToCreateVoyage: @escaping () -> Void,
         dependencies: AppDependencies
     ) {
-        _showSheet         = showSheet
-        _pickupLocation    = pickupLocation
-        _dropoffLocation   = dropoffLocation
-        _moveToNext        = moveToNext
-        _moveToMenu        = moveToMenu
-        _viewModel = StateObject(wrappedValue: FindBoatPopUpViewModel(apiClient: dependencies.apiClient))
+        _showSheet = showSheet
+        _pickupLocation = pickupLocation
+        _dropoffLocation = dropoffLocation
+        self.onNavigateToCreateVoyage = onNavigateToCreateVoyage
+        _viewModel = StateObject(wrappedValue: FindBoatPopUpViewModel(networkRepository: dependencies.networkRepository))
     }
 
     // MARK: - Pure presentation state (belongs in the view)
@@ -48,8 +45,6 @@ struct FindBoatPopUpVC: View {
     @State private var showVoyageCategoryDropdown = false
     @State private var showDockSheet = false
     @State private var selectedField: DockFieldType? = nil
-    @State private var keyboardHeight: CGFloat = 0
-
     // MARK: - Body
 
     var body: some View {
@@ -69,18 +64,24 @@ struct FindBoatPopUpVC: View {
                     .clipped()
                     .padding(.top, 10)
                     .sheet(isPresented: $showDockSheet) { dockSelectionSheet }
-                    .onAppear { handleOnAppear() }
-                    .offset(y: -keyboardHeight)
-                    .animation(.easeOut(duration: 0.25), value: keyboardHeight)
+                    .onAppear {
+                        let selection = uiFlowState.businessVoyageSelection
+                        uiFlowState.clearBusinessSelection()
+                        viewModel.send(.onAppear(flowSelection: selection))
+                        viewModel.send(.startKeyboardObservers)
+                    }
+                    .onDisappear {
+                        viewModel.send(.stopKeyboardObservers)
+                    }
+                    .offset(y: -viewModel.state.keyboardOffset)
+                    .animation(.easeOut(duration: 0.25), value: viewModel.state.keyboardOffset)
                     .onTapGesture { hideKeyboard() }
                     .ignoresSafeArea(.keyboard)
-                    .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification)) { note in
-                        if let frame = note.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect {
-                            keyboardHeight = frame.height
-                        }
-                    }
-                    .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillHideNotification)) { _ in
-                        keyboardHeight = 0
+                    .onChange(of: viewModel.state.locationBindingPatch) { _, patch in
+                        guard let patch else { return }
+                        if let p = patch.pickup { pickupLocation = p }
+                        if let d = patch.dropoff { dropoffLocation = d }
+                        viewModel.send(.locationPatchConsumed)
                     }
                     // Validation toast (non-modal)
                     .overlay(
@@ -109,7 +110,7 @@ struct FindBoatPopUpVC: View {
                         if ready {
                             uiFlowState.clearBusinessSelection()
                             showSheet = false
-                            moveToNext = true
+                            onNavigateToCreateVoyage()
                             viewModel.send(.clearValidationError)
                         }
                     }
@@ -141,7 +142,7 @@ struct FindBoatPopUpVC: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal, 10)
                 .padding(.top, 15)
-            Text("Current Date: \(formattedCurrentDate)")
+            Text("Current Date: \(viewModel.state.formattedHeaderDate)")
                 .font(.footnote)
                 .foregroundColor(.gray)
                 .frame(maxWidth: .infinity, alignment: .trailing)
@@ -149,13 +150,6 @@ struct FindBoatPopUpVC: View {
                 .padding(.vertical, 8)
         }
         .padding(.top, 10)
-    }
-
-    private var formattedCurrentDate: String {
-        let f = DateFormatter()
-        f.dateFormat = "dd, MMMM, yyyy"
-        f.timeZone = TimeZone(identifier: "Asia/Karachi")
-        return f.string(from: Date())
     }
 
     // MARK: - Voyage category
@@ -365,18 +359,6 @@ struct FindBoatPopUpVC: View {
 
     // MARK: - Private helpers
 
-    private func handleOnAppear() {
-        viewModel.send(.onAppear)
-        // Apply business pre-selection if arriving from a business dock tap
-        if let selection = uiFlowState.businessVoyageSelection {
-            viewModel.send(.applyBusinessSelection(
-                selection,
-                pickupSetter:  { pickupLocation = $0 },
-                dropoffSetter: { dropoffLocation = $0 }
-            ))
-        }
-    }
-
     private func hideKeyboard() {
         UIApplication.shared.dismissKeyboard()
     }
@@ -435,10 +417,10 @@ struct CalendarView: View {
 
 struct DockSelectionSheetView: View {
     let selectedField: DockFieldType
-    @Binding var pickupLocation: Dock?
-    @Binding var dropoffLocation: Dock?
-    let docks: [Dock]
-    let onDockSelected: (Dock) -> Void
+    @Binding var pickupLocation: DockLocation?
+    @Binding var dropoffLocation: DockLocation?
+    let docks: [DockLocation]
+    let onDockSelected: (DockLocation) -> Void
     @Environment(\.presentationMode) var presentationMode
 
     var body: some View {
@@ -494,12 +476,11 @@ struct ConfirmView_Previews: PreviewProvider {
             showSheet: .constant(true),
             pickupLocation: .constant(nil),
             dropoffLocation: .constant(nil),
-            moveToNext: .constant(false),
-            moveToMenu: .constant(false),
+            onNavigateToCreateVoyage: {},
             dependencies: previewDependencies
         )
         .environmentObject(VoyagerHomeViewModel(
-            apiClient: PreviewAPIClient(),
+            networkRepository: AppNetworkRepository(apiClient: PreviewAPIClient()),
             identityProvider: PreviewSessionPreferences()
         ))
         .environmentObject(UIFlowState())
@@ -516,31 +497,36 @@ private let previewSessionManager  = SessionManager(
     preferences: previewPreferences,
     refreshService: PreviewRefreshTokenService()
 )
+private let previewAPIClient = PreviewAPIClient()
 private let previewDependencies    = AppDependencies(
-    apiClient: PreviewAPIClient(),
+    apiClient: previewAPIClient,
     sessionManager: previewSessionManager,
     preferences: previewPreferences,
     sessionPreferences: previewPreferences,
     tokenStore: previewTokenStore,
     dateFormatter: DateFormatterHelper(),
     routingNotifier: AppRoutingNotifier(),
-    businessSaveMediaUploader: AlamofireBusinessSaveMediaUploader(tokenStore: previewTokenStore)
+    businessSaveMediaUploader: AlamofireBusinessSaveMediaUploader(tokenStore: previewTokenStore),
+    businessRepository: BusinessRepository(apiClient: previewAPIClient),
+    authRepository: AuthRepository(apiClient: previewAPIClient, sessionManager: previewSessionManager),
+    networkRepository: AppNetworkRepository(apiClient: previewAPIClient),
+    deviceIdentifierStore: previewPreferences
 )
 
 private final class PreviewAPIClient: APIClientProtocol {
     func request<T: Decodable>(
         endpoint: String, method: Alamofire.HTTPMethod,
         parameters: Alamofire.Parameters?,
-        encoding: any Alamofire.ParameterEncoding,
         requiresAuth: Bool
     ) async throws -> T { throw APIError.invalidResponse }
 }
 
-private final class PreviewSessionPreferences: SessionPreferenceStoring, PreferenceStoring {
+private final class PreviewSessionPreferences: SessionPreferenceStoring, PreferenceStoring, DeviceIdentifierStoring {
     var isLoggedIn: Bool = false; var userRole: String = ""
     var missingStep: Int = 1;     var userID: String = ""
     var username: String = "";    var userEmail: String = ""
     var fromBusinessDetail: Bool = false
+    var fcmToken: String?
     func clearSessionPreferences() { isLoggedIn = false; userRole = ""; missingStep = 1; userID = ""; username = ""; userEmail = "" }
 }
 

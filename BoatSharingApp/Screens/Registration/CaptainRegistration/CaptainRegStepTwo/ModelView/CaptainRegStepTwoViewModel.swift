@@ -4,12 +4,16 @@ import Combine
 @MainActor
 final class CaptainRegStepTwoViewModel: ObservableObject {
 
-    private let apiClient: APIClientProtocol
+    private let networkRepository: AppNetworkRepositoryProtocol
     private let sessionPreferences: SessionPreferenceStoring
 
-    init(apiClient: APIClientProtocol, sessionPreferences: SessionPreferenceStoring) {
-        self.apiClient = apiClient
+    init(networkRepository: AppNetworkRepositoryProtocol, sessionPreferences: SessionPreferenceStoring) {
+        self.networkRepository = networkRepository
         self.sessionPreferences = sessionPreferences
+    }
+
+    var sessionUserId: String {
+        sessionPreferences.userID.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
     @Published var message: String = ""
@@ -32,12 +36,7 @@ final class CaptainRegStepTwoViewModel: ObservableObject {
         isLoading = true
         Task {
             do {
-                let response: CaptainRegStepTwoModel = try await apiClient.request(
-                    endpoint: "/CaptainDocument/Save",
-                    method: .post,
-                    parameters: parameters,
-                    requiresAuth: true
-                )
+                let response = try await networkRepository.captainDocument_save(parameters: parameters)
                 self.isLoading = false
                 self.message = response.Message
                 self.isSuccess = response.Status == 200
@@ -60,12 +59,7 @@ final class CaptainRegStepTwoViewModel: ObservableObject {
         }
         Task {
             do {
-                let response: CaptainDocumentResponse = try await apiClient.request(
-                    endpoint: "/CaptainDocument/GetByUserId?UserId=\(userId)",
-                    method: .get,
-                    parameters: nil,
-                    requiresAuth: true
-                )
+                let response = try await networkRepository.captainDocument_getByUserId(userId: userId)
                 self.isLoading = false
                 if response.status == 200 {
                     self.captainDocument = response.document
@@ -90,3 +84,4 @@ final class CaptainRegStepTwoViewModel: ObservableObject {
             .sink { [weak self] _ in self?.shouldHideToast = true }
     }
 }
+

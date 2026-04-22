@@ -71,7 +71,7 @@ struct DeclineAlertView: View {
 
 struct NewRequestPopUpVC: View {
     @Binding var showSheet: Bool
-    let voyage: VoyagerVoyage
+    let voyage: VoyageSession
     @Environment(\.presentationMode) var presentationMode
     @State private var navigateToTrack: Bool = false
     @State private var navigateToPayment: Bool = false
@@ -79,11 +79,11 @@ struct NewRequestPopUpVC: View {
 
     @StateObject var viewModel: NewRequestPopUpViewModel
 
-    init(showSheet: Binding<Bool>, voyage: VoyagerVoyage, dependencies: AppDependencies = .live) {
+    init(showSheet: Binding<Bool>, voyage: VoyageSession, dependencies: AppDependencies = .live) {
         _showSheet = showSheet
         self.voyage = voyage
         _viewModel = StateObject(wrappedValue: NewRequestPopUpViewModel(
-            apiClient: dependencies.apiClient,
+            networkRepository: dependencies.networkRepository,
             sessionPreferences: dependencies.sessionPreferences
         ))
     }
@@ -94,7 +94,7 @@ struct NewRequestPopUpVC: View {
 
     @State private var isShowToast = false
     @State private var ToastMsg = ""
-    @State private var VoyageID = ""
+    @State private var voyageId = ""
     @State private var paymentIntentID = ""
     @State private var intentID = ""
 
@@ -191,13 +191,13 @@ struct NewRequestPopUpVC: View {
                 }
 
                 HStack(spacing: 10) {
-                    infoCard(image: "Vector-2", title: "Passengers", value: "\(voyage.noOfVoyagers ?? 1) Passengers")
+                    infoCard(image: "Vector-2", title: "Passengers", value: "\(voyage.numberOfVoyagers) Passengers")
                     infoCard(image: "Dollar", title: "Price", value: String(format: "%.1f", voyage.amountToPay))
                 }
 
                 HStack(spacing: 10) {
-                    infoCardSystem(icon: "clock", title: "Duration", value: voyage.duration ?? "")
-                    infoCardSystem(icon: "water.waves", title: "Stay on water", value: voyage.waterStay ?? "")
+                    infoCardSystem(icon: "clock", title: "Duration", value: voyage.duration)
+                    infoCardSystem(icon: "water.waves", title: "Stay on water", value: voyage.waterStay)
                 }
             }
             .padding(.horizontal)
@@ -222,15 +222,14 @@ struct NewRequestPopUpVC: View {
                         .font(.subheadline)
                         .foregroundColor(.gray)
                     
-                    // ⭐️ Rating Section
                     HStack(spacing: 4) {
-                        Text(String(format: "%.1f", voyage.Rating))
+                        Text(String(format: "%.1f", voyage.rating))
                             .font(.subheadline)
                             .foregroundColor(.black)
                         
                         HStack(spacing: 2) {
                             ForEach(0..<1) { index in
-                                Image(index < Int(voyage.Rating.rounded(.down)) ? "Docker" : "Docker")
+                                Image(index < Int(voyage.rating.rounded(.down)) ? "Docker" : "Docker")
                                     .resizable()
                                     .scaledToFit()
                                     .frame(width: 18, height: 18)
@@ -297,7 +296,7 @@ struct NewRequestPopUpVC: View {
                         ProgressView()
                             .progressViewStyle(CircularProgressViewStyle(tint: .white))
                     } else {
-                        Text(AppConfiguration.UserRole.normalize(AppSessionSnapshot.userRole) == AppConfiguration.UserRole.captain.rawValue ? "Accept" : "Pay Now")
+                        Text(viewModel.paymentPrimaryButtonTitle)
                             .font(.headline)
                             .foregroundColor(.white)
                     }
@@ -311,12 +310,12 @@ struct NewRequestPopUpVC: View {
     // MARK: - Pay Now Handler
 
     private func handlePayNow() {
-        if AppConfiguration.UserRole.normalize(AppSessionSnapshot.userRole) == AppConfiguration.UserRole.captain.rawValue {
+        if viewModel.isCaptainRole {
             navigateToTrack = true
         } else {
             isLoadingPayment = true
-            VoyageID = voyage.id
-            // Real flow: getPaymentIds → viewModel.PaymentData published → Stripe sheet opens
+            voyageId = voyage.id
+            // Real flow: getPaymentIds, then payment data publishes, then Stripe sheet opens.
             viewModel.getPaymentIds(voyagerId: voyage.id)
         }
     }
@@ -337,14 +336,14 @@ struct NewRequestPopUpVC: View {
                     viewModel.scheduleToastHide()
                 }
         }
-        .onChange(of: viewModel.toastMessage) { _, message in
+        .onChange(of: viewModel.state.toastMessage) { _, message in
             if let message {
                 isLoadingPayment = false
                 ToastMsg = message
                 isShowToast = true
             }
         }
-        .onChange(of: viewModel.shouldHideToast) { _, shouldHide in
+        .onChange(of: viewModel.state.shouldHideToast) { _, shouldHide in
             if shouldHide {
                 withAnimation {
                     isShowToast = false
@@ -406,3 +405,5 @@ struct NewRequestPopUpVC: View {
         )
     }
 }
+
+

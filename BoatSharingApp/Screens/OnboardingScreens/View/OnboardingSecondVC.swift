@@ -81,3 +81,4 @@ struct OnboardingSecondVC: View {
         .ignoresSafeArea(.all)
     }
 }
+

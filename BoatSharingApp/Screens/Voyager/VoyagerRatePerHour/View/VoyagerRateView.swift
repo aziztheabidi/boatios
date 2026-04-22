@@ -18,59 +18,54 @@ struct VoyagerRateView: View {
     @State private var individuals: String = ""
     @State private var pickup: String = ""
     @State private var dropOff: String = ""
-    @State private var totalFare: String = ""
     @State private var sharePerSponsor: Double = 0.0
-    @State private var pickupid: String = ""
-    @State private var dropOffid: String = ""
-    @State private var FormatedDateforApi: String = ""
-    
-    // Book Voyage
-    @State private var voyager_startTime: String = ""
-    @State private var voyager_endTime: String = ""
-    @State private var is_spend_on_water: Bool = false
-    @State private var voyager_estimatedHours: Double = 0.0
-   
-    @State private var is_trave_now: Bool = false
+    @State private var pickupDockId: String = ""
+    @State private var dropOffDockId: String = ""
+    @State private var formattedDateForAPI: String = ""
+
+    @State private var voyagerStartTime: String = ""
+    @State private var voyagerEndTime: String = ""
+    @State private var isStayOnWater: Bool = false
+    @State private var voyagerEstimatedHours: Double = 0.0
+
+    @State private var isTravelNow: Bool = false
     @StateObject private var viewModel: VoyagerRateViewModel
-    var SponsorsSelecte: ([String]) -> Void // Closure to pass back selected sponsor IDs
+    var onSponsorsSelected: ([String]) -> Void
     @State private var showAddSponsors: Bool = false
     @State private var selectedSponsors: [String] = []
 
     @State private var showValidationError = false
-    @State private var SendRequestSplit: Bool = false
-    @State private var SendRequest: Bool = false
-    @State private var BookingButtonText: String = ""
+    @State private var navigateToSponsorsInvitation: Bool = false
+    @State private var bookingButtonTitle: String = ""
 
     var selectedSponsorIDs: [String] = []
 
-    // pre filled value s
-    @State private var Eventdate: String = ""
+    @State private var eventDisplayDate: String = ""
     @State private var selectedVoyagerId: String = ""
 
-    @State private var ShoowSponsors: Bool = false
-    @State private var NavToDashboard: Bool = false
+    @State private var navigateToDashboard: Bool = false
 
     let isSpendOnWater: Bool
-    let BookNow: Bool
 
     init(
         dependencies: AppDependencies = .live,
-        SponsorsSelecte: @escaping ([String]) -> Void,
+        onSponsorsSelected: @escaping ([String]) -> Void,
         selectedSponsorIDs: [String] = [],
-        isSpendOnWater: Bool,
-        BookNow: Bool
+        isSpendOnWater: Bool
     ) {
         self.dependencies = dependencies
-        _viewModel = StateObject(wrappedValue: VoyagerRateViewModel(apiClient: dependencies.apiClient))
-        self.SponsorsSelecte = SponsorsSelecte
+        _viewModel = StateObject(wrappedValue: VoyagerRateViewModel(
+            networkRepository: dependencies.networkRepository,
+            sessionPreferences: dependencies.sessionPreferences
+        ))
+        self.onSponsorsSelected = onSponsorsSelected
         self.selectedSponsorIDs = selectedSponsorIDs
         self.isSpendOnWater = isSpendOnWater
-        self.BookNow = BookNow
     }
 
     var body: some View {
         NavigationStack {
-            ZStack { // Removed top alignment to allow centering
+            ZStack {
                 ScrollView {
                     VStack(spacing: 0) {
                         // Top Bar
@@ -106,7 +101,7 @@ struct VoyagerRateView: View {
                             
                             Spacer()
                             
-                            Text(Eventdate)
+                            Text(eventDisplayDate)
                                 .font(.caption)
                                 .multilineTextAlignment(.center)
                                 .lineLimit(2)
@@ -226,7 +221,7 @@ struct VoyagerRateView: View {
                                     .frame(width: 18, height: 18)
                                     .foregroundColor(.blue)
                                 
-                                TextField("", text: .constant(String(format: "%.2f", viewModel.totalFair)))
+                                TextField("", text: .constant(String(format: "%.2f", viewModel.totalFare)))
                                     .padding(.leading, 8)
                                     .frame(height: 40)
                             }
@@ -387,7 +382,7 @@ struct VoyagerRateView: View {
                                         .resizable()
                                         .frame(width: 18, height: 18)
                                         .scaledToFit()
-                                    TextField("", text: .constant(String(format: "%.2f", viewModel.totalFair)))
+                                    TextField("", text: .constant(String(format: "%.2f", viewModel.totalFare)))
                                         .padding(.leading, 8)
                                         .frame(height: 40)
                                 }
@@ -538,13 +533,13 @@ struct VoyagerRateView: View {
                             
                             // Book Button
                             Button(action: {
-                                if is_trave_now && !splitPayment {
+                                if isTravelNow && !splitPayment {
                                     handleImmediateTravel()
                                 } else {
                                     handleDelayTravel()
                                 }
                             }) {
-                                Text(BookingButtonText)
+                                Text(bookingButtonTitle)
                                     .foregroundColor(.white)
                                     .fontWeight(.semibold)
                                     .frame(maxWidth: .infinity)
@@ -581,9 +576,9 @@ struct VoyagerRateView: View {
                 pickUpLocation = uiFlowState.voyageDraft.pickupLocationName
                 dropOffLocation = uiFlowState.voyageDraft.dropOffLocationName
                 numberOfSponsors = String(self.selectedSponsors.count)
-                is_trave_now = uiFlowState.voyageDraft.isTravelNow
-                pickupid = uiFlowState.voyageDraft.pickupDockID
-                dropOffid = uiFlowState.voyageDraft.dropOffDockID
+                isTravelNow = uiFlowState.voyageDraft.isTravelNow
+                pickupDockId = uiFlowState.voyageDraft.pickupDockID
+                dropOffDockId = uiFlowState.voyageDraft.dropOffDockID
 
                 
                 
@@ -593,22 +588,22 @@ struct VoyagerRateView: View {
                     // use savedDate here
 
                 
-                    Eventdate = formatDate(savedDate)
-                    FormatedDateforApi = formattedDate(savedDate)
+                    eventDisplayDate = formatDate(savedDate)
+                    formattedDateForAPI = formattedDate(savedDate)
                 } else {
-                    Eventdate = "Not Set"
+                    eventDisplayDate = "Not Set"
                 }
                 
-                if is_trave_now && !splitPayment {
-                    self.BookingButtonText = "Find Boat"
+                if isTravelNow && !splitPayment {
+                    self.bookingButtonTitle = "Find Boat"
                     splitPayment = false // Default to off for Travel Now
                 } else {
-                    self.BookingButtonText = "Book Voyage"
+                    self.bookingButtonTitle = "Book Voyage"
                     splitPayment = true // Default to on for non-Travel Now
-                    voyager_startTime = uiFlowState.voyageDraft.startTime
-                    voyager_endTime = uiFlowState.voyageDraft.endTime
-                    is_spend_on_water = uiFlowState.voyageDraft.isStayOnWater
-                    voyager_estimatedHours = Double(uiFlowState.voyageDraft.estimatedHours) ?? 0.0
+                    voyagerStartTime = uiFlowState.voyageDraft.startTime
+                    voyagerEndTime = uiFlowState.voyageDraft.endTime
+                    isStayOnWater = uiFlowState.voyageDraft.isStayOnWater
+                    voyagerEstimatedHours = Double(uiFlowState.voyageDraft.estimatedHours) ?? 0.0
 
                     
                     
@@ -620,25 +615,25 @@ struct VoyagerRateView: View {
                 if isFindBoat {
                     uiFlowState.isFindingBoat = true
 
-                    NavToDashboard = true
+                    navigateToDashboard = true
                 }
             }
             
             .onChange(of: viewModel.isVoyageBooked) { _, isVoyagebooked in
                 if isVoyagebooked {
-                    selectedVoyagerId = viewModel.BookedVoyageID
-                    SendRequestSplit = true
+                    selectedVoyagerId = viewModel.bookedVoyageId
+                    navigateToSponsorsInvitation = true
                 }
             }
             
-            NavigationLink(destination: VoyagerHomeView(), isActive: $NavToDashboard) {
+            NavigationLink(destination: VoyagerHomeView(), isActive: $navigateToDashboard) {
                 EmptyView()
                     .navigationBarBackButtonHidden(true)
             }
             
             NavigationLink(
-                destination: SponsorsInvitationView(VoyageID: selectedVoyagerId),
-                isActive: $SendRequestSplit
+                destination: SponsorsInvitationView(voyageId: selectedVoyagerId),
+                isActive: $navigateToSponsorsInvitation
             ) {
                 EmptyView()
                     .navigationBarBackButtonHidden(true)
@@ -662,50 +657,50 @@ struct VoyagerRateView: View {
     }
     
     func handleImmediateTravel() {
-        let userId = AppSessionSnapshot.userID
+        let userId = viewModel.sessionUserId
         guard !userId.isEmpty else {
-            ToastMsg = "Missing user id."
-            isShowToast = true
+            viewModel.toastMessage = "Missing user id."
+            viewModel.showToast = true
             return
         }
 
-        viewModel.FindBoat_ApiCaAlling(
-            VoyagerUserId: userId,
-            PickupDockId: pickupid,
-            DropOffDockId: dropOffid,
-            EstimatedCost: String(viewModel.totalFair),
-            NoOfVoyagers: numberOfVoyagers,
-            IsImmediately: true,
-            BookingDate: FormatedDateforApi,
-            IsSplitPayment: splitPayment,
+        viewModel.findBoat(
+            voyagerUserId: userId,
+            pickupDockId: pickupDockId,
+            dropOffDockId: dropOffDockId,
+            estimatedCost: String(viewModel.totalFare),
+            numberOfVoyagers: numberOfVoyagers,
+            isImmediately: true,
+            bookingDate: formattedDateForAPI,
+            isSplitPayment: splitPayment,
             voyageCategoryID: Int(uiFlowState.voyageDraft.voyageCategoryID) ?? 0
         )
     }
     
     func handleDelayTravel() {
-        let userId = AppSessionSnapshot.userID
+        let userId = viewModel.sessionUserId
         guard !userId.isEmpty else {
-            ToastMsg = "Missing user id."
-            isShowToast = true
+            viewModel.toastMessage = "Missing user id."
+            viewModel.showToast = true
             return
         }
 
-        viewModel.BookVoyage_ApiCalling(
-            VoyagerUserId: userId,
-            PickupDockId: pickupid,
-            DropOffDockId: dropOffid,
-            NoOfVoyagers: numberOfVoyagers,
-            IsImmediately: is_trave_now,
-            BookingDate: Eventdate,
-            StartTime: voyager_startTime,
-            EndTime: voyager_endTime,
-            IsStayOnWater: is_spend_on_water,
-            IsSplitPayment: splitPayment,
-            PerHourRate: viewModel.perHourRate,
-            DurationInHours: voyager_estimatedHours,
+        viewModel.bookVoyage(
+            voyagerUserId: userId,
+            pickupDockId: pickupDockId,
+            dropOffDockId: dropOffDockId,
+            numberOfVoyagers: numberOfVoyagers,
+            isImmediately: isTravelNow,
+            bookingDate: eventDisplayDate,
+            startTime: voyagerStartTime,
+            endTime: voyagerEndTime,
+            isStayOnWater: isStayOnWater,
+            isSplitPayment: splitPayment,
+            perHourRate: viewModel.perHourRate,
+            durationInHours: voyagerEstimatedHours,
             numberOfSponsors: selectedSponsors.count,
-            EstimatedCost: viewModel.totalFair,
-            IndvidualAmount: Double(individuals) ?? 0.0,
+            estimatedCost: viewModel.totalFare,
+            individualAmount: Double(individuals) ?? 0.0,
             sponsors: selectedSponsors,
             voyageCategoryID: Int(uiFlowState.voyageDraft.voyageCategoryID) ?? 0
         )
@@ -720,7 +715,7 @@ struct VoyagerRateView: View {
     
     func calculateShare() {
         if self.selectedSponsors.count > 0 {
-            sharePerSponsor = viewModel.totalFair / Double(self.selectedSponsors.count)
+            sharePerSponsor = viewModel.totalFare / Double(self.selectedSponsors.count)
             
             individuals = String(format: "%.2f", sharePerSponsor) // "0.00"
             
@@ -742,6 +737,4 @@ struct VoyagerRateView: View {
     }
 }
 
-struct SponsorModel: Codable {
-    let VoyagerUserId: String
-}
+

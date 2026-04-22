@@ -49,3 +49,4 @@ struct SponsorPayment: Codable, Identifiable {
         case VoyageStatus = "VoyageStatus"
     }
 }
+

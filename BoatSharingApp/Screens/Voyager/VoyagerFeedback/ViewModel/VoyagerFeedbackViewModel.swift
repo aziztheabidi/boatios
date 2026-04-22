@@ -18,11 +18,6 @@ final class VoyagerFeedbackViewModel: ObservableObject {
         case navigateLater(FeedbackSource)
     }
 
-    enum Route {
-        case voyagerHome
-        case captainHome
-    }
-
     enum FeedbackSource {
         case voyager
         case captain
@@ -41,9 +36,12 @@ final class VoyagerFeedbackViewModel: ObservableObject {
     @Published var remarks: String = ""
     @Published var toastMessage: String = ""
     @Published var isShowingToast: Bool = false
-    @Published var shouldNavigateVoyagerHome: Bool = false
-    @Published var shouldNavigateCaptainHome: Bool = false
-    @Published var route: Route?
+    enum StackDestination: Hashable {
+        case voyagerHome
+        case captainHome
+    }
+
+    @Published var stackDestination: StackDestination?
 
     var state: State {
         State(
@@ -57,11 +55,11 @@ final class VoyagerFeedbackViewModel: ObservableObject {
 
     // MARK: - Dependencies
 
-    private let apiClient: APIClientProtocol
+    private let networkRepository: AppNetworkRepositoryProtocol
     private var toastHideCancellable: AnyCancellable?
 
-    init(apiClient: APIClientProtocol) {
-        self.apiClient = apiClient
+    init(networkRepository: AppNetworkRepositoryProtocol) {
+        self.networkRepository = networkRepository
     }
 
     // MARK: - Send
@@ -94,11 +92,8 @@ final class VoyagerFeedbackViewModel: ObservableObject {
         errorMessage = nil
         Task {
             do {
-                let response: FeedbackResponse = try await apiClient.request(
-                    endpoint: "/Voyage/VoyagerFeedback",
-                    method: .post,
-                    parameters: ["Id": voyageId, "Rating": rating, "Review": review],
-                    requiresAuth: true
+                let response = try await networkRepository.voyage_voyagerFeedback(
+                    parameters: ["Id": voyageId, "Rating": rating, "Review": review]
                 )
                 isFeedbackLoading = false
                 if response.status == 201 {
@@ -119,11 +114,8 @@ final class VoyagerFeedbackViewModel: ObservableObject {
         errorMessage = nil
         Task {
             do {
-                let response: FeedbackResponse = try await apiClient.request(
-                    endpoint: "/Voyage/CaptainFeedback",
-                    method: .post,
-                    parameters: ["Id": voyageId, "Rating": rating, "Review": review],
-                    requiresAuth: true
+                let response = try await networkRepository.voyage_captainFeedback(
+                    parameters: ["Id": voyageId, "Rating": rating, "Review": review]
                 )
                 isFeedbackLoading = false
                 if response.status == 200 {
@@ -144,11 +136,9 @@ final class VoyagerFeedbackViewModel: ObservableObject {
     private func routeToHome(for source: FeedbackSource) {
         switch source {
         case .voyager:
-            shouldNavigateVoyagerHome = true
-            route = .voyagerHome
+            stackDestination = .voyagerHome
         case .captain:
-            shouldNavigateCaptainHome = true
-            route = .captainHome
+            stackDestination = .captainHome
         }
     }
 
@@ -166,3 +156,4 @@ final class VoyagerFeedbackViewModel: ObservableObject {
             .sink { [weak self] _ in self?.isShowingToast = false }
     }
 }
+

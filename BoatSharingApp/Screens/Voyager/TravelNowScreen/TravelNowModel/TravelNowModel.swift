@@ -57,3 +57,4 @@ struct TravelVoyageResponse: Codable {
     }
 }
 
+

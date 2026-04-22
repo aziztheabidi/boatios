@@ -8,7 +8,7 @@ struct CaptainRegStepTwo: View {
     init(lastController: NSString, dependencies: AppDependencies = .live) {
         self.lastController = lastController
         _viewModel = StateObject(wrappedValue: CaptainRegStepTwoViewModel(
-            apiClient: dependencies.apiClient,
+            networkRepository: dependencies.networkRepository,
             sessionPreferences: dependencies.sessionPreferences
         ))
     }
@@ -89,7 +89,7 @@ struct CaptainRegStepTwo: View {
                 Button(action: {
                     validateForm()
                     if isFormValid {
-                        let userId = AppSessionSnapshot.userID
+                        let userId = viewModel.sessionUserId
                         guard !userId.isEmpty else { return }
                         viewModel.CaptainDocument(
                             UserId: userId,
@@ -265,4 +265,6 @@ struct CaptainRegStepTwo: View {
 #Preview {
     CaptainRegStepTwo(lastController: "CaptainProfileTwo")
 }
+
+
 

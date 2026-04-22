@@ -62,7 +62,6 @@ private final class MockAPIClient: APIClientProtocol {
         endpoint: String,
         method: HTTPMethod,
         parameters: Parameters?,
-        encoding: ParameterEncoding,
         requiresAuth: Bool
     ) async throws -> T {
         if let error {

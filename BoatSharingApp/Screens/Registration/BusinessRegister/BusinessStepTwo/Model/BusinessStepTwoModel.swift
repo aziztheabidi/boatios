@@ -60,3 +60,4 @@ struct GetBusinessInfoProfile: Decodable, Equatable {
                lhs.changedBy == rhs.changedBy
     }
 }
+

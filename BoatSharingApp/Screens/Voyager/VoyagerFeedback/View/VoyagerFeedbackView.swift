@@ -1,14 +1,14 @@
 import SwiftUI
 
 struct VoyagerFeedbackView: View {
-    let voyageId: String   // ✅ REQUIRED
-    let From: String   // ✅ REQUIRED
+    let voyageId: String
+    let feedbackSource: String
     @StateObject private var viewModel: VoyagerFeedbackViewModel
 
-    init(dependencies: AppDependencies = .live, voyageId: String, From: String) {
+    init(dependencies: AppDependencies = .live, voyageId: String, feedbackSource: String) {
         self.voyageId = voyageId
-        self.From = From
-        _viewModel = StateObject(wrappedValue: VoyagerFeedbackViewModel(apiClient: dependencies.apiClient))
+        self.feedbackSource = feedbackSource
+        _viewModel = StateObject(wrappedValue: VoyagerFeedbackViewModel(networkRepository: dependencies.networkRepository))
     }
 
     var body: some View {
@@ -62,7 +62,7 @@ struct VoyagerFeedbackView: View {
                     // Buttons
                     HStack(spacing: 20) {
                         Button(action: {
-                            viewModel.send(.navigateLater(.init(from: From)))
+                            viewModel.send(.navigateLater(.init(from: feedbackSource)))
                         }) {
                             Text("Later")
                                 .frame(maxWidth: .infinity)
@@ -81,11 +81,11 @@ struct VoyagerFeedbackView: View {
                         
                         Button {
                             UIApplication.shared.dismissKeyboard()
-                            viewModel.send(.submit(voyageId: voyageId, source: .init(from: From)))
+                            viewModel.send(.submit(voyageId: voyageId, source: .init(from: feedbackSource)))
 
                         } label: {
                             ZStack {
-                                if viewModel.isFeedbackloading {
+                                if viewModel.isFeedbackLoading {
                                     ProgressView()
                                         .progressViewStyle(CircularProgressViewStyle(tint: .white))
                                 } else {
@@ -99,7 +99,7 @@ struct VoyagerFeedbackView: View {
                             .foregroundColor(.white)
                             .cornerRadius(10)
                         }
-                        .disabled(viewModel.isFeedbackloading)
+                        .disabled(viewModel.isFeedbackLoading)
 
 
                         
@@ -125,13 +125,13 @@ struct VoyagerFeedbackView: View {
                         .zIndex(1)
                 }
             }
-            NavigationLink(destination: VoyagerHomeView(), isActive: $viewModel.shouldNavigateVoyagerHome) {
-                EmptyView()
-                    .navigationBarBackButtonHidden(true)
-            }
-            NavigationLink(destination: CaptainHomeVC(), isActive: $viewModel.shouldNavigateCaptainHome) {
-                EmptyView()
-                    .navigationBarBackButtonHidden(true)
+            .navigationDestination(item: $viewModel.stackDestination) { destination in
+                switch destination {
+                case .voyagerHome:
+                    VoyagerHomeView()
+                case .captainHome:
+                    CaptainHomeVC()
+                }
             }
             .navigationBarBackButtonHidden(true)
         }
@@ -140,8 +140,10 @@ struct VoyagerFeedbackView: View {
 
 struct VoyagerFeedbackView_Previews: PreviewProvider {
     static var previews: some View {
-        VoyagerFeedbackView(voyageId: "",From: "")
+        VoyagerFeedbackView(voyageId: "", feedbackSource: "")
             .previewLayout(.sizeThatFits)
             .padding()
     }
 }
+
+

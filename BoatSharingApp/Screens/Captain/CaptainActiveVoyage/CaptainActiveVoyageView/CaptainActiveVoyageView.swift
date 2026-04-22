@@ -5,7 +5,7 @@ struct CaptainActiveVoyageView: View {
 
     init(dependencies: AppDependencies = .live) {
         _viewModel = StateObject(wrappedValue: CaptainActiveVoyageViewModel(
-            apiClient: dependencies.apiClient,
+            networkRepository: dependencies.networkRepository,
             identityProvider: dependencies.sessionPreferences
         ))
     }
@@ -146,7 +146,7 @@ struct CaptainActiveVoyageView: View {
                     })
                 )
             }
-            NavigationLink(destination: VoyagerFeedbackView(voyageId: viewModel.feedbackVoyageId,From: "Captain"), isActive: $viewModel.shouldNavigateToFeedback) {
+            NavigationLink(destination: VoyagerFeedbackView(voyageId: viewModel.feedbackVoyageId, feedbackSource: "Captain"), isActive: $viewModel.shouldNavigateToFeedback) {
                 EmptyView()
                     .navigationBarBackButtonHidden(true)
             }
@@ -438,3 +438,5 @@ struct CaptainConfirmAlertView: View {
         }
     }
 }
+
+

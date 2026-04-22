@@ -1,4 +1,3 @@
-
 //  Untitled.swift
 //  BoatSharingApp
 //
@@ -7,6 +6,7 @@
 
 import FirebaseFirestore
 import Foundation
+import SwiftUI
 
 @MainActor
 class ChatServiceViewModel: ObservableObject {
@@ -19,7 +19,6 @@ class ChatServiceViewModel: ObservableObject {
         case onAppear
         case onDisappear
         case sendMessage(chatId: String, senderId: String, text: String)
-        case listenForMessages(chatId: String, completion: ([ChatServicesModel]) -> Void)
         case tagMessage(voyagerId: String, description: String)
     }
     enum Route { case none }
@@ -33,47 +32,46 @@ class ChatServiceViewModel: ObservableObject {
             break
         case .sendMessage(let chatId, let senderId, let text):
             sendMessage(chatId: chatId, senderId: senderId, text: text)
-        case .listenForMessages(let chatId, let completion):
-            listenForMessages(chatId: chatId, completion: completion)
         case .tagMessage(let voyagerId, let description):
             TagMessageFromChat(VoyagerID: voyagerId, description: description)
         }
     }
-    private let apiClient: APIClientProtocol
+    private let networkRepository: AppNetworkRepositoryProtocol
 
-    init(apiClient: APIClientProtocol) {
-        self.apiClient = apiClient
+    init(networkRepository: AppNetworkRepositoryProtocol) {
+        self.networkRepository = networkRepository
     }
 
     private let db = Firestore.firestore()
     @Published var TagErrorMessage: String?
 
     @Published var isTagLoading: Bool = false
-    func getOrCreateChatId(for user1: String, and user2: String, completion: @escaping (String?) -> Void) {
-        let chatUsers = [user1, user2].sorted()
-        let chatQuery = db.collection("chats")
-            .whereField("users", isEqualTo: chatUsers)
 
-        chatQuery.getDocuments { snapshot, error in
-            if let error = error {
-                completion(nil)
-                return
-            }
-
-            if let doc = snapshot?.documents.first {
-                completion(doc.documentID)
-            } else {
-                let newChatRef = self.db.collection("chats").document()
-                newChatRef.setData([
-                    "users": chatUsers,
-                    "createdAt": FieldValue.serverTimestamp()
-                ]) { err in
-                    if let err = err {
-                        completion(nil)
-                    } else {
-                        completion(newChatRef.documentID)
+    /// Live message list for `chatId`; terminates (and removes the Firestore listener) when the consuming `Task` is cancelled.
+    nonisolated func messagesStream(chatId: String) -> AsyncStream<[ChatServicesModel]> {
+        let db = Firestore.firestore()
+        return AsyncStream { continuation in
+            let registration = db.collection("chats").document(chatId).collection("messages")
+                .order(by: "timestamp")
+                .addSnapshotListener { snapshot, _ in
+                    guard let documents = snapshot?.documents else {
+                        continuation.yield([])
+                        return
                     }
+
+                    let messages = documents.compactMap { doc -> ChatServicesModel? in
+                        let data = doc.data()
+                        guard let text = data["text"] as? String,
+                              let senderId = data["senderId"] as? String,
+                              let timestamp = data["timestamp"] as? Timestamp else { return nil }
+
+                        return ChatServicesModel(id: doc.documentID, text: text, senderId: senderId, timestamp: timestamp.dateValue())
+                    }
+
+                    continuation.yield(messages)
                 }
+            continuation.onTermination = { @Sendable _ in
+                registration.remove()
             }
         }
     }
@@ -87,44 +85,18 @@ class ChatServiceViewModel: ObservableObject {
         ])
     }
     static func getOrCreateChatId(currentUserId: String, otherUserId: String) -> String {
-           return currentUserId < otherUserId
-               ? "\(currentUserId)_\(otherUserId)"
-               : "\(otherUserId)_\(currentUserId)"
-       }
-    func listenForMessages(chatId: String, completion: @escaping ([ChatServicesModel]) -> Void) {
-        db.collection("chats").document(chatId).collection("messages")
-            .order(by: "timestamp")
-            .addSnapshotListener { snapshot, error in
-                guard let documents = snapshot?.documents else {
-                    return
-                }
-
-                let messages = documents.compactMap { doc -> ChatServicesModel? in
-                    let data = doc.data()
-                    guard let text = data["text"] as? String,
-                          let senderId = data["senderId"] as? String,
-                          let timestamp = data["timestamp"] as? Timestamp else { return nil }
-
-                    return ChatServicesModel(id: doc.documentID, text: text, senderId: senderId, timestamp: timestamp.dateValue())
-                }
-
-                completion(messages)
-            }
+        currentUserId < otherUserId
+            ? "\(currentUserId)_\(otherUserId)"
+            : "\(otherUserId)_\(currentUserId)"
     }
-    
-    
+
     func TagMessageFromChat(VoyagerID: String, description: String) {
         isTagLoading = true
         TagErrorMessage = nil
         let parameters: [String: Any] = ["VoyageId": VoyagerID, "Description": description]
-        Task {
+        Task { @MainActor in
             do {
-                let _: TagChatMessage = try await apiClient.request(
-                    endpoint: "/Voyager/Complain",
-                    method: HTTPMethod.post,
-                    parameters: parameters,
-                    requiresAuth: true
-                )
+                _ = try await networkRepository.voyager_complain(parameters: parameters)
                 self.isTagLoading = false
             } catch {
                 self.isTagLoading = false
@@ -132,13 +104,6 @@ class ChatServiceViewModel: ObservableObject {
             }
         }
     }
-
-    
-    
-    
-    
-    
-    
-    
 }
+
 

@@ -2,7 +2,7 @@ import SwiftUI
 
 struct NewRequestPaidPopUpVC: View {
     @Binding var showSheet: Bool
-    let voyage: VoyagerVoyage
+    let voyage: VoyageSession
     @Environment(\.presentationMode) var presentationMode
     @State private var navigateToTrack: Bool = false
     @State private var navigateToPayment: Bool = false
@@ -11,11 +11,11 @@ struct NewRequestPaidPopUpVC: View {
     // Payment
     @StateObject var viewModel: NewRequestPopUpViewModel
 
-    init(showSheet: Binding<Bool>, voyage: VoyagerVoyage, dependencies: AppDependencies = .live) {
+    init(showSheet: Binding<Bool>, voyage: VoyageSession, dependencies: AppDependencies = .live) {
         _showSheet = showSheet
         self.voyage = voyage
         _viewModel = StateObject(wrappedValue: NewRequestPopUpViewModel(
-            apiClient: dependencies.apiClient,
+            networkRepository: dependencies.networkRepository,
             sessionPreferences: dependencies.sessionPreferences
         ))
     }
@@ -28,46 +28,14 @@ struct NewRequestPaidPopUpVC: View {
   
     @State private var isShowToast = false
     @State private var ToastMsg = ""
-    @State private var VoyageID = ""
+    @State private var voyageId = ""
     @State private var paymentIntentID = ""
     @State private var intentID = ""
 
     @State private var displayDate: String = ""
 
-    private var trackRideChatPeerUserId: String {
-        let role = AppConfiguration.UserRole.normalize(AppSessionSnapshot.userRole)
-        if role == AppConfiguration.UserRole.captain.rawValue {
-            return (voyage.voyagerUserId ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
-        }
-        return voyage.captainUserId.trimmingCharacters(in: .whitespacesAndNewlines)
-    }
-
-    private var trackRideDetails: VoyageBookingDetails {
-        let role = AppConfiguration.UserRole.normalize(AppSessionSnapshot.userRole)
-        let displayName: String
-        if role == AppConfiguration.UserRole.captain.rawValue {
-            displayName = (voyage.voyagerName ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
-        } else {
-            displayName = voyage.captainName.trimmingCharacters(in: .whitespacesAndNewlines)
-        }
-        return VoyageBookingDetails(
-            voyageID: voyage.id,
-            voyagerName: displayName,
-            voyagerCount: voyage.noOfVoyagers ?? 1,
-            pickupDock: voyage.pickupDock,
-            dropOffDock: voyage.dropOffDock,
-            amountToPay: voyage.amountToPay,
-            duration: (voyage.duration ?? "").trimmingCharacters(in: .whitespacesAndNewlines),
-            waterStay: (voyage.waterStay ?? "").trimmingCharacters(in: .whitespacesAndNewlines),
-            bookingDateTime: (voyage.bookingDateTime ?? "").trimmingCharacters(in: .whitespacesAndNewlines),
-            voyagerPhone: (voyage.voyagerPhoneNumber ?? "").trimmingCharacters(in: .whitespacesAndNewlines),
-            chatPeerUserId: trackRideChatPeerUserId
-        )
-    }
-
     var body: some View {
         ZStack {
-            // 🔹 Bottom Sheet Content
             VStack(spacing: 10) {
                 // Top Wheel Logo
                 VStack {
@@ -179,7 +147,7 @@ struct NewRequestPaidPopUpVC: View {
                                 Spacer()
                             }
                             .padding(.bottom, 5)
-                            Text("\(voyage.noOfVoyagers ?? 1) Passengers")
+                            Text("\(voyage.numberOfVoyagers) Passengers")
                                 .font(.subheadline)
                                 .foregroundColor(.black)
                         }
@@ -234,7 +202,7 @@ struct NewRequestPaidPopUpVC: View {
                                 Spacer()
                             }
                             .padding(.bottom, 5)
-                            Text(voyage.duration ?? "")
+                            Text(voyage.duration)
                                 .font(.subheadline)
                                 .foregroundColor(.black)
                         }
@@ -260,7 +228,7 @@ struct NewRequestPaidPopUpVC: View {
                                 Spacer()
                             }
                             .padding(.bottom, 5)
-                            Text(voyage.waterStay ?? "")
+                            Text(voyage.waterStay)
                                 .font(.subheadline)
                                 .foregroundColor(.black)
                         }
@@ -300,7 +268,7 @@ struct NewRequestPaidPopUpVC: View {
                                 .foregroundColor(.gray)
                             
                             HStack(spacing: 5) {
-                                Text(String(format: "%.1f", voyage.Rating))
+                                Text(String(format: "%.1f", voyage.rating))
                                     .font(.headline)
                                     .foregroundColor(.black)
                                 Image("Docker")
@@ -359,14 +327,15 @@ struct NewRequestPaidPopUpVC: View {
                     
                     // Accept Button
                     Button(action: {
-                        if AppConfiguration.UserRole.normalize(AppSessionSnapshot.userRole) == AppConfiguration.UserRole.captain.rawValue {
-                            let currentUserId = AppSessionSnapshot.userID
+                        if viewModel.isCaptainRole {
+                            let currentUserId = viewModel.sessionUserId
                             guard !currentUserId.isEmpty else {
                                 ToastMsg = "Missing user context"
                                 isShowToast = true
                                 return
                             }
-                            guard !trackRideChatPeerUserId.isEmpty else {
+                            let peerId = viewModel.trackRideChatPeerUserId(for: voyage)
+                            guard !peerId.isEmpty else {
                                 ToastMsg = "Missing voyager account for this voyage."
                                 isShowToast = true
                                 return
@@ -375,7 +344,7 @@ struct NewRequestPaidPopUpVC: View {
                             navigateToPayment = false
                         } else {
                             navigateToTrack = false
-                            VoyageID = voyage.id
+                            voyageId = voyage.id
                             viewModel.getPaymentIds(voyagerId: voyage.id)
                         }
                     }) {
@@ -384,11 +353,11 @@ struct NewRequestPaidPopUpVC: View {
                                 .fill(Color.blue)
                                 .frame(width: UIScreen.main.bounds.width / 2 - 20, height: 55)
                             
-                            if viewModel.isPaymentLoaded && AppConfiguration.UserRole.normalize(AppSessionSnapshot.userRole) != AppConfiguration.UserRole.captain.rawValue {
+                            if viewModel.state.isPaymentLoaded && !viewModel.isCaptainRole {
                                 ProgressView()
                                     .progressViewStyle(CircularProgressViewStyle(tint: .white))
                             } else {
-                                Text(AppConfiguration.UserRole.normalize(AppSessionSnapshot.userRole) == AppConfiguration.UserRole.captain.rawValue ? "Accept" : "Pay Now")
+                                Text(viewModel.paymentPrimaryButtonTitle)
                                     .font(.headline)
                                     .foregroundColor(.white)
                             }
@@ -397,16 +366,16 @@ struct NewRequestPaidPopUpVC: View {
                 }
                 .padding(.top, 5)
                 
-                .onChange(of: viewModel.PaymentConfirmed) { _, confirmed in
+                .onChange(of: viewModel.state.paymentConfirmed) { _, confirmed in
                     if confirmed {
                         navigateToPayment = true
                     }
                 }
                 
-                .onChange(of: viewModel.PaymentData) { _, data in
+                .onChange(of: viewModel.state.paymentData) { _, data in
                     guard let secret = data?.clientSecret else { return }
                     paymentIntentID = secret
-                    intentID = data?.PaymentIntentId ?? ""
+                    intentID = data?.paymentIntentId ?? ""
                     var config = PaymentSheet.Configuration()
                     config.merchantDisplayName = "Boat Sharing"
                     stripeSheet = PaymentSheet(paymentIntentClientSecret: secret, configuration: config)
@@ -423,7 +392,8 @@ struct NewRequestPaidPopUpVC: View {
                             case .completed:
                                 ToastMsg = "Payment successful"
                                 isShowToast = true
-                                viewModel.completeVoyagerPaymentAfterDelay(voyageId: VoyageID, paymentIntentId: intentID) {
+                                Task { @MainActor in
+                                    await viewModel.completeVoyagerPaymentAfterDelay(voyageId: voyageId, paymentIntentId: intentID)
                                     showSheet = false
                                 }
                             case .canceled:
@@ -439,11 +409,11 @@ struct NewRequestPaidPopUpVC: View {
                 NavigationLink(
                     destination: TrackRidePopupVC(
                         showSheet: .constant(true),
-                        details: trackRideDetails,
-                        currentUserId: AppSessionSnapshot.userID,
+                        details: viewModel.voyageBookingDetails(for: voyage),
+                        currentUserId: viewModel.sessionUserId,
                         onPinEntered: { pin in
                         },
-                        onDecline: { voyageId in
+                        onDecline: { _ in
                         }
                     ),
                     isActive: $navigateToTrack
@@ -452,7 +422,10 @@ struct NewRequestPaidPopUpVC: View {
                 }
                 .navigationBarBackButtonHidden(true)
                 
-                NavigationLink(destination: PaymentPopUpVC(type: .VoyagerPayment), isActive: $navigateToPayment) {
+                NavigationLink(
+                    destination: PaymentPopUpVC(type: .VoyagerPayment, receiptEmail: viewModel.receiptEmailSnippet),
+                    isActive: $navigateToPayment
+                ) {
                     EmptyView()
                 }
                 .navigationBarBackButtonHidden(true)
@@ -463,16 +436,31 @@ struct NewRequestPaidPopUpVC: View {
             }
             .navigationBarBackButtonHidden(true)
             .onAppear {
-                let calendar = Calendar.current
-                //if calendar.isDateInToday(voyage.startDate) {
-                    displayDate = "Today"
-//                } else {
-//                    let formatter = DateFormatter()
-//                    formatter.dateStyle = .medium
-//                    displayDate = formatter.string(from: voyage.startDate)
-//                }
+                displayDate = Self.formattedBookingLabel(for: voyage.bookingDateTime)
             }
         }
     }
+
+    private static func formattedBookingLabel(for bookingDateTime: String) -> String {
+        let raw = bookingDateTime.trimmingCharacters(in: .whitespacesAndNewlines)
+        if raw.isEmpty { return "—" }
+        if raw.lowercased() == "today" { return "Today" }
+        if let date = ISO8601DateFormatter().date(from: raw) {
+            let formatter = DateFormatter()
+            formatter.dateStyle = .medium
+            return formatter.string(from: date)
+        }
+        let parser = DateFormatter()
+        parser.dateFormat = "EEEE, MMMM dd, yyyy h:mm a"
+        if let date = parser.date(from: raw) {
+            let formatter = DateFormatter()
+            formatter.dateStyle = .medium
+            formatter.timeStyle = .short
+            return formatter.string(from: date)
+        }
+        return raw
+    }
 }
+
+
 

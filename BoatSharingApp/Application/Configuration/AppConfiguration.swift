@@ -63,20 +63,18 @@ struct AppConfiguration {
             static let docksPublic = "/Dock/GetAllPublic"
             static let docksActive = "/Dock/GetActive"
             
-            // Voyage
+            // Voyage — path segment `CaculateFair` is a backend contract (not renamed server-side).
             static let voyageCalculateFare = "/Voyage/CaculateFair"
-            // Canonical name (API path kept as backend contract)
-            static let voyageCalculateFair = voyageCalculateFare
             static let voyageFindBoat = "/Voyage/FindBoat"
             static let voyageBook = "/Voyage/Book"
             static let voyageCancel = "/Voyage/Cancel"
             static let voyageStart = "/Voyage/Start"
             static let voyageComplete = "/Voyage/Complete"
-            /// Backend route uses legacy spelling `Sponser`.
+            /// Backend route keeps contract spelling `Sponser`.
             static let sponsorPaymentConfirmation = "/Voyage/SponserPaymentConfirmation"
-            /// Backend route uses legacy spelling `Sponser`.
+            /// Backend route keeps contract spelling `Sponser`.
             static let sponsorPaymentInitiate = "/Voyage/SponserPaymentInitiate"
-            /// Backend route uses legacy spelling `Sponser`.
+            /// Backend route keeps contract spelling `Sponser`.
             static let voyagerSponsorPaymentsByUserId = "/Voyager/GetSponserPaymentsByUserId"
             static let businessSaveMedia = "/BusinessInfo/SaveMedia"
         }
@@ -116,6 +114,11 @@ struct AppConfiguration {
     }
     
     // MARK: - User Roles
+    /// Values that appear in persisted role strings from older clients or APIs.
+    private enum RoleAlias {
+        static let businessMisspelled = "bussiness"
+    }
+
     enum UserRole: String {
         case voyager = "Voyager"
         case captain = "Captain"
@@ -129,7 +132,7 @@ struct AppConfiguration {
         static func normalize(_ rawRole: String) -> String {
             let trimmed = rawRole.trimmingCharacters(in: .whitespacesAndNewlines)
             switch trimmed.lowercased() {
-            case "bussiness", "business":
+            case RoleAlias.businessMisspelled, UserRole.business.rawValue.lowercased():
                 return UserRole.business.rawValue
             case "captain":
                 return UserRole.captain.rawValue

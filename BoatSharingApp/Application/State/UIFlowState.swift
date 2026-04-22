@@ -1,5 +1,8 @@
 import Foundation
 
+/// In-memory **cross-screen flow** state only (SwiftUI `EnvironmentObject`). Not persisted; never read from
+/// `UserDefaults` / Keychain. Reset on logout via `resetAfterLogout()` so booking / voyage UI is not rebuilt
+/// from stale in-memory values for a different session.
 struct BusinessVoyageSelection {
     enum VoyageType {
         case pickup
@@ -50,6 +53,16 @@ final class UIFlowState: ObservableObject {
     /// Call on app launch to guarantee transient flags start clean.
     func resetTransientFlags() {
         fromBusinessDetail = false
+    }
+
+    /// Clears voyage / booking flow state when the user logs out so nothing carries across sessions in-memory.
+    func resetAfterLogout() {
+        clearBusinessSelection()
+        voyageDraft = VoyageDraft()
+        isFindingBoat = false
+        showCaptainMenu = false
+        showBusinessMenu = false
+        resetTransientFlags()
     }
 }
 

@@ -7,15 +7,13 @@ final class VoyagerHomeViewModel: ObservableObject {
     // MARK: - State
 
     struct State {
-        let docks: [Dock]
+        let docks: [DockLocation]
         let errorMessage: String?
-        let voyage: VoyagerVoyage?
+        let voyage: VoyageSession?
         let isVoyageLoading: Bool
         let showFindBoatSheet: Bool
         let isCaptainFind: Bool
-        let moveToMenu: Bool
-        let moveToNext: Bool
-        let moveToLogin: Bool
+        let stackDestination: StackDestination?
         let isTokenExpired: Bool
     }
 
@@ -27,9 +25,7 @@ final class VoyagerHomeViewModel: ObservableObject {
             isVoyageLoading: isVoyageLoading,
             showFindBoatSheet: showFindBoatSheet,
             isCaptainFind: isCaptainFind,
-            moveToMenu: moveToMenu,
-            moveToNext: moveToNext,
-            moveToLogin: moveToLogin,
+            stackDestination: stackDestination,
             isTokenExpired: isTokenExpired
         )
     }
@@ -64,45 +60,46 @@ final class VoyagerHomeViewModel: ObservableObject {
         case .dismissFindBoat:
             showFindBoatSheet = false
         case .dismissFindBoatToMenu(let reset):
-            reset(); showFindBoatSheet = false; moveToMenu = true; route = .menu
+            reset(); showFindBoatSheet = false; stackDestination = .spinMenu
         case .dismissCaptainOverlay:
             isCaptainFind = false
         case .captainOverlayWheelTapped(let reset):
-            reset(); isCaptainFind = false; moveToMenu = true; route = .menu
+            reset(); isCaptainFind = false; stackDestination = .spinMenu
         case .tokenExpiredAcknowledged:
-            moveToLogin = true; route = .login
+            stackDestination = .login
         }
     }
 
-    // MARK: - Route
+    // MARK: - Stack navigation (single source of truth for pushed screens)
 
-    enum Route { case menu; case next; case login }
-    @Published var route: Route?
+    enum StackDestination: Hashable {
+        case spinMenu
+        case createVoyage
+        case login
+    }
+
+    @Published var stackDestination: StackDestination?
 
     // MARK: - Published state
 
-    @Published var docks: [Dock] = []
+    @Published var docks: [DockLocation] = []
     @Published var errorMessage: String?
-    @Published var voyage: VoyagerVoyage?
+    @Published var voyage: VoyageSession?
     @Published var isVoyageLoading: Bool = false
     @Published var voyageErrorMessage: String?
     @Published var isTokenExpired: Bool = false
     @Published var showFindBoatSheet: Bool = false
-    @Published var moveToMenu: Bool = false
-    @Published var moveToNext: Bool = false
     @Published var isCaptainFind: Bool = false
-    @Published var moveToLogin: Bool = false
-    @Published var isConfirmPayment: Bool = false
-    @Published var pickupLocation: Dock?
-    @Published var dropoffLocation: Dock?
+    @Published var pickupLocation: DockLocation?
+    @Published var dropoffLocation: DockLocation?
 
     // MARK: - Dependencies
 
-    private let apiClient: APIClientProtocol
+    private let networkRepository: AppNetworkRepositoryProtocol
     private let identityProvider: SessionPreferenceStoring
 
-    init(apiClient: APIClientProtocol, identityProvider: SessionPreferenceStoring) {
-        self.apiClient = apiClient
+    init(networkRepository: AppNetworkRepositoryProtocol, identityProvider: SessionPreferenceStoring) {
+        self.networkRepository = networkRepository
         self.identityProvider = identityProvider
     }
 
@@ -176,8 +173,12 @@ final class VoyagerHomeViewModel: ObservableObject {
 
     private func handleMenuTapped(resetRoleMenus: () -> Void) {
         resetRoleMenus()
-        moveToMenu = true
-        route = .menu
+        stackDestination = .spinMenu
+    }
+
+    /// Called after find-boat validation succeeds.
+    func navigateToCreateVoyageAfterBooking() {
+        stackDestination = .createVoyage
     }
 
     // MARK: - Private network
@@ -186,13 +187,8 @@ final class VoyagerHomeViewModel: ObservableObject {
         guard !hasFetchedDocks else { return }
         Task {
             do {
-                let response: ActiveDocksResponse = try await apiClient.request(
-                    endpoint: "/Dock/GetActive",
-                    method: .get,
-                    parameters: nil,
-                    requiresAuth: true
-                )
-                self.docks = response.obj.all
+                let docks = try await networkRepository.dock_getActive()
+                self.docks = docks.all
                 self.hasFetchedDocks = true
                 self.presentFindBoatSheetIfPending()
             } catch let error as APIError {
@@ -209,15 +205,10 @@ final class VoyagerHomeViewModel: ObservableObject {
         voyageErrorMessage = nil
         Task {
             do {
-                let response: ActiveVoyagerResponse = try await apiClient.request(
-                    endpoint: "/VoyagerDashboard/GetActiveVoyage?VoyagerUserId=\(userid)",
-                    method: .get,
-                    parameters: nil,
-                    requiresAuth: true
-                )
+                let session = try await networkRepository.voyagerDashboard_getActiveVoyage(voyagerUserId: userid)
                 self.isVoyageLoading = false
-                self.voyage = response.obj
-                self.applyVoyageUpdate(response.obj)
+                self.voyage = session
+                self.applyVoyageUpdate(session)
             } catch let error as APIError {
                 self.isVoyageLoading = false
                 if case .unauthorized = error { self.isTokenExpired = true }
@@ -229,12 +220,12 @@ final class VoyagerHomeViewModel: ObservableObject {
         }
     }
 
-    private func applyVoyageUpdate(_ voyage: VoyagerVoyage?) {
+    private func applyVoyageUpdate(_ voyage: VoyageSession?) {
         guard isViewActive, let voyage else { return }
-        isCaptainFind = !(voyage.status.isEmpty ?? true)
+        isCaptainFind = !voyage.status.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
 
-    // MARK: - Legacy public surface kept for existing view call-sites
+    // MARK: - Public action helpers
 
     func getActiveDockList() { fetchActiveDocks() }
     func resetDockCache() { hasFetchedDocks = false; docks = [] }
@@ -249,3 +240,4 @@ final class VoyagerHomeViewModel: ObservableObject {
     func onAppearLoad(uiFlowState: UIFlowState) { send(.onAppear(uiFlowState)) }
     func onDisappearReset() { send(.onDisappear) }
 }
+

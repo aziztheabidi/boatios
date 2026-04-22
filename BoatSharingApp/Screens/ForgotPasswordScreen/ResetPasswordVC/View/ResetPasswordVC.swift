@@ -5,13 +5,11 @@ struct ResetPasswordVC: View {
     @State private var email = ""
 
     init(dependencies: AppDependencies = .live) {
-        _viewModel = StateObject(wrappedValue: ResetPasswordViewModel(apiClient: dependencies.apiClient))
+        _viewModel = StateObject(wrappedValue: ResetPasswordViewModel(networkRepository: dependencies.networkRepository))
     }
     @State private var errorMessage: String? = nil
     @Environment(\.presentationMode) var presentationMode
     @Environment(\.openURL) private var openURL
-    @State private var MovetoTNC = false
-
     private var isSendButtonEnabled: Bool {
         return !email.isEmpty
     }
@@ -161,3 +159,5 @@ struct ResetPasswordVC: View {
 #Preview {
     ResetPasswordVC()
 }
+
+

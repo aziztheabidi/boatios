@@ -6,7 +6,7 @@ struct TravelNowView: View {
 
     init(dependencies: AppDependencies = .live) {
         _viewModel = StateObject(wrappedValue: TravelNowViewModel(
-            apiClient: dependencies.apiClient,
+            networkRepository: dependencies.networkRepository,
             identityProvider: dependencies.sessionPreferences
         ))
     }
@@ -90,7 +90,10 @@ struct TravelNowView: View {
                     .transition(.scale)
                 }
             }
-            .sheet(isPresented: $viewModel.showStripeSheet) {
+            .sheet(isPresented: Binding(
+                get: { viewModel.state.showStripeSheet },
+                set: { if !$0 { } }
+            )) {
                 if let sheet = viewModel.makePaymentSheet() {
                     PaymentSheetWrapper(paymentSheet: sheet) { result in
                         viewModel.send(.handleStripeResult(result))
@@ -108,7 +111,13 @@ struct TravelNowView: View {
                 dismiss()
                 viewModel.send(.clearDismissRequest)
             }
-            ToastView(message: viewModel.state.toastMessage, isPresented: $viewModel.isShowToast)
+            ToastView(
+                message: viewModel.state.toastMessage,
+                isPresented: Binding(
+                    get: { viewModel.state.isShowToast },
+                    set: { if !$0 { viewModel.send(.dismissToast) } }
+                )
+            )
         }
         .navigationBarBackButtonHidden(true)
     }
@@ -139,7 +148,7 @@ struct TravelNowView: View {
 
     private var pendingMessage: some View {
         return Group {
-            if viewModel.payNow {
+            if viewModel.state.showPendingSponsorInvite {
                 Text("Hey \(viewModel.state.displayUsername), you're invited to sponsor this Voyage starting soon. Please pay now to confirm.")
                     .foregroundColor(.black)
                     .font(.subheadline)
@@ -285,4 +294,6 @@ struct TravelNowPaymentCard: View {
         .padding(.horizontal)
     }
 }
+
+
 

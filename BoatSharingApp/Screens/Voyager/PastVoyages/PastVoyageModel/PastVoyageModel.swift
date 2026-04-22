@@ -140,3 +140,4 @@ struct Sponsorarray: Codable, Identifiable {
     let id = UUID()  // since your example shows empty array, no fields provided
 }
 
+

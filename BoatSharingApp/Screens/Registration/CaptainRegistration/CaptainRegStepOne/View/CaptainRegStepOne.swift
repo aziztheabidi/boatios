@@ -12,7 +12,7 @@ struct CaptainRegStepOne: View {
     init(lastController: NSString, dependencies: AppDependencies = .live) {
         self.lastController = lastController
         _viewModel = StateObject(wrappedValue: CaptainRegStepOneViewModel(
-            apiClient: dependencies.apiClient,
+            networkRepository: dependencies.networkRepository,
             sessionPreferences: dependencies.sessionPreferences
         ))
     }
@@ -155,7 +155,7 @@ struct CaptainRegStepOne: View {
                 // Save and Proceed Button (Disabled if Form is Invalid)
                 Button(action: {
                     validateForm()
-                    let userId = AppSessionSnapshot.userID
+                    let userId = viewModel.sessionUserId
                     if isFormValid {
                         guard !userId.isEmpty else { return }
                         viewModel.CaptainRegister(
@@ -335,3 +335,5 @@ struct DatePickerView: View {
 #Preview {
     CaptainRegStepOne(lastController: "CaptainProfileOne")
 }
+
+

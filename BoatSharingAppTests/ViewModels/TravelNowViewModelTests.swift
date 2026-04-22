@@ -4,35 +4,33 @@ import Alamofire
 
 @MainActor
 final class TravelNowViewModelTests: XCTestCase {
-    func testMainPhaseReflectsLoadingAndErrorStates() {
+    func testOnAppearFetchFailureEndsInRetryableErrorPhase() async {
+        let apiClient = GenericEndpointAPIClient { endpoint in
+            if endpoint == "/Voyager/GetImmediatelyBookedVoyage" {
+                return .failure(APIError.invalidResponse)
+            }
+            return .failure(APIError.invalidResponse)
+        }
         let viewModel = TravelNowViewModel(
-            apiClient: GenericEndpointAPIClient { _ in .failure(APIError.invalidResponse) },
+            networkRepository: AppNetworkRepository(apiClient: apiClient),
             identityProvider: ViewModelSessionPreferenceStore()
         )
-
-        viewModel.isLoading = true
-        XCTAssertEqual(viewModel.mainPhase, .loading)
-
-        viewModel.isLoading = false
-        viewModel.statusCode = 404
-        XCTAssertEqual(viewModel.mainPhase, .noVoyageFound)
-
-        viewModel.statusCode = nil
-        viewModel.errorMessage = "boom"
-        XCTAssertEqual(viewModel.mainPhase, .retryableError)
+        viewModel.send(.onAppear)
+        await waitUntil { viewModel.state.mainPhase == .retryableError }
+        XCTAssertEqual(viewModel.state.mainPhase, .retryableError)
     }
 
     func testStartSponsorPaymentOnBehalfWithoutUserIdSetsError() {
         let preferences = ViewModelSessionPreferenceStore()
         preferences.userID = ""
         let viewModel = TravelNowViewModel(
-            apiClient: GenericEndpointAPIClient { _ in .failure(APIError.invalidResponse) },
+            networkRepository: AppNetworkRepository(apiClient: GenericEndpointAPIClient { _ in .failure(APIError.invalidResponse) }),
             identityProvider: preferences
         )
 
         viewModel.send(.payNow("voyage-1"))
 
-        XCTAssertEqual(viewModel.errorMessage, "Missing user id.")
+        XCTAssertEqual(viewModel.state.errorMessage, "Missing user id.")
     }
 
     func testSponsorsPaymentSuccessCallsPaymentConfirmationEndpoint() async {
@@ -43,7 +41,7 @@ final class TravelNowViewModelTests: XCTestCase {
             return .failure(APIError.invalidResponse)
         }
         let viewModel = TravelNowViewModel(
-            apiClient: apiClient,
+            networkRepository: AppNetworkRepository(apiClient: apiClient),
             identityProvider: ViewModelSessionPreferenceStore()
         )
 
@@ -53,7 +51,7 @@ final class TravelNowViewModelTests: XCTestCase {
         XCTAssertTrue(apiClient.requestedEndpoints.contains(AppConfiguration.API.Endpoints.sponsorPaymentConfirmation))
     }
 
-    func testVoyageConfirmationSuccess200SetsPayNowFlag() async {
+    func testVoyageConfirmationSuccess200ShowsPaymentPopup() async {
         let apiClient = GenericEndpointAPIClient { endpoint in
             if endpoint == "/Voyage/Confirm" {
                 return .success(VoyageConfirmationResponse(status: 200, message: "OK", obj: "ok"))
@@ -61,14 +59,15 @@ final class TravelNowViewModelTests: XCTestCase {
             return .failure(APIError.invalidResponse)
         }
         let viewModel = TravelNowViewModel(
-            apiClient: apiClient,
+            networkRepository: AppNetworkRepository(apiClient: apiClient),
             identityProvider: ViewModelSessionPreferenceStore()
         )
 
         viewModel.voyageConfirmation(voyageId: "voyage-1")
-        await waitUntil { !viewModel.isConfirming }
+        await waitUntil { !viewModel.state.isConfirming }
 
-        XCTAssertTrue(viewModel.payNow)
+        XCTAssertTrue(viewModel.state.showPaymentPopup)
+        XCTAssertTrue(viewModel.state.showPendingSponsorInvite)
     }
 
     func testVoyageConfirmationFailureSetsErrorMessageAndStopsLoading() async {
@@ -82,20 +81,20 @@ final class TravelNowViewModelTests: XCTestCase {
             return .failure(APIError.invalidResponse)
         }
         let viewModel = TravelNowViewModel(
-            apiClient: apiClient,
+            networkRepository: AppNetworkRepository(apiClient: apiClient),
             identityProvider: ViewModelSessionPreferenceStore()
         )
 
         viewModel.voyageConfirmation(voyageId: "voyage-1")
-        await waitUntil { !viewModel.isConfirming }
+        await waitUntil { !viewModel.state.isConfirming }
 
-        XCTAssertFalse((viewModel.errorMessage ?? "").isEmpty)
-        XCTAssertFalse(viewModel.isConfirming)
+        XCTAssertFalse((viewModel.state.errorMessage ?? "").isEmpty)
+        XCTAssertFalse(viewModel.state.isConfirming)
     }
 
     func testDismissScreenSetsDismissFlagAndClearResetsIt() {
         let viewModel = TravelNowViewModel(
-            apiClient: GenericEndpointAPIClient { _ in .failure(APIError.invalidResponse) },
+            networkRepository: AppNetworkRepository(apiClient: GenericEndpointAPIClient { _ in .failure(APIError.invalidResponse) }),
             identityProvider: ViewModelSessionPreferenceStore()
         )
 
@@ -117,4 +116,3 @@ final class TravelNowViewModelTests: XCTestCase {
         }
     }
 }
-

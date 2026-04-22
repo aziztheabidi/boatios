@@ -8,6 +8,12 @@ struct PaymentPopUpVC: View {
     @State private var navigateToHome: Bool = false
     @State private var buttonText: String = ""
     let type: TypeOfController
+    let receiptEmail: String
+
+    init(type: TypeOfController, receiptEmail: String = "") {
+        self.type = type
+        self.receiptEmail = receiptEmail
+    }
 
     var body: some View {
         NavigationStack {
@@ -26,7 +32,7 @@ struct PaymentPopUpVC: View {
                     .padding()
                 
                 // Confirmation Message
-                Text("We have sent an email to \(AppSessionSnapshot.userEmail.isEmpty ? "your email" : AppSessionSnapshot.userEmail) with the receipt of this voyage")
+                Text("We have sent an email to \(receiptEmail.isEmpty ? "your email" : receiptEmail) with the receipt of this voyage")
                     .font(.subheadline)
                     .foregroundColor(.gray)
                     .multilineTextAlignment(.center)
@@ -73,6 +79,6 @@ struct PaymentPopUpVC: View {
 }
 struct PaymentPopUpVC_Previews: PreviewProvider {
     static var previews: some View {
-        PaymentPopUpVC(type: .SponsorPayment)
+        PaymentPopUpVC(type: .SponsorPayment, receiptEmail: "preview@example.com")
     }
 }

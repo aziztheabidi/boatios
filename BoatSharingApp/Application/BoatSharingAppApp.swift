@@ -43,7 +43,6 @@ struct BoatSharingAppApp: App {
         AppServices.configure()
         let dependencies = AppDependencies.live
         self.dependencies = dependencies
-        AppSessionSnapshot.configure(dependencies.sessionPreferences)
         _appState = StateObject(
             wrappedValue: AppState(
                 preferences: dependencies.preferences,
@@ -54,18 +53,25 @@ struct BoatSharingAppApp: App {
 
     var body: some Scene {
         WindowGroup {
-            ContentView1()
+            ContentView1(dependencies: dependencies)
                 .environmentObject(appState)
                 .environmentObject(uiFlowState)
                 .onAppear {
                     dependencies.routingNotifier.bind(appState)
+                    uiFlowState.resetTransientFlags()
                 }
         }
     }
 }
 
 struct ContentView1: View {
+    private let dependencies: AppDependencies
     @EnvironmentObject var appState: AppState
+    @EnvironmentObject var uiFlowState: UIFlowState
+
+    init(dependencies: AppDependencies) {
+        self.dependencies = dependencies
+    }
 
     var body: some View {
         NavigationStack {
@@ -73,35 +79,34 @@ struct ContentView1: View {
                 switch appState.userRole {
                 case "Voyager":
                     if appState.missingStep == 0 {
-                        VoyagerHomeView()
+                        VoyagerHomeView(dependencies: dependencies)
                     } else {
-                        RoleSelectionView()
+                        RoleSelectionView(dependencies: dependencies)
                     }
                 case "Captain":
                     if appState.missingStep == 0 {
-                        CaptainHomeVC()
+                        CaptainHomeVC(dependencies: dependencies)
                     } else {
-                        RoleSelectionView()
+                        RoleSelectionView(dependencies: dependencies)
                     }
                 default:
                     if appState.missingStep == 0 {
-                        DashboardVC()
+                        DashboardVC(dependencies: dependencies)
                     } else {
-                        RoleSelectionView()
+                        RoleSelectionView(dependencies: dependencies)
                     }
                 }
             } else {
-                SplashScreenView()
+                SplashScreenView(dependencies: dependencies)
                     .navigationBarBackButtonHidden(true)
             }
         }
-        .onAppear(perform: syncRoutingStateFromStorage)
-        .onChange(of: appState.isLoggedIn) { _, _ in
-            syncRoutingStateFromStorage()
+        .onChange(of: appState.isLoggedIn) { _, loggedIn in
+            appState.syncFromStorage()
+            if !loggedIn {
+                uiFlowState.resetAfterLogout()
+            }
         }
     }
-
-    private func syncRoutingStateFromStorage() {
-        appState.syncFromStorage()
-    }
 }
+

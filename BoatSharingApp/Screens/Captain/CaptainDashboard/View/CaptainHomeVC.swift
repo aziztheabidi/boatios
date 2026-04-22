@@ -5,15 +5,16 @@ struct CaptainHomeVC: View {
     @StateObject private var viewModel: CaptainHomeViewModel
     @EnvironmentObject private var uiFlowState: UIFlowState
     @State private var showSheet = false
-    @StateObject private var locationManager = LocationManager()
+    @StateObject private var locationManager: LocationManager
 
     init(dependencies: AppDependencies = .live) {
         _viewModel = StateObject(
             wrappedValue: CaptainHomeViewModel(
                 preferences: dependencies.preferences,
-                apiClient: dependencies.apiClient
+                networkRepository: dependencies.networkRepository
             )
         )
+        _locationManager = StateObject(wrappedValue: LocationManager(sessionPreferences: dependencies.sessionPreferences))
     }
 
     var body: some View {
@@ -158,11 +159,9 @@ struct CaptainHomeVC: View {
                 .zIndex(4) // Ensure it stays above other layers
             }
 
-            // Navigation
-            NavigationLink(destination: SpinWheelMenu(username: "Captain"), isActive: $viewModel.moveToMenu) {
-                EmptyView()
-            }
-            .hidden() // Hide the link itself to avoid navigation bar interference
+        }
+        .navigationDestination(item: $viewModel.stackDestination) { _ in
+            SpinWheelMenu()
         }
         .ignoresSafeArea(.all, edges: [.top]) // Ignore top safe area to allow icons at the very top
         .navigationBarBackButtonHidden(true) // Explicitly hide back button
@@ -187,3 +186,5 @@ struct MapScreenView_Previews: PreviewProvider {
         CaptainHomeVC()
     }
 }
+
+

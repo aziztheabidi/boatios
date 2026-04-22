@@ -257,3 +257,4 @@ struct BusinessVoyageDetailView: View {
         }
     }
 }
+

@@ -19,7 +19,7 @@ struct ChatServicesView: View {
         self.chatId = chatId
         self.currentUserId = currentUserId
         self.receiver = receiver
-        _chatService = StateObject(wrappedValue: ChatServiceViewModel(apiClient: dependencies.apiClient))
+        _chatService = StateObject(wrappedValue: ChatServiceViewModel(networkRepository: dependencies.networkRepository))
     }
 
     var body: some View {
@@ -103,10 +103,10 @@ struct ChatServicesView: View {
         }
         .navigationTitle("Chat with \(receiver.firstName)") // Kept for reference, will be hidden
         .navigationBarHidden(true) // Hide the navigation bar
-        .onAppear {
-            chatService.send(.listenForMessages(chatId: chatId, completion: { fetchedMessages in
-                self.messages = fetchedMessages
-            }))
+        .task(id: chatId) {
+            for await fetchedMessages in chatService.messagesStream(chatId: chatId) {
+                messages = fetchedMessages
+            }
         }
     }
 
@@ -116,3 +116,5 @@ struct ChatServicesView: View {
         newMessage = ""
     }
 }
+
+

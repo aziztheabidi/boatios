@@ -72,13 +72,23 @@ final class BusinessStepOneViewModel: ObservableObject {
 
     // MARK: - Dependencies
 
-    private let apiClient: APIClientProtocol
+    private let networkRepository: AppNetworkRepositoryProtocol
     private let preferences: PreferenceStoring
+    private let sessionPreferences: SessionPreferenceStoring
     private var toastHideCancellable: AnyCancellable?
 
-    init(apiClient: APIClientProtocol, preferences: PreferenceStoring) {
-        self.apiClient = apiClient
+    init(
+        networkRepository: AppNetworkRepositoryProtocol,
+        preferences: PreferenceStoring,
+        sessionPreferences: SessionPreferenceStoring
+    ) {
+        self.networkRepository = networkRepository
         self.preferences = preferences
+        self.sessionPreferences = sessionPreferences
+    }
+
+    var sessionUserId: String {
+        sessionPreferences.userID.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
     // MARK: - User type
@@ -92,24 +102,26 @@ final class BusinessStepOneViewModel: ObservableObject {
         userID: String, phone: String, firstName: String, lastName: String,
         address: String, dob: String, email: String
     ) {
-        let endpoint: String
         var parameters: [String: Any] = [
             "UserId": userID, "PhoneNumber": phone,
             "FirstName": firstName, "LastName": lastName,
             "Address": address, "DateOfBirth": dob, "StripeEmail": email
         ]
         switch userType {
-        case .voyager:  endpoint = "/VoyagerProfile/Save";   parameters["UserType"] = "Voyager"
-        case .business: endpoint = "/BusinessProfile/Save";  parameters["UserType"] = "Business"
+        case .voyager:  parameters["UserType"] = "Voyager"
+        case .business: parameters["UserType"] = "Business"
         }
 
         isLoading = true
         Task {
             do {
-                let response: BusinessStepOneModel = try await apiClient.request(
-                    endpoint: endpoint, method: .post,
-                    parameters: parameters, requiresAuth: true
-                )
+                let response: BusinessStepOneModel
+                switch userType {
+                case .voyager:
+                    response = try await networkRepository.voyagerProfile_save(parameters: parameters)
+                case .business:
+                    response = try await networkRepository.businessProfile_save(parameters: parameters)
+                }
                 self.isLoading = false
                 self.message    = response.Message
                 self.isSuccess  = response.Status == 200
@@ -136,10 +148,7 @@ final class BusinessStepOneViewModel: ObservableObject {
         ErrorMessage = nil
         Task {
             do {
-                let response: GetBusinessFirstResponse = try await apiClient.request(
-                    endpoint: "/BusinessProfile/GetByUserId?UserId=\(userId)",
-                    method: .get, parameters: nil, requiresAuth: true
-                )
+                let response = try await networkRepository.businessProfile_getByUserId(userId: userId)
                 self.isBusniesProfileLoading = false
                 self.BusinessProfile = response.obj
             } catch {
@@ -154,10 +163,7 @@ final class BusinessStepOneViewModel: ObservableObject {
         ErrorMessage = nil
         Task {
             do {
-                let response: GetBusinessFirstResponse = try await apiClient.request(
-                    endpoint: "/VoyagerProfile/GetByUserId?UserId=\(userId)",
-                    method: .get, parameters: nil, requiresAuth: true
-                )
+                let response = try await networkRepository.voyagerProfile_getByUserId(userId: userId)
                 self.isBusniesProfileLoading = false
                 self.BusinessProfile = response.obj
             } catch {
@@ -174,7 +180,7 @@ final class BusinessStepOneViewModel: ObservableObject {
             .sink { [weak self] _ in self?.shouldHideToast = true }
     }
 
-    // MARK: - Legacy call-site compat
+    // MARK: - Public action helpers
 
     func registerUser(userType: UserType, UserID: String, Phone: String, FirstName: String, LastName: String, Address: String, DOB: String, Email: String) {
         send(.registerUser(type: userType, userID: UserID, phone: Phone, firstName: FirstName, lastName: LastName, address: Address, dob: DOB, email: Email))
@@ -184,3 +190,4 @@ final class BusinessStepOneViewModel: ObservableObject {
     func GetVoyagerProfile(userid: String)   { send(.loadVoyagerProfile(userId: userid)) }
     func scheduleToastHide()                 { send(.scheduleToastHide) }
 }
+

@@ -57,10 +57,10 @@ final class BusinessVoyageViewModel: ObservableObject {
 
     // MARK: - Dependencies
 
-    private let apiClient: APIClientProtocol
+    private let networkRepository: AppNetworkRepositoryProtocol
 
-    init(apiClient: APIClientProtocol) {
-        self.apiClient = apiClient
+    init(networkRepository: AppNetworkRepositoryProtocol) {
+        self.networkRepository = networkRepository
     }
 
     // MARK: - Private network
@@ -70,12 +70,7 @@ final class BusinessVoyageViewModel: ObservableObject {
         errorMessage = nil
         Task {
             do {
-                let response: BusinessVoyageModel = try await apiClient.request(
-                    endpoint: "/Voyager/GetBusinessRelationship",
-                    method: .get,
-                    parameters: nil,
-                    requiresAuth: true
-                )
+                let response = try await networkRepository.voyager_getBusinessRelationship()
                 self.isLoading = false
                 if response.status == .success {
                     self.followedBusinesses = response.obj.followed
@@ -100,12 +95,7 @@ final class BusinessVoyageViewModel: ObservableObject {
         successMessage = nil
         Task {
             do {
-                let response: FollowBusinessUpdateResponse = try await apiClient.request(
-                    endpoint: "/Voyager/FollowBusiness",
-                    method: .post,
-                    parameters: ["BusinessDockId": id],
-                    requiresAuth: true
-                )
+                let response = try await networkRepository.voyager_followBusiness(businessDockId: id)
                 self.isLoading = false
                 if response.status.isSuccess {
                     self.successMessage = response.message
@@ -130,12 +120,7 @@ final class BusinessVoyageViewModel: ObservableObject {
         successMessage = nil
         Task {
             do {
-                let response: FollowBusinessUpdateResponse = try await apiClient.request(
-                    endpoint: "/Voyager/UnFollowBusiness",
-                    method: .post,
-                    parameters: ["BusinessDockId": id],
-                    requiresAuth: true
-                )
+                let response = try await networkRepository.voyager_unfollowBusiness(businessDockId: id)
                 self.isLoading = false
                 if response.status.isSuccess {
                     self.successMessage = response.message
@@ -154,73 +139,6 @@ final class BusinessVoyageViewModel: ObservableObject {
         }
     }
 
-    // MARK: - Legacy call-site compat (completion block preserved for existing view call-sites)
-
     func getBusinessRelationship() { send(.onAppear) }
-
-    func followedBusinessVoyage(businessId: Int, completion: @escaping (Bool) -> Void) {
-        isLoading = true
-        errorMessage = nil
-        successMessage = nil
-        Task {
-            do {
-                let response: FollowBusinessUpdateResponse = try await apiClient.request(
-                    endpoint: "/Voyager/FollowBusiness",
-                    method: .post,
-                    parameters: ["BusinessDockId": businessId],
-                    requiresAuth: true
-                )
-                self.isLoading = false
-                if response.status.isSuccess {
-                    self.successMessage = response.message
-                    completion(true)
-                } else {
-                    self.errorMessage = response.message
-                    completion(false)
-                }
-            } catch let error as APIError {
-                self.isLoading = false
-                if case .unauthorized = error { self.isTokenExpired = true }
-                else { self.errorMessage = error.localizedDescription }
-                completion(false)
-            } catch {
-                self.isLoading = false
-                self.errorMessage = error.localizedDescription
-                completion(false)
-            }
-        }
-    }
-
-    func UnfollowedBusinessVoyage(businessId: Int, completion: @escaping (Bool) -> Void) {
-        isLoading = true
-        errorMessage = nil
-        successMessage = nil
-        Task {
-            do {
-                let response: FollowBusinessUpdateResponse = try await apiClient.request(
-                    endpoint: "/Voyager/UnFollowBusiness",
-                    method: .post,
-                    parameters: ["BusinessDockId": businessId],
-                    requiresAuth: true
-                )
-                self.isLoading = false
-                if response.status.isSuccess {
-                    self.successMessage = response.message
-                    completion(true)
-                } else {
-                    self.errorMessage = response.message
-                    completion(false)
-                }
-            } catch let error as APIError {
-                self.isLoading = false
-                if case .unauthorized = error { self.isTokenExpired = true }
-                else { self.errorMessage = error.localizedDescription }
-                completion(false)
-            } catch {
-                self.isLoading = false
-                self.errorMessage = error.localizedDescription
-                completion(false)
-            }
-        }
-    }
 }
+

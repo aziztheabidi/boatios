@@ -5,7 +5,7 @@ struct SponsorRelationshipView: View {
 
     init(dependencies: AppDependencies = .live) {
         _viewModel = StateObject(wrappedValue: SponsorRelationshipViewModel(
-            apiClient: dependencies.apiClient,
+            networkRepository: dependencies.networkRepository,
             sessionPreferences: dependencies.sessionPreferences
         ))
     }
@@ -175,3 +175,5 @@ struct SponsorRelationshipView_Previews: PreviewProvider {
         SponsorRelationshipView()
     }
 }
+
+

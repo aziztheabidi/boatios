@@ -1,5 +1,7 @@
 import Foundation
 
+/// Keychain-backed storage for **secrets only** (access token, refresh token, APNS device token per `TokenStoring`).
+/// FCM and other non-secret identifiers use `PreferenceStore` / `DeviceIdentifierStoring`.
 final class TokenStore: TokenStoring {
     private let keychain: KeychainStoring
 

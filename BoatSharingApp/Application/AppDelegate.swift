@@ -26,18 +26,16 @@ class AppDelegate: NSObject, UIApplicationDelegate {
 
         // Register for push notifications
         UNUserNotificationCenter.current().delegate = self
-        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { granted, error in
+        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { granted, _ in
             if granted {
-                DispatchQueue.main.async {
+                Task { @MainActor in
                     application.registerForRemoteNotifications()
                 }
-            } else {
             }
         }
 
         Messaging.messaging().delegate = self
-        
-        // ✅ Reset badge & clear notifications on launch
+
         application.applicationIconBadgeNumber = 0
         UNUserNotificationCenter.current().removeAllDeliveredNotifications()
 
@@ -45,7 +43,6 @@ class AppDelegate: NSObject, UIApplicationDelegate {
     }
     
     func applicationDidBecomeActive(_ application: UIApplication) {
-        // ✅ Reset badge when app becomes active
         application.applicationIconBadgeNumber = 0
         UNUserNotificationCenter.current().removeAllDeliveredNotifications()
     }
@@ -65,19 +62,17 @@ extension AppDelegate: UNUserNotificationCenterDelegate, MessagingDelegate {
                                 willPresent notification: UNNotification,
                                 withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
         let userInfo = notification.request.content.userInfo
-        
-        // ✅ Clear badge & delivered notifications immediately when notification received
+
         UIApplication.shared.applicationIconBadgeNumber = 0
         UNUserNotificationCenter.current().removeAllDeliveredNotifications()
         
         NotificationCenter.default.post(name: .didReceivePushNotification, object: userInfo)
-        completionHandler([.banner, .sound]) // still show banner/sound
+        completionHandler([.banner, .sound])
     }
     
     func userNotificationCenter(_ center: UNUserNotificationCenter,
                                 didReceive response: UNNotificationResponse,
                                 withCompletionHandler completionHandler: @escaping () -> Void) {
-        // ✅ Clear badge when user taps notification
         UIApplication.shared.applicationIconBadgeNumber = 0
         UNUserNotificationCenter.current().removeAllDeliveredNotifications()
         completionHandler()

@@ -8,8 +8,12 @@
 import SwiftUI
 
 struct BusinessHomeVC: View {
-    
-    @State private var moveToMenu = false
+
+    private enum StackDestination: Hashable {
+        case spinMenu
+    }
+
+    @State private var stackDestination: StackDestination?
 
     var body: some View {
         NavigationView {
@@ -30,10 +34,7 @@ struct BusinessHomeVC: View {
                 VStack {
                     HStack {
                         Button(action: {
-                            moveToMenu = true
-                           
-                            
-                            
+                            stackDestination = .spinMenu
                         }) {
                             Image("Group1")
                                 .resizable()
@@ -44,10 +45,9 @@ struct BusinessHomeVC: View {
                     }
                     Spacer()
                 }
-                NavigationLink(destination: SpinWheelMenu(username: "Business"), isActive: $moveToMenu) {
-                    EmptyView()
-                        .navigationBarBackButtonHidden(true)
-                }
+            }
+            .navigationDestination(item: $stackDestination) { _ in
+                SpinWheelMenu()
             }
         }
         .navigationBarBackButtonHidden(true)
@@ -60,3 +60,4 @@ struct ComingSoonView_Previews: PreviewProvider {
         BusinessHomeVC()
     }
 }
+

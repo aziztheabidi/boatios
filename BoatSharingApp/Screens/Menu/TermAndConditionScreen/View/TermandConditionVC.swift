@@ -93,3 +93,4 @@ struct TermsAndConditionsView: View {
 #Preview {
     TermsAndConditionsView()
 }
+

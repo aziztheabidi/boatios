@@ -9,3 +9,4 @@ struct CaptainStatusModel: Codable {
     let Message: String
     let obj: String? // Change type if `obj` contains some data
 }
+

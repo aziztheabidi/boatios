@@ -26,7 +26,7 @@ struct Voyage: Codable, Identifiable {
     var noOfvoyagers: Int
     var duration: String
     var BookingDateTime: String
-    var sponsors: [Sponsor]? // ✅ Now uses full Sponsor model
+    var sponsors: [Sponsor]?
 
     enum CodingKeys: String, CodingKey {
         case id = "Id"
@@ -109,6 +109,7 @@ struct VoyageConfirmationResponse: Codable {
         case obj = "obj"
     }
 }
+
 
 
 

@@ -4,18 +4,19 @@ import XCTest
 @MainActor
 final class SplashScreenViewModelTests: XCTestCase {
     func testHandleAppearUsesStoredFCMTokenAndActivates() {
-        let tokenStore = SplashTokenStore()
-        tokenStore.fcmToken = "fcm-123"
-        let viewModel = SplashScreenViewModel(tokenStore: tokenStore)
+        let store = SplashDeviceIdentifierStore()
+        store.fcmToken = "fcm-123"
+        let viewModel = SplashViewModel(deviceIdentifierStore: store)
 
         viewModel.send(.onAppear)
 
         XCTAssertEqual(viewModel.state.fcmToken, "fcm-123")
         XCTAssertTrue(viewModel.state.isActive)
+        XCTAssertEqual(viewModel.state.route, .intro)
     }
 
     func testHandleAppearWithoutTokenSetsFallbackAndActivates() {
-        let viewModel = SplashScreenViewModel(tokenStore: SplashTokenStore())
+        let viewModel = SplashViewModel(deviceIdentifierStore: SplashDeviceIdentifierStore())
 
         viewModel.send(.onAppear)
 
@@ -24,11 +25,6 @@ final class SplashScreenViewModelTests: XCTestCase {
     }
 }
 
-private final class SplashTokenStore: TokenStoring {
-    var accessToken: String?
-    var refreshToken: String?
-    var deviceToken: String?
+private final class SplashDeviceIdentifierStore: DeviceIdentifierStoring {
     var fcmToken: String?
-
-    func clearSessionTokens() {}
 }

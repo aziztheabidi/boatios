@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct SponsorPaymentsView: View {
+    private let dependencies: AppDependencies
     @StateObject private var viewModel: SponsorsPaymentViewModel
     @Environment(\.dismiss) private var dismiss
 
@@ -10,12 +11,13 @@ struct SponsorPaymentsView: View {
     @State private var paymentResult: PaymentSheetResult?
 
     init(dependencies: AppDependencies = .live) {
+        self.dependencies = dependencies
         _viewModel = StateObject(wrappedValue: SponsorsPaymentViewModel(
-            apiClient: dependencies.apiClient,
+            networkRepository: dependencies.networkRepository,
             sessionPreferences: dependencies.sessionPreferences
         ))
         _PaymentviewModel = StateObject(wrappedValue: NewRequestPopUpViewModel(
-            apiClient: dependencies.apiClient,
+            networkRepository: dependencies.networkRepository,
             sessionPreferences: dependencies.sessionPreferences
         ))
     }
@@ -101,9 +103,9 @@ struct SponsorPaymentsView: View {
                     }
                 }
             }
-            .onChange(of: PaymentviewModel.PaymentData) { _, data in
+            .onChange(of: PaymentviewModel.state.paymentData) { _, data in
                 guard let secret = data?.clientSecret else { return }
-                let paymentIntentId = data?.PaymentIntentId ?? ""
+                let paymentIntentId = data?.paymentIntentId ?? ""
                 viewModel.send(.configureStripe(secret: secret, paymentIntentId: paymentIntentId))
                 var config = PaymentSheet.Configuration()
                 config.merchantDisplayName = "Boat Sharing"
@@ -141,7 +143,10 @@ struct SponsorPaymentsView: View {
                 dismiss()
                 viewModel.send(.clearDismissRequest)
             }
-            NavigationLink(destination: PaymentPopUpVC(type: .SponsorPayment), isActive: $viewModel.shouldNavigateToSuccess) {
+            NavigationLink(
+                destination: PaymentPopUpVC(type: .SponsorPayment, receiptEmail: dependencies.sessionPreferences.userEmail),
+                isActive: $viewModel.shouldNavigateToSuccess
+            ) {
                 EmptyView()
                     .navigationBarBackButtonHidden(true)
             }
@@ -246,7 +251,7 @@ struct InfoBox: View {
             }
         }
         .padding()
-        .frame(height: 100) // 👈 Set fixed height here
+        .frame(height: 100)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Color(.systemGray6))
         .cornerRadius(10)
@@ -256,4 +261,6 @@ struct InfoBox: View {
         )
     }
 }
+
+
 

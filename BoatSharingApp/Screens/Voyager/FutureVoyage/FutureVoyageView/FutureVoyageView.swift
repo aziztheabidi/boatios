@@ -6,7 +6,7 @@ struct FutureVoyagesView: View {
 
     init(dependencies: AppDependencies = .live) {
         _viewModel = StateObject(wrappedValue: FutureVoyageViewModel(
-            apiClient: dependencies.apiClient,
+            networkRepository: dependencies.networkRepository,
             identityProvider: dependencies.sessionPreferences
         ))
     }
@@ -104,7 +104,13 @@ struct FutureVoyagesView: View {
             .onAppear {
                 viewModel.send(.onAppear)
             }
-            ToastView(message: viewModel.state.toastMessage, isPresented: $viewModel.isShowToast)
+            ToastView(
+                message: viewModel.state.toastMessage,
+                isPresented: Binding(
+                    get: { viewModel.state.isShowToast },
+                    set: { if !$0 { viewModel.send(.dismissToast) } }
+                )
+            )
         }
         .navigationBarBackButtonHidden(true)
     }
@@ -477,3 +483,5 @@ struct ConfirmAlertView: View {
         }
     }
 }
+
+

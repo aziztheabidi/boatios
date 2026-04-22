@@ -91,3 +91,4 @@ struct AcceptVoyageResponse: Decodable {
         case obj = "obj"
     }
 }
+

@@ -15,7 +15,7 @@ const targetId = myProj.getFirstTarget().uuid;
 
 const targetFilesToRepair = [
     'SessionContracts.swift',
-    'LegacyCompatibility.swift',
+    'APIClientProtocol.swift',
     'VoyageBookingContext.swift',
     'ViewModelPattern.swift',
     'LoginAuthViewModelNew.swift',
@@ -79,7 +79,7 @@ uuidsToRemove.forEach(item => {
 // PHASE 2: RESTORE
 const truePathsToAdd = [
     'BoatSharingApp/Application/Session/SessionContracts.swift',
-    'BoatSharingApp/Application/Compatibility/LegacyCompatibility.swift',
+    'BoatSharingApp/Application/NetworkLayer/Core/APIClientProtocol.swift',
     'BoatSharingApp/Application/Storage/VoyageBookingContext.swift',
     'BoatSharingApp/Application/Architecture/ViewModelPattern.swift',
     'BoatSharingApp/Screens/LoginScreen/Modelview/LoginAuthViewModelNew.swift',

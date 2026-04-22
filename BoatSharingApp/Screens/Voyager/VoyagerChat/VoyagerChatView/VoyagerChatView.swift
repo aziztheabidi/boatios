@@ -6,7 +6,7 @@ struct VoyagerChatView: View {
 
     init(dependencies: AppDependencies = .live) {
         _viewModel = StateObject(wrappedValue: SponsorRelationshipViewModel(
-            apiClient: dependencies.apiClient,
+            networkRepository: dependencies.networkRepository,
             sessionPreferences: dependencies.sessionPreferences
         ))
     }
@@ -105,7 +105,7 @@ struct VoyagerChatView: View {
                     VStack(spacing: 0) {
 
                         if filteredUsers.isEmpty {
-                            // 👉 SHOW EMPTY LIST MESSAGE
+                            // Show empty list message
                             Text("List Empty")
                                 .foregroundColor(.gray.opacity(0.6))
                                 .font(.system(size: 18, weight: .medium))
@@ -219,3 +219,5 @@ struct VoyagerChatView: View {
 #Preview {
     VoyagerChatView()
 }
+
+

@@ -16,7 +16,7 @@ final class CaptainActiveVoyageViewModelTests: XCTestCase {
         let preferences = ViewModelSessionPreferenceStore()
         preferences.userID = "captain-1"
         let viewModel = CaptainActiveVoyageViewModel(
-            apiClient: apiClient,
+            networkRepository: AppNetworkRepository(apiClient: apiClient),
             identityProvider: preferences,
             locationProvider: StaticCaptainLocationProvider()
         )
@@ -29,7 +29,7 @@ final class CaptainActiveVoyageViewModelTests: XCTestCase {
 
     func testHandleSessionExpiredAcknowledgedRoutesToLogin() {
         let viewModel = CaptainActiveVoyageViewModel(
-            apiClient: GenericEndpointAPIClient { _ in .failure(APIError.invalidResponse) },
+            networkRepository: AppNetworkRepository(apiClient: GenericEndpointAPIClient { _ in .failure(APIError.invalidResponse) }),
             identityProvider: ViewModelSessionPreferenceStore(),
             locationProvider: StaticCaptainLocationProvider()
         )

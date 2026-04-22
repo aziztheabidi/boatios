@@ -1,47 +1,51 @@
 import SwiftUI
-import Alamofire
 import Combine
 
 @MainActor
 final class NewRequestPopUpViewModel: ObservableObject {
 
-    // MARK: - State
-
-    struct State {
-        let isPaymentLoading: Bool
-        let isPaymentConfirming: Bool
-        let paymentData: PaymentInitiationData?
-        let paymentConfirmed: Bool
-        let errorMessage: String?
-        let toastMessage: String?
-        let shouldHideToast: Bool
-        let shouldDismissForCompletedVoyage: Bool
-        let shouldNavigateToFeedback: Bool
+    struct State: Equatable {
+        var isPaymentLoaded: Bool = false
+        var initialPaymentSuccess: Bool = false
+        var paymentData: PaymentInitiationData?
+        var paymentConfirmed: Bool = false
+        var isPaymentConfirmedLoaded: Bool = false
+        var initialPaymentErrorMessage: String?
+        var toastMessage: String?
+        var shouldHideToast: Bool = false
+        var shouldDismissPopupForCompletedVoyage: Bool = false
+        var shouldNavigateToFeedbackForCompletedVoyage: Bool = false
+        var route: Route?
     }
 
-    var state: State {
-        State(
-            isPaymentLoading: isPaymentLoaded,
-            isPaymentConfirming: isPaymentConfirmedloaded,
-            paymentData: PaymentData,
-            paymentConfirmed: PaymentConfirmed,
-            errorMessage: initialPaymentErrorMessgae,
-            toastMessage: toastMessage,
-            shouldHideToast: shouldHideToast,
-            shouldDismissForCompletedVoyage: shouldDismissPopupForCompletedVoyage,
-            shouldNavigateToFeedback: shouldNavigateToFeedbackForCompletedVoyage
-        )
-    }
-
-    // MARK: - Actions
-
-    enum Action {
+    enum Action: Equatable {
         case getPaymentIds(voyagerId: String)
         case getSponsorPaymentIds(voyagerId: String, sponsorId: String, user: String)
         case voyagerPaymentSuccess(voyageId: String, paymentIntentId: String)
         case sponsorPaymentSuccess(voyageId: String, paymentIntentId: String)
         case onAppear(voyageStatus: String)
         case scheduleToastHide
+    }
+
+    enum Route: Equatable {
+        case feedback
+        case dismissPopup
+    }
+
+    @Published private(set) var state = State()
+
+    /// Combine subscriptions on payment data (Stripe sheet wiring in parent VMs).
+    var paymentDataPublisher: AnyPublisher<PaymentInitiationData?, Never> {
+        $state.map(\.paymentData).removeDuplicates().eraseToAnyPublisher()
+    }
+
+    private let networkRepository: AppNetworkRepositoryProtocol
+    private let sessionPreferences: SessionPreferenceStoring
+    private var toastHideCancellable: AnyCancellable?
+
+    init(networkRepository: AppNetworkRepositoryProtocol, sessionPreferences: SessionPreferenceStoring) {
+        self.networkRepository = networkRepository
+        self.sessionPreferences = sessionPreferences
     }
 
     func send(_ action: Action) {
@@ -57,40 +61,28 @@ final class NewRequestPopUpViewModel: ObservableObject {
         case .onAppear(let status):
             handleOnAppear(voyageStatus: status)
         case .scheduleToastHide:
-            scheduleToastHide()
+            scheduleToastHideAfterDelay()
         }
     }
 
-    // MARK: - Route
-
-    enum Route { case feedback; case dismissPopup }
-    @Published var route: Route?
-
-    // MARK: - Published state
-
-    @Published var PaymentData: PaymentInitiationData?
-    @Published var isPaymentLoaded: Bool = false
-    @Published var initialpayemntsuccess: Bool = false
-    @Published var PaymentConfirmed: Bool = false
-    @Published var isPaymentConfirmedloaded: Bool = false
-    @Published var initialPaymentErrorMessgae: String?
-    @Published var toastMessage: String?
-    @Published var shouldHideToast: Bool = false
-    @Published var shouldDismissPopupForCompletedVoyage: Bool = false
-    @Published var shouldNavigateToFeedbackForCompletedVoyage: Bool = false
-
-    // MARK: - Dependencies
-
-    private let apiClient: APIClientProtocol
-    private let sessionPreferences: SessionPreferenceStoring
-    private var toastHideCancellable: AnyCancellable?
-
-    init(apiClient: APIClientProtocol, sessionPreferences: SessionPreferenceStoring) {
-        self.apiClient = apiClient
-        self.sessionPreferences = sessionPreferences
+    func getPaymentIds(voyagerId: String) { send(.getPaymentIds(voyagerId: voyagerId)) }
+    func getSponsorPaymentIds(voyagerId: String, sponsorId: String, user: String) {
+        send(.getSponsorPaymentIds(voyagerId: voyagerId, sponsorId: sponsorId, user: user))
     }
 
-    // MARK: - Derived
+    func scheduleToastHide() { send(.scheduleToastHide) }
+
+    /// Called after Stripe sheet completes for voyager payment; keeps prior UX timing (intentional short delay).
+    func completeVoyagerPaymentAfterDelay(voyageId: String, paymentIntentId: String) async {
+        try? await Task.sleep(nanoseconds: 500_000_000)
+        send(.voyagerPaymentSuccess(voyageId: voyageId, paymentIntentId: paymentIntentId))
+    }
+
+    /// Called after Stripe sheet completes for sponsor payment; mirrors voyager delay before confirm API.
+    func completeSponsorPaymentAfterDelay(voyageId: String, paymentIntentId: String) async {
+        try? await Task.sleep(nanoseconds: 500_000_000)
+        send(.sponsorPaymentSuccess(voyageId: voyageId, paymentIntentId: paymentIntentId))
+    }
 
     var isCaptainRole: Bool {
         let canonical = AppConfiguration.UserRole.normalize(sessionPreferences.userRole)
@@ -98,118 +90,156 @@ final class NewRequestPopUpViewModel: ObservableObject {
             || canonical == AppConfiguration.UserRole.captain.rawValue
     }
 
-    // MARK: - Compatibility shims (called directly by SponsorsPaymentViewModel and FutureVoyageViewModel)
+    var paymentPrimaryButtonTitle: String { isCaptainRole ? "Accept" : "Pay Now" }
 
-    func getPaymentIds(voyagerId: String) { send(.getPaymentIds(voyagerId: voyagerId)) }
-    func getSponsorPaymentIds(voyagerId: String, sponsorId: String, user: String) {
-        send(.getSponsorPaymentIds(voyagerId: voyagerId, sponsorId: sponsorId, user: user))
+    var sessionUserId: String {
+        sessionPreferences.userID.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
-    // MARK: - Private network methods
+    var receiptEmailSnippet: String {
+        let e = sessionPreferences.userEmail.trimmingCharacters(in: .whitespacesAndNewlines)
+        return e.isEmpty ? "your email" : e
+    }
+
+    func trackRideChatPeerUserId(for voyage: VoyageSession) -> String {
+        if isCaptainRole {
+            return (voyage.voyagerUserId ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+        }
+        return voyage.captainUserId.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    func displayNameForTrackRideCounterparty(for voyage: VoyageSession) -> String {
+        if isCaptainRole {
+            return (voyage.voyagerName ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+        }
+        return voyage.captainName.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    func voyageBookingDetails(for voyage: VoyageSession) -> VoyageBookingDetails {
+        VoyageBookingDetails(
+            voyageID: voyage.id,
+            voyagerName: displayNameForTrackRideCounterparty(for: voyage),
+            voyagerCount: voyage.numberOfVoyagers,
+            pickupDock: voyage.pickupDock,
+            dropOffDock: voyage.dropOffDock,
+            amountToPay: voyage.amountToPay,
+            duration: voyage.duration.trimmingCharacters(in: .whitespacesAndNewlines),
+            waterStay: voyage.waterStay.trimmingCharacters(in: .whitespacesAndNewlines),
+            bookingDateTime: voyage.bookingDateTime.trimmingCharacters(in: .whitespacesAndNewlines),
+            voyagerPhone: (voyage.voyagerPhoneNumber ?? "").trimmingCharacters(in: .whitespacesAndNewlines),
+            chatPeerUserId: trackRideChatPeerUserId(for: voyage)
+        )
+    }
+
+    private func mutate(_ update: (inout State) -> Void) {
+        var next = state
+        update(&next)
+        state = next
+    }
 
     private func fetchPaymentIds(voyagerId: String) {
-        isPaymentLoaded = true
-        initialPaymentErrorMessgae = nil
-        Task {
+        mutate {
+            $0.isPaymentLoaded = true
+            $0.initialPaymentErrorMessage = nil
+        }
+        Task { @MainActor in
             do {
-                let response: PaymentInitiationResponse = try await apiClient.request(
-                    endpoint: "/Voyage/PaymentInitiate",
-                    method: .post,
-                    parameters: ["Id": voyagerId],
-                    encoding: JSONEncoding.default,
-                    requiresAuth: true
-                )
-                self.isPaymentLoaded = false
-                self.initialpayemntsuccess = true
-                self.PaymentData = response.obj
+                let response = try await networkRepository.voyage_paymentInitiate(voyagerId: voyagerId)
+                mutate {
+                    $0.isPaymentLoaded = false
+                    $0.initialPaymentSuccess = true
+                    $0.paymentData = response.obj
+                }
             } catch {
-                self.isPaymentLoaded = false
-                self.initialPaymentErrorMessgae = error.localizedDescription
+                mutate {
+                    $0.isPaymentLoaded = false
+                    $0.initialPaymentErrorMessage = error.localizedDescription
+                }
             }
         }
     }
 
     private func confirmVoyagerPayment(voyageId: String, paymentIntentId: String) {
-        isPaymentLoaded = true
-        initialPaymentErrorMessgae = nil
-        Task {
+        mutate {
+            $0.isPaymentLoaded = true
+            $0.initialPaymentErrorMessage = nil
+        }
+        Task { @MainActor in
             do {
-                let _: PaymentSuccessResponse = try await apiClient.request(
-                    endpoint: "/Voyage/PaymentConfirmation",
-                    method: .post,
-                    parameters: ["Id": voyageId, "PaymentIntentId": paymentIntentId],
-                    encoding: JSONEncoding.default,
-                    requiresAuth: true
-                )
-                self.isPaymentConfirmedloaded = false
-                self.PaymentConfirmed = true
+                _ = try await networkRepository.voyage_paymentConfirm(voyageId: voyageId, paymentIntentId: paymentIntentId)
+                mutate {
+                    $0.isPaymentConfirmedLoaded = false
+                    $0.paymentConfirmed = true
+                }
             } catch {
-                self.isPaymentConfirmedloaded = false
-                self.initialPaymentErrorMessgae = error.localizedDescription
+                mutate {
+                    $0.isPaymentConfirmedLoaded = false
+                    $0.initialPaymentErrorMessage = error.localizedDescription
+                }
             }
         }
     }
 
     private func confirmSponsorPayment(voyageId: String, paymentIntentId: String) {
-        isPaymentLoaded = true
-        initialPaymentErrorMessgae = nil
-        Task {
+        mutate {
+            $0.isPaymentLoaded = true
+            $0.initialPaymentErrorMessage = nil
+        }
+        Task { @MainActor in
             do {
-                let _: PaymentSuccessResponse = try await apiClient.request(
-                    endpoint: AppConfiguration.API.Endpoints.sponsorPaymentConfirmation,
-                    method: .post,
-                    parameters: ["Id": voyageId, "PaymentIntentId": paymentIntentId],
-                    encoding: JSONEncoding.default,
-                    requiresAuth: true
-                )
-                self.isPaymentConfirmedloaded = false
-                self.PaymentConfirmed = true
+                _ = try await networkRepository.voyage_sponsorPaymentConfirm(voyageId: voyageId, paymentIntentId: paymentIntentId)
+                mutate {
+                    $0.isPaymentConfirmedLoaded = false
+                    $0.paymentConfirmed = true
+                }
             } catch {
-                self.isPaymentConfirmedloaded = false
-                self.initialPaymentErrorMessgae = error.localizedDescription
+                mutate {
+                    $0.isPaymentConfirmedLoaded = false
+                    $0.initialPaymentErrorMessage = error.localizedDescription
+                }
             }
         }
     }
 
     private func fetchSponsorPaymentIds(voyagerId: String, sponsorId: String, user: String) {
-        isPaymentLoaded = true
-        initialPaymentErrorMessgae = nil
+        mutate {
+            $0.isPaymentLoaded = true
+            $0.initialPaymentErrorMessage = nil
+        }
         var parameters: [String: Any] = ["Id": voyagerId, user: sponsorId]
-        if user == "SponsorUserId" { parameters["SponserUserId"] = sponsorId }
-        Task {
+        if user == BackendContractCoding.SponsorPaymentInitiateKey.sponsorUserIdCanonical {
+            parameters[BackendContractCoding.SponsorPaymentInitiateKey.sponsorUserIdBackendVariant] = sponsorId
+        }
+        Task { @MainActor in
             do {
-                let response: PaymentInitiationResponse = try await apiClient.request(
-                    endpoint: AppConfiguration.API.Endpoints.sponsorPaymentInitiate,
-                    method: .post,
-                    parameters: parameters,
-                    encoding: JSONEncoding.default,
-                    requiresAuth: true
-                )
-                self.isPaymentLoaded = false
-                self.initialpayemntsuccess = true
-                self.PaymentData = response.obj
+                let response = try await networkRepository.voyage_sponsorPaymentInitiate(parameters: parameters)
+                mutate {
+                    $0.isPaymentLoaded = false
+                    $0.initialPaymentSuccess = true
+                    $0.paymentData = response.obj
+                }
             } catch {
-                self.isPaymentLoaded = false
-                self.initialPaymentErrorMessgae = error.localizedDescription
+                mutate {
+                    $0.isPaymentLoaded = false
+                    $0.initialPaymentErrorMessage = error.localizedDescription
+                }
             }
         }
     }
 
     private func handleOnAppear(voyageStatus: String) {
         guard voyageStatus.lowercased() == "completed" else { return }
-        shouldDismissPopupForCompletedVoyage = true
-        shouldNavigateToFeedbackForCompletedVoyage = true
-        route = .dismissPopup
+        mutate {
+            $0.shouldDismissPopupForCompletedVoyage = true
+            $0.shouldNavigateToFeedbackForCompletedVoyage = true
+            $0.route = .dismissPopup
+        }
     }
 
-    private func scheduleToastHide() {
+    private func scheduleToastHideAfterDelay() {
         toastHideCancellable?.cancel()
         toastHideCancellable = Just(())
             .delay(for: .seconds(2), scheduler: RunLoop.main)
-            .sink { [weak self] _ in self?.shouldHideToast = true }
+            .sink { [weak self] _ in self?.mutate { $0.shouldHideToast = true } }
     }
-
-    // MARK: - Legacy surface kept for call-site compat
-
-    func scheduleToastHide() { send(.scheduleToastHide) }
 }

@@ -16,7 +16,7 @@ struct CreatePasswordVC: View {
         _viewModel = StateObject(
             wrappedValue: CreatePasswordViewModel(
                 tokenStore: dependencies.tokenStore,
-                apiClient: dependencies.apiClient,
+                networkRepository: dependencies.networkRepository,
                 sessionPreferences: dependencies.sessionPreferences
             )
         )
@@ -146,7 +146,6 @@ struct CreatePasswordVC: View {
                     Spacer()
                 }
 
-                // ✅ SAME LOADER AS OTPVC
                 if viewModel.isLoading {
                     ZStack {
                         Color.black.opacity(0.3)
@@ -253,4 +252,6 @@ struct CreatePasswordVC_Previews: PreviewProvider {
         CreatePasswordVC()
     }
 }
+
+
 

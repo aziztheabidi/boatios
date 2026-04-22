@@ -5,17 +5,17 @@ struct NewRequestFinal_PopUpVC: View {
     // MARK: - Injected
 
     @Binding var showSheet: Bool
-    let voyage: VoyagerVoyage
+    let voyage: VoyageSession
     @StateObject var viewModel: NewRequestPopUpViewModel
 
     @Environment(\.presentationMode) var presentationMode
     @Environment(\.openURL) private var openURL
 
-    init(showSheet: Binding<Bool>, voyage: VoyagerVoyage, dependencies: AppDependencies = .live) {
+    init(showSheet: Binding<Bool>, voyage: VoyageSession, dependencies: AppDependencies = .live) {
         _showSheet = showSheet
         self.voyage = voyage
         _viewModel = StateObject(wrappedValue: NewRequestPopUpViewModel(
-            apiClient: dependencies.apiClient,
+            networkRepository: dependencies.networkRepository,
             sessionPreferences: dependencies.sessionPreferences
         ))
     }
@@ -46,14 +46,13 @@ struct NewRequestFinal_PopUpVC: View {
                 .transition(.scale)
             }
 
-            // Toast driven entirely by ViewModel state
-            if let message = viewModel.toastMessage, !message.isEmpty {
+            if let message = viewModel.state.toastMessage, !message.isEmpty {
                 toastView(message: message)
                     .zIndex(3)
             }
 
             NavigationLink(
-                destination: VoyagerFeedbackView(voyageId: voyage.id, From: "Voyager"),
+                destination: VoyagerFeedbackView(voyageId: voyage.id, feedbackSource: "Voyager"),
                 isActive: $navigateToFeedback
             ) { EmptyView() }
         }
@@ -76,12 +75,10 @@ struct NewRequestFinal_PopUpVC: View {
         .background(RoundedRectangle(cornerRadius: 25).fill(Color.white))
         .ignoresSafeArea(.container, edges: .bottom)
         .onAppear {
-            // Forward lifecycle event to ViewModel — view does not decide what happens next
             viewModel.send(.onAppear(voyageStatus: voyage.status))
         }
-        .onChange(of: viewModel.shouldDismissPopupForCompletedVoyage) { _, newValue in if newValue { showSheet = false } }
-        .onChange(of: viewModel.shouldNavigateToFeedbackForCompletedVoyage) { _, newValue in if newValue { navigateToFeedback = true } }
-        .onChange(of: viewModel.shouldHideToast) { _, newValue in if newValue { /* nothing — toast visibility driven by toastMessage */ } }
+        .onChange(of: viewModel.state.shouldDismissPopupForCompletedVoyage) { _, newValue in if newValue { showSheet = false } }
+        .onChange(of: viewModel.state.shouldNavigateToFeedbackForCompletedVoyage) { _, newValue in if newValue { navigateToFeedback = true } }
     }
 
     // MARK: - Header
@@ -120,11 +117,11 @@ struct NewRequestFinal_PopUpVC: View {
                     Text(voyage.captainName).font(.headline).foregroundColor(.black)
                     Text("Top Rating Captain").font(.subheadline).foregroundColor(.gray)
                     HStack(spacing: 4) {
-                        Text(String(format: "%.1f", voyage.Rating))
+                        Text(String(format: "%.1f", voyage.rating))
                             .font(.subheadline).foregroundColor(.black)
                         HStack(spacing: 2) {
                             ForEach(0..<1) { index in
-                                Image(index < Int(voyage.Rating.rounded(.down)) ? "Docker" : "Docker")
+                                Image(index < Int(voyage.rating.rounded(.down)) ? "Docker" : "Docker")
                                     .resizable().scaledToFit().frame(width: 18, height: 18)
                             }
                         }
@@ -161,12 +158,12 @@ struct NewRequestFinal_PopUpVC: View {
                     infoCard(image: "Vector-4", title: "Drop-off", value: voyage.dropOffDock)
                 }
                 HStack(spacing: 10) {
-                    infoCard(image: "Vector-2", title: "Passengers", value: "\(voyage.noOfVoyagers ?? 1) Passengers")
+                    infoCard(image: "Vector-2", title: "Passengers", value: "\(voyage.numberOfVoyagers) Passengers")
                     infoCard(image: "Dollar",   title: "Price",      value: String(format: "%.1f", voyage.amountToPay))
                 }
                 HStack(spacing: 10) {
-                    infoCardSystem(icon: "clock",        title: "Duration",      value: voyage.duration ?? "")
-                    infoCardSystem(icon: "water.waves",  title: "Stay on water", value: voyage.waterStay ?? "")
+                    infoCardSystem(icon: "clock",        title: "Duration",      value: voyage.duration)
+                    infoCardSystem(icon: "water.waves",  title: "Stay on water", value: voyage.waterStay)
                 }
             }
             .padding(.horizontal)
@@ -205,7 +202,6 @@ struct NewRequestFinal_PopUpVC: View {
                 .padding(.bottom, 40)
                 .transition(.move(edge: .bottom))
                 .onAppear {
-                    // Ask the ViewModel to schedule auto-hide
                     viewModel.send(.scheduleToastHide)
                 }
         }
@@ -247,3 +243,5 @@ struct NewRequestFinal_PopUpVC: View {
         .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.gray.opacity(0.3), lineWidth: 1))
     }
 }
+
+

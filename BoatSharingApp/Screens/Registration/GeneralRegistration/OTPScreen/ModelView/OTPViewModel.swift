@@ -62,13 +62,13 @@ final class OTPViewModel: ObservableObject {
 
     // MARK: - Dependencies
 
-    private let apiClient: APIClientProtocol
+    private let networkRepository: AppNetworkRepositoryProtocol
     private let tokenStore: TokenStoring
     private var countdownCancellable: AnyCancellable?
     private var navigationDelayTask: Task<Void, Never>?
 
-    init(apiClient: APIClientProtocol, tokenStore: TokenStoring) {
-        self.apiClient = apiClient
+    init(networkRepository: AppNetworkRepositoryProtocol, tokenStore: TokenStoring) {
+        self.networkRepository = networkRepository
         self.tokenStore = tokenStore
     }
 
@@ -105,12 +105,7 @@ final class OTPViewModel: ObservableObject {
         isLoading = true
         Task {
             do {
-                let response: OTPModel = try await apiClient.request(
-                    endpoint: "/RegistrationTemp/Verify",
-                    method: .post,
-                    parameters: ["OTP": otp, "Email": email],
-                    requiresAuth: false
-                )
+                let response = try await networkRepository.registrationTemp_verify(parameters: ["OTP": otp, "Email": email])
                 self.isLoading = false
                 self.message   = response.Message
                 self.tokenStore.accessToken = response.obj ?? ""
@@ -145,10 +140,11 @@ final class OTPViewModel: ObservableObject {
         }
     }
 
-    // MARK: - Legacy call-site compat
+    // MARK: - Public action helpers
 
     func EnterOTP(email: String, OTP: Int) { send(.verifyOTP(email: email, otp: OTP)) }
     func handleInvalidOtpInput()           { send(.handleInvalidInput) }
     func dismissToast()                    { send(.dismissToast) }
     func resetTimer()                      { send(.resetTimer) }
 }
+

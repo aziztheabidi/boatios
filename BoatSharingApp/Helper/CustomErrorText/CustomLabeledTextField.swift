@@ -18,7 +18,7 @@ struct CustomLabeledTextField: View {
 
             TextField(label, text: $text, onEditingChanged: { editing in
                 if editing {
-                    error = nil  // Remove error when user starts typing
+                    error = nil
                 }
             })
             .autocapitalization(.none)
@@ -38,7 +38,7 @@ struct CustomLabeledTextField: View {
                     .font(.caption)
                     .foregroundColor(.red)
                     .padding(.horizontal, 16)
-                    .opacity(isFocused ? 0 : 1) // Hide error text while typing
+                    .opacity(isFocused ? 0 : 1)
             }
         }
         .focused($isFocused)
@@ -59,10 +59,9 @@ struct CustomLabeledTextFields: View {
 
     var body: some View {
         VStack(alignment: .leading) {
-            // ❌ Removed top label entirely to avoid duplicates
             TextField(placeholder, text: $text, onEditingChanged: { editing in
                 if editing {
-                    error = nil  // Remove error when user starts typing
+                    error = nil
                 }
             })
             .autocapitalization(.none)

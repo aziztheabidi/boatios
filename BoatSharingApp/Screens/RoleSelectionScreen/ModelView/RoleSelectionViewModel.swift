@@ -3,94 +3,89 @@ import SwiftUI
 @MainActor
 final class RoleSelectionViewModel: ObservableObject {
 
-    // MARK: - State
-
-    struct State {
-        let isAuthenticated: Bool
-        let isLoading: Bool
-        let errorMessage: String?
-        let selectedRole: String?
+    struct State: Equatable {
+        var isAuthenticated: Bool = false
+        var isLoading: Bool = false
+        var errorMessage: String?
+        var selectedRole: String?
     }
 
-    var state: State {
-        State(
-            isAuthenticated: isAuthenticated,
-            isLoading: isLoading,
-            errorMessage: errorMessage,
-            selectedRole: selectedRole
-        )
-    }
-
-    // MARK: - Actions
-
-    enum Action {
+    enum Action: Equatable {
         case selectRole(String)
         case updateRole(userId: String, role: String)
         case clearError
     }
 
-    func send(_ action: Action) {
-        switch action {
-        case .selectRole(let role):              selectedRole = role
-        case .updateRole(let uid, let role):     performUpdateRole(userId: uid, role: role)
-        case .clearError:                        errorMessage = nil
-        }
-    }
-
-    // MARK: - Published state
-
-    @Published var isAuthenticated = false
-    @Published var isLoading = false
-    @Published var errorMessage: String?
-    @Published var selectedRole: String?
-
-    // MARK: - Dependencies
+    @Published private(set) var state = State()
 
     private let sessionManager: SessionManaging
-    private let apiClient: APIClientProtocol
+    private let networkRepository: AppNetworkRepositoryProtocol
+    private let sessionPreferences: SessionPreferenceStoring
 
-    init(apiClient: APIClientProtocol, sessionManager: SessionManaging) {
-        self.apiClient = apiClient
+    init(networkRepository: AppNetworkRepositoryProtocol, sessionManager: SessionManaging, sessionPreferences: SessionPreferenceStoring) {
+        self.networkRepository = networkRepository
         self.sessionManager = sessionManager
+        self.sessionPreferences = sessionPreferences
     }
 
-    // MARK: - Private network
+    var roleSelectionUserId: String {
+        sessionPreferences.userID.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    func send(_ action: Action) {
+        switch action {
+        case .selectRole(let role):
+            mutate { $0.selectedRole = role }
+        case .updateRole(let uid, let role):
+            performUpdateRole(userId: uid, role: role)
+        case .clearError:
+            mutate { $0.errorMessage = nil }
+        }
+    }
+
+    func updateRole(userId: String, role: String) { send(.updateRole(userId: userId, role: role)) }
+
+    private func mutate(_ update: (inout State) -> Void) {
+        var next = state
+        update(&next)
+        state = next
+    }
 
     private func performUpdateRole(userId: String, role: String) {
-        isAuthenticated = false
-        errorMessage = nil
-        selectedRole = role
+        mutate {
+            $0.isAuthenticated = false
+            $0.errorMessage = nil
+            $0.selectedRole = role
+        }
 
         guard let token = sessionManager.accessToken, !token.isEmpty else {
-            errorMessage = "Authentication token missing. Please try again."
+            mutate { $0.errorMessage = "Authentication token missing. Please try again." }
             return
         }
-        isLoading = true
+        mutate { $0.isLoading = true }
         let parameters: [String: Any] = ["UserId": userId, "Role": role, "Token": token]
-        Task {
+        Task { @MainActor in
             do {
-                let response: RoleSectionModel = try await apiClient.request(
-                    endpoint: "/Account/UpdateRole",
-                    method: .post,
-                    parameters: parameters,
-                    requiresAuth: true
-                )
-                self.isLoading = false
+                let response = try await networkRepository.account_updateRole(parameters: parameters)
+                mutate { $0.isLoading = false }
                 if response.Status == 200, let roleData = response.obj {
-                    self.isAuthenticated = true
-                    // Route token storage through SessionManager so refresh machinery stays in sync
-                    self.sessionManager.saveTokens(
+                    mutate { $0.isAuthenticated = true }
+                    sessionManager.saveTokens(
                         accessToken: roleData.accessToken ?? "",
                         refreshToken: roleData.refreshToken ?? ""
                     )
                 } else {
-                    self.isAuthenticated = false
-                    self.errorMessage = response.Message.isEmpty ? "Invalid response from server" : response.Message
+                    mutate {
+                        $0.isAuthenticated = false
+                        $0.errorMessage = response.Message.isEmpty ? "Invalid response from server" : response.Message
+                    }
                 }
             } catch {
-                self.isLoading = false
-                self.isAuthenticated = false
-                self.errorMessage = mapRoleError(error)
+                mutate {
+                    $0.isLoading = false
+                    $0.isAuthenticated = false
+                    $0.errorMessage = mapRoleError(error)
+                }
             }
         }
     }
@@ -107,8 +102,5 @@ final class RoleSelectionViewModel: ObservableObject {
         }
         return description
     }
-
-    // MARK: - Legacy call-site compat
-
-    func updateRole(userId: String, role: String) { send(.updateRole(userId: userId, role: role)) }
 }
+

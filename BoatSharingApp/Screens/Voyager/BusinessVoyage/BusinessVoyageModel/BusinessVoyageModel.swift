@@ -96,3 +96,4 @@ enum StatusCode: Int, Codable {
         return self == .success || self == .created
     }
 }
+

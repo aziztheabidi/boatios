@@ -12,3 +12,4 @@ struct OTPModel: Decodable {
     let Message: String
     let obj: String?
 }
+

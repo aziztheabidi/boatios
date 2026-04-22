@@ -56,11 +56,11 @@ final class SponsorRelationshipViewModel: ObservableObject {
 
     // MARK: - Dependencies
 
-    private let apiClient: APIClientProtocol
+    private let networkRepository: AppNetworkRepositoryProtocol
     private let sessionPreferences: SessionPreferenceStoring
 
-    init(apiClient: APIClientProtocol, sessionPreferences: SessionPreferenceStoring) {
-        self.apiClient = apiClient
+    init(networkRepository: AppNetworkRepositoryProtocol, sessionPreferences: SessionPreferenceStoring) {
+        self.networkRepository = networkRepository
         self.sessionPreferences = sessionPreferences
     }
 
@@ -73,12 +73,7 @@ final class SponsorRelationshipViewModel: ObservableObject {
     private func fetchRelationship() {
         Task {
             do {
-                let response: SponsorRelationshipModel = try await apiClient.request(
-                    endpoint: "/Voyager/GetRelationship",
-                    method: .get,
-                    parameters: nil,
-                    requiresAuth: true
-                )
+                let response = try await networkRepository.voyager_getRelationship()
                 self.myself = response.obj.mySelf
                 self.followed = response.obj.followed
                 self.unfollowed = response.obj.unFollowed
@@ -93,12 +88,7 @@ final class SponsorRelationshipViewModel: ObservableObject {
         isLoading = true
         Task {
             do {
-                let _: FollowResponseModel = try await apiClient.request(
-                    endpoint: "/Voyager/Follow",
-                    method: .post,
-                    parameters: ["VoyagerUserId": voyagerId],
-                    requiresAuth: true
-                )
+                _ = try await networkRepository.voyager_follow(parameters: ["VoyagerUserId": voyagerId])
                 self.isLoading = false
                 self.fetchRelationship()
             } catch {
@@ -112,12 +102,7 @@ final class SponsorRelationshipViewModel: ObservableObject {
         isLoading = true
         Task {
             do {
-                let _: FollowResponseModel = try await apiClient.request(
-                    endpoint: "/Voyager/UnFollow",
-                    method: .post,
-                    parameters: ["VoyagerUserId": voyagerId],
-                    requiresAuth: true
-                )
+                _ = try await networkRepository.voyager_unfollow(parameters: ["VoyagerUserId": voyagerId])
                 self.isLoading = false
                 self.fetchRelationship()
             } catch {
@@ -128,3 +113,4 @@ final class SponsorRelationshipViewModel: ObservableObject {
     }
 
 }
+

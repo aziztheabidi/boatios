@@ -5,7 +5,7 @@ struct BusinessActiveVoyageView: View {
 
     init(dependencies: AppDependencies = .live) {
         _viewModel = StateObject(wrappedValue: BusinessActiveVoyageViewModel(
-            apiClient: dependencies.apiClient,
+            networkRepository: dependencies.networkRepository,
             sessionPreferences: dependencies.sessionPreferences
         ))
     }
@@ -222,4 +222,6 @@ struct ActiveVoyagesView_Previews: PreviewProvider {
         BusinessActiveVoyageView()
     }
 }
+
+
 

@@ -5,19 +5,23 @@ import Alamofire
 @MainActor
 final class VoyagerFeedbackViewModelTests: XCTestCase {
     func testSubmitFeedbackWithoutRatingOrRemarksShowsValidationToast() {
-        let viewModel = VoyagerFeedbackViewModel(apiClient: FeedbackTestAPIClient(result: .failure(APIError.invalidResponse)))
+        let viewModel = VoyagerFeedbackViewModel(
+            networkRepository: AppNetworkRepository(apiClient: FeedbackTestAPIClient(result: .failure(APIError.invalidResponse)))
+        )
 
-        viewModel.submitFeedback(voyageId: "voyage-1", source: .voyager)
+        viewModel.send(.submit(voyageId: "voyage-1", source: .voyager))
 
         XCTAssertEqual(viewModel.toastMessage, "Please submit feedback and rating first")
         XCTAssertTrue(viewModel.isShowingToast)
-        XCTAssertFalse(viewModel.isFeedbackloading)
+        XCTAssertFalse(viewModel.isFeedbackLoading)
     }
 
     func testNavigateLaterRoutesVoyagerToVoyagerHome() {
-        let viewModel = VoyagerFeedbackViewModel(apiClient: FeedbackTestAPIClient(result: .failure(APIError.invalidResponse)))
+        let viewModel = VoyagerFeedbackViewModel(
+            networkRepository: AppNetworkRepository(apiClient: FeedbackTestAPIClient(result: .failure(APIError.invalidResponse)))
+        )
 
-        viewModel.navigateLater(source: .voyager)
+        viewModel.send(.navigateLater(.voyager))
 
         XCTAssertTrue(viewModel.shouldNavigateVoyagerHome)
         XCTAssertFalse(viewModel.shouldNavigateCaptainHome)
@@ -25,14 +29,14 @@ final class VoyagerFeedbackViewModelTests: XCTestCase {
 
     func testSubmitFeedbackVoyagerSuccessRoutesToVoyagerHome() async {
         let apiClient = FeedbackTestAPIClient(
-            result: .success(FeedBackResponse(status: 201, message: "OK", obj: "done"))
+            result: .success(FeedbackResponse(status: 201, message: "OK", obj: "done"))
         )
-        let viewModel = VoyagerFeedbackViewModel(apiClient: apiClient)
-        viewModel.selectRating(4)
-        viewModel.remarks = "Great ride"
+        let viewModel = VoyagerFeedbackViewModel(networkRepository: AppNetworkRepository(apiClient: apiClient))
+        viewModel.send(.selectRating(4))
+        viewModel.send(.updateRemarks("Great ride"))
 
-        viewModel.submitFeedback(voyageId: "voyage-1", source: .voyager)
-        await waitUntil { !viewModel.isFeedbackloading }
+        viewModel.send(.submit(voyageId: "voyage-1", source: .voyager))
+        await waitUntil { !viewModel.isFeedbackLoading }
 
         XCTAssertTrue(viewModel.isFeedbackSuccess)
         XCTAssertTrue(viewModel.shouldNavigateVoyagerHome)
@@ -54,20 +58,19 @@ final class VoyagerFeedbackViewModelTests: XCTestCase {
 }
 
 private final class FeedbackTestAPIClient: APIClientProtocol {
-    private let result: Result<FeedBackResponse, Error>
+    private let result: Result<FeedbackResponse, Error>
     private(set) var requestCount = 0
 
-    init(result: Result<FeedBackResponse, Error>) {
+    init(result: Result<FeedbackResponse, Error>) {
         self.result = result
     }
 
-    func request<T>(
+    func request<T: Decodable>(
         endpoint: String,
         method: HTTPMethod,
         parameters: Parameters?,
-        encoding: any ParameterEncoding,
         requiresAuth: Bool
-    ) async throws -> T where T : Decodable {
+    ) async throws -> T {
         requestCount += 1
         switch result {
         case .success(let response):

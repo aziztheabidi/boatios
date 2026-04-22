@@ -3,12 +3,22 @@ import SwiftUI
 @MainActor
 final class CaptainRegStepThreeViewModel: ObservableObject {
 
-    private let apiClient: APIClientProtocol
+    private let networkRepository: AppNetworkRepositoryProtocol
     private let preferences: PreferenceStoring
+    private let sessionPreferences: SessionPreferenceStoring
 
-    init(apiClient: APIClientProtocol, preferences: PreferenceStoring) {
-        self.apiClient = apiClient
+    init(
+        networkRepository: AppNetworkRepositoryProtocol,
+        preferences: PreferenceStoring,
+        sessionPreferences: SessionPreferenceStoring
+    ) {
+        self.networkRepository = networkRepository
         self.preferences = preferences
+        self.sessionPreferences = sessionPreferences
+    }
+
+    var sessionUserId: String {
+        sessionPreferences.userID.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
     @Published var message: String = ""
@@ -25,12 +35,7 @@ final class CaptainRegStepThreeViewModel: ObservableObject {
         isLoading = true
         Task {
             do {
-                let response: CaptainRegStepThreeModel = try await apiClient.request(
-                    endpoint: "/CaptainBoat/Save",
-                    method: .post,
-                    parameters: parameters,
-                    requiresAuth: true
-                )
+                let response = try await networkRepository.captainBoat_save(parameters: parameters)
                 self.isLoading = false
                 self.message = response.Message
                 self.isSuccess = response.Status == 200
@@ -50,12 +55,7 @@ final class CaptainRegStepThreeViewModel: ObservableObject {
         isLoading = true
         Task {
             do {
-                let response: CaptainBoatResponse = try await apiClient.request(
-                    endpoint: "/CaptainBoat/GetByUserId?UserId=\(userId)",
-                    method: .get,
-                    parameters: nil,
-                    requiresAuth: true
-                )
+                let response = try await networkRepository.captainBoat_getByUserId(userId: userId)
                 self.isLoading = false
                 self.isSuccess = response.status == 200
                 self.message = response.message
@@ -68,3 +68,4 @@ final class CaptainRegStepThreeViewModel: ObservableObject {
         }
     }
 }
+

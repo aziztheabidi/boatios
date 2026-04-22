@@ -9,7 +9,6 @@
 /* Begin PBXBuildFile section */
 		A1CF0B000000000000000001 /* AppConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1CF0A000000000000000001 /* AppConfiguration.swift */; };
 		A1CF0B000000000000000002 /* AppServices.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1CF0A000000000000000002 /* AppServices.swift */; };
-		A1CF0B000000000000000009 /* AppSessionSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1CF0A000000000000000009 /* AppSessionSnapshot.swift */; };
 		A1CF0B00000000000000000E /* ErrorHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1CF0A00000000000000000E /* ErrorHandler.swift */; };
 		A1CF0B000000000000000014 /* SpinWheelMenuViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1CF0A000000000000000014 /* SpinWheelMenuViewModel.swift */; };
 		A1CF0B000000000000000015 /* SplashScreenViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1CF0A000000000000000015 /* SplashScreenViewModel.swift */; };
@@ -46,7 +45,7 @@
 		04C4EF712DE35AD20030769E /* ChatServicesModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04C4EF702DE35AC10030769E /* ChatServicesModel.swift */; };
 		04C4EF732DE35AEF0030769E /* ChatServiceViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04C4EF722DE35AE80030769E /* ChatServiceViewModel.swift */; };
 		04C4EF752DE35C160030769E /* ChatServicesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04C4EF742DE35C0F0030769E /* ChatServicesView.swift */; };
-		04C4EF782DE78A770030769E /* DateFormateHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04C4EF772DE78A6D0030769E /* DateFormateHelper.swift */; };
+		04C4EF782DE78A770030769E /* DateFormatterHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04C4EF772DE78A6D0030769E /* DateFormatterHelper.swift */; };
 		A1B2D3012F00000100AA0001 /* AppTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3012F00000100AA0001 /* AppTheme.swift */; };
 		A1B2D3022F00000100AA0001 /* FieldContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3022F00000100AA0001 /* FieldContainer.swift */; };
 		A1B2D3032F00000100AA0001 /* LoadingOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3032F00000100AA0001 /* LoadingOverlay.swift */; };
@@ -74,7 +73,10 @@
 		D65109EE2DBF5D030030C118 /* FutureVoyageVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = D65109ED2DBF5CFB0030C118 /* FutureVoyageVC.swift */; };
 		D65109F92DC0AE940030C118 /* FullScreenLoaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D65109F82DC0AE8D0030C118 /* FullScreenLoaderView.swift */; };
 		D6640DAF2E4233E2000128E9 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6640DAE2E4233DF000128E9 /* SettingsView.swift */; };
-		D66B46B62D76FE670070678D /* VoyagerHomeModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D66B46B52D76FE5E0070678D /* VoyagerHomeModel.swift */; };
+		A2B3C4D500000001000000B1 /* VoyagerDashboardDTO.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2B3C4D500000001000000A1 /* VoyagerDashboardDTO.swift */; };
+		A2B3C4D500000001000000B2 /* VoyagerDashboardDomain.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2B3C4D500000001000000A2 /* VoyagerDashboardDomain.swift */; };
+		A2B3C4D500000001000000B3 /* VoyagerDashboardMapping.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2B3C4D500000001000000A3 /* VoyagerDashboardMapping.swift */; };
+		A2B3C4D500000001000000C2 /* BackendContractCoding.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2B3C4D500000001000000C1 /* BackendContractCoding.swift */; };
 		D66B46B82D76FE7F0070678D /* VoyagerHomeViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D66B46B72D76FE760070678D /* VoyagerHomeViewModel.swift */; };
 		D66E7D662DB12A4000500A14 /* NewRequestPopUpModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D66E7D652DB12A3200500A14 /* NewRequestPopUpModel.swift */; };
 		D66E7D682DB12A5200500A14 /* NewRequestPopUpViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D66E7D672DB12A4800500A14 /* NewRequestPopUpViewModel.swift */; };
@@ -134,7 +136,7 @@
 		D6DE698F2D75775F000AAA77 /* BusinessRegStepOne.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6DE691A2D75775F000AAA77 /* BusinessRegStepOne.swift */; };
 		D6DE69902D75775F000AAA77 /* BusinessStepThreeModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6DE691D2D75775F000AAA77 /* BusinessStepThreeModel.swift */; };
 		D6DE69912D75775F000AAA77 /* BusinessStepThreeViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6DE691F2D75775F000AAA77 /* BusinessStepThreeViewModel.swift */; };
-		D6DE69922D75775F000AAA77 /* BusinessRegSepThree.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6DE69212D75775F000AAA77 /* BusinessRegSepThree.swift */; };
+		D6DE69922D75775F000AAA77 /* BusinessRegStepThreeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6DE69212D75775F000AAA77 /* BusinessRegStepThreeView.swift */; };
 		D6DE69932D75775F000AAA77 /* BusinessStepTwoModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6DE69242D75775F000AAA77 /* BusinessStepTwoModel.swift */; };
 		D6DE69942D75775F000AAA77 /* BusinessSTepTwoViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6DE69262D75775F000AAA77 /* BusinessSTepTwoViewModel.swift */; };
 		D6DE69952D75775F000AAA77 /* BusinessRegStepTwo.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6DE69282D75775F000AAA77 /* BusinessRegStepTwo.swift */; };
@@ -179,7 +181,7 @@
 		E27AA97A66933EA84B8D4F4F /* UIFlowState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 821572D591AC9FF0A0E8356E; };
 		521FA1F61AD87C7538CE3064 /* BusinessRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2EC80F5A0969CC742F3757; };
 		77283CE1B25A8B9DA6F00555 /* SessionContracts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A4539CAB92215599BAA940B; };
-		278038175DEAD24026510E71 /* LegacyCompatibility.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F709F51065834D6287850EB; };
+		A1CF0A0000000000000000C2 /* APIClientProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1CF0A0000000000000000C1; };
 		9E01595F9EBC4158AC35860D /* VoyageBookingContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1801D79E6DA39F8158081AF9; };
 		5F4385126696AF1A6B502F47 /* ViewModelPattern.swift in Sources */ = {isa = PBXBuildFile; fileRef = 885A37BA1BFF5E433EFB329D; };
 		EF3F89C49B52E855DE592511 /* LoginAuthViewModelNew.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7757D43C4C831E9512C263CA; };
@@ -187,7 +189,7 @@
 		D5329630C66BE2E2F175C239 /* BaseResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5557D510F57A4C83688818C6; };
 		8747B00E66EC34CCE58CF152 /* APIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3995FA40104FBE2D92780A9; };
 		8F8D34066933652F09E3349D /* AuthRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3637F7469D08C283EDD9481B; };
-		DA17E37297EEA4282B83F363 /* VoyagerRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC5CE3B587C6DEFD5601F6E4; };
+		E8019B000000000000000001 /* AppNetworkRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = E8019B000000000000000002; };
 		1B9546A441D057F67743B64E /* LoginResponseModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EE31CFE05E51D9D07EE83B6; };
 /* End PBXBuildFile section */
 
@@ -214,7 +216,7 @@
 		04C4EF702DE35AC10030769E /* ChatServicesModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatServicesModel.swift; sourceTree = "<group>"; };
 		04C4EF722DE35AE80030769E /* ChatServiceViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatServiceViewModel.swift; sourceTree = "<group>"; };
 		04C4EF742DE35C0F0030769E /* ChatServicesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatServicesView.swift; sourceTree = "<group>"; };
-		04C4EF772DE78A6D0030769E /* DateFormateHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DateFormateHelper.swift; sourceTree = "<group>"; };
+		04C4EF772DE78A6D0030769E /* DateFormatterHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DateFormatterHelper.swift; sourceTree = "<group>"; };
 		4FD8D8F72D477B3600FF6289 /* BoatSharingApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BoatSharingApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A15EC0012F01000100AA0001 /* Secrets.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Secrets.xcconfig; sourceTree = "<group>"; };
 		D6046C652E0032010045F2E0 /* FindBoatPopUpViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FindBoatPopUpViewModel.swift; sourceTree = "<group>"; };
@@ -237,7 +239,10 @@
 		D65109ED2DBF5CFB0030C118 /* FutureVoyageVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FutureVoyageVC.swift; sourceTree = "<group>"; };
 		D65109F82DC0AE8D0030C118 /* FullScreenLoaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FullScreenLoaderView.swift; sourceTree = "<group>"; };
 		D6640DAE2E4233DF000128E9 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
-		D66B46B52D76FE5E0070678D /* VoyagerHomeModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoyagerHomeModel.swift; sourceTree = "<group>"; };
+		A2B3C4D500000001000000A1 /* VoyagerDashboardDTO.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "VoyagerDashboardDTO.swift"; path = "BoatSharingApp/Application/NetworkLayer/Models/VoyagerDashboardDTO.swift"; sourceTree = "<group>"; };
+		A2B3C4D500000001000000A2 /* VoyagerDashboardDomain.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "VoyagerDashboardDomain.swift"; path = "BoatSharingApp/Application/Domain/VoyagerDashboardDomain.swift"; sourceTree = "<group>"; };
+		A2B3C4D500000001000000A3 /* VoyagerDashboardMapping.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "VoyagerDashboardMapping.swift"; path = "BoatSharingApp/Application/Mapping/VoyagerDashboardMapping.swift"; sourceTree = "<group>"; };
+		A2B3C4D500000001000000C1 /* BackendContractCoding.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "BackendContractCoding.swift"; path = "BoatSharingApp/Application/NetworkLayer/Models/BackendContractCoding.swift"; sourceTree = "<group>"; };
 		D66B46B72D76FE760070678D /* VoyagerHomeViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoyagerHomeViewModel.swift; sourceTree = "<group>"; };
 		D66E7D652DB12A3200500A14 /* NewRequestPopUpModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewRequestPopUpModel.swift; sourceTree = "<group>"; };
 		D66E7D672DB12A4800500A14 /* NewRequestPopUpViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewRequestPopUpViewModel.swift; sourceTree = "<group>"; };
@@ -298,7 +303,7 @@
 		D6DE691A2D75775F000AAA77 /* BusinessRegStepOne.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BusinessRegStepOne.swift; sourceTree = "<group>"; };
 		D6DE691D2D75775F000AAA77 /* BusinessStepThreeModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BusinessStepThreeModel.swift; sourceTree = "<group>"; };
 		D6DE691F2D75775F000AAA77 /* BusinessStepThreeViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BusinessStepThreeViewModel.swift; sourceTree = "<group>"; };
-		D6DE69212D75775F000AAA77 /* BusinessRegSepThree.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BusinessRegSepThree.swift; sourceTree = "<group>"; };
+		D6DE69212D75775F000AAA77 /* BusinessRegStepThreeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BusinessRegStepThreeView.swift; sourceTree = "<group>"; };
 		D6DE69242D75775F000AAA77 /* BusinessStepTwoModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BusinessStepTwoModel.swift; sourceTree = "<group>"; };
 		D6DE69262D75775F000AAA77 /* BusinessSTepTwoViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BusinessSTepTwoViewModel.swift; sourceTree = "<group>"; };
 		D6DE69282D75775F000AAA77 /* BusinessRegStepTwo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BusinessRegStepTwo.swift; sourceTree = "<group>"; };
@@ -342,7 +347,6 @@
 		A1B2C3072F00000100AA0001 /* UIApplication+DismissKeyboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoatSharingApp/Helper/Extensions/UIApplication+DismissKeyboard.swift; sourceTree = SOURCE_ROOT; };
 		A1CF0A000000000000000001 /* AppConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppConfiguration.swift; sourceTree = "<group>"; };
 		A1CF0A000000000000000002 /* AppServices.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppServices.swift; sourceTree = "<group>"; };
-		A1CF0A000000000000000009 /* AppSessionSnapshot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSessionSnapshot.swift; sourceTree = "<group>"; };
 		A1CF0A00000000000000000E /* ErrorHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ErrorHandler.swift; sourceTree = "<group>"; };
 		A1CF0A000000000000000014 /* SpinWheelMenuViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpinWheelMenuViewModel.swift; sourceTree = "<group>"; };
 		A1CF0A000000000000000015 /* SplashScreenViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SplashScreenViewModel.swift; sourceTree = "<group>"; };
@@ -353,7 +357,7 @@
 		821572D591AC9FF0A0E8356E /* UIFlowState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "UIFlowState.swift"; path = "BoatSharingApp/Application/State/UIFlowState.swift"; sourceTree = "<group>"; };
 		9A2EC80F5A0969CC742F3757 /* BusinessRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "BusinessRepository.swift"; path = "BoatSharingApp/Application/Repositories/BusinessRepository.swift"; sourceTree = "<group>"; };
 		0A4539CAB92215599BAA940B /* SessionContracts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "SessionContracts.swift"; path = "BoatSharingApp/Application/Session/SessionContracts.swift"; sourceTree = "<group>"; };
-		7F709F51065834D6287850EB /* LegacyCompatibility.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "LegacyCompatibility.swift"; path = "BoatSharingApp/Application/Compatibility/LegacyCompatibility.swift"; sourceTree = "<group>"; };
+		A1CF0A0000000000000000C1 /* APIClientProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "APIClientProtocol.swift"; path = "BoatSharingApp/Application/NetworkLayer/Core/APIClientProtocol.swift"; sourceTree = "<group>"; };
 		1801D79E6DA39F8158081AF9 /* VoyageBookingContext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "VoyageBookingContext.swift"; path = "BoatSharingApp/Application/Storage/VoyageBookingContext.swift"; sourceTree = "<group>"; };
 		885A37BA1BFF5E433EFB329D /* ViewModelPattern.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "ViewModelPattern.swift"; path = "BoatSharingApp/Application/Architecture/ViewModelPattern.swift"; sourceTree = "<group>"; };
 		7757D43C4C831E9512C263CA /* LoginAuthViewModelNew.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "LoginAuthViewModelNew.swift"; path = "BoatSharingApp/Screens/LoginScreen/Modelview/LoginAuthViewModelNew.swift"; sourceTree = "<group>"; };
@@ -361,7 +365,7 @@
 		5557D510F57A4C83688818C6 /* BaseResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "BaseResponse.swift"; path = "BoatSharingApp/Application/NetworkLayer/Models/BaseResponse.swift"; sourceTree = "<group>"; };
 		F3995FA40104FBE2D92780A9 /* APIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "APIClient.swift"; path = "BoatSharingApp/Application/NetworkLayer/Core/APIClient.swift"; sourceTree = "<group>"; };
 		3637F7469D08C283EDD9481B /* AuthRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "AuthRepository.swift"; path = "BoatSharingApp/Application/Repositories/AuthRepository.swift"; sourceTree = "<group>"; };
-		FC5CE3B587C6DEFD5601F6E4 /* VoyagerRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "VoyagerRepository.swift"; path = "BoatSharingApp/Application/Repositories/VoyagerRepository.swift"; sourceTree = "<group>"; };
+		E8019B000000000000000002 /* AppNetworkRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "AppNetworkRepository.swift"; path = "BoatSharingApp/Application/Repositories/AppNetworkRepository.swift"; sourceTree = "<group>"; };
 		1EE31CFE05E51D9D07EE83B6 /* LoginResponseModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "LoginResponseModel.swift"; path = "BoatSharingApp/Screens/LoginScreen/Model/LoginResponseModel.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -626,12 +630,12 @@
 			path = ChatServicesModel;
 			sourceTree = "<group>";
 		};
-		04C4EF762DE78A560030769E /* DateFormateHelper */ = {
+		04C4EF762DE78A560030769E /* DateFormatHelper */ = {
 			isa = PBXGroup;
 			children = (
-				04C4EF772DE78A6D0030769E /* DateFormateHelper.swift */,
+				04C4EF772DE78A6D0030769E /* DateFormatterHelper.swift */,
 			);
-			path = DateFormateHelper;
+			path = DateFormatHelper;
 			sourceTree = "<group>";
 		};
 		4FD8D8EE2D477B3600FF6289 = {
@@ -647,15 +651,15 @@
 				821572D591AC9FF0A0E8356E /* UIFlowState.swift */,
 				9A2EC80F5A0969CC742F3757 /* BusinessRepository.swift */,
 				0A4539CAB92215599BAA940B /* SessionContracts.swift */,
-				7F709F51065834D6287850EB /* LegacyCompatibility.swift */,
 				1801D79E6DA39F8158081AF9 /* VoyageBookingContext.swift */,
 				885A37BA1BFF5E433EFB329D /* ViewModelPattern.swift */,
 				7757D43C4C831E9512C263CA /* LoginAuthViewModelNew.swift */,
 				56E7DED8F0A731D034E4731E /* AppError.swift */,
 				5557D510F57A4C83688818C6 /* BaseResponse.swift */,
+				A1CF0A0000000000000000C1 /* APIClientProtocol.swift */,
 				F3995FA40104FBE2D92780A9 /* APIClient.swift */,
 				3637F7469D08C283EDD9481B /* AuthRepository.swift */,
-				FC5CE3B587C6DEFD5601F6E4 /* VoyagerRepository.swift */,
+				E8019B000000000000000002 /* AppNetworkRepository.swift */,
 				1EE31CFE05E51D9D07EE83B6 /* LoginResponseModel.swift */,
 			);
 			sourceTree = "<group>";
@@ -1037,7 +1041,6 @@
 		A1CF0C000000000000000005 /* State */ = {
 			isa = PBXGroup;
 			children = (
-				A1CF0A000000000000000009 /* AppSessionSnapshot.swift */,
 			);
 			path = State;
 			sourceTree = "<group>";
@@ -1078,20 +1081,12 @@
 			path = Architecture;
 			sourceTree = "<group>";
 		};
-		A1CF0C00000000000000000B /* Compatibility */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = Compatibility;
-			sourceTree = "<group>";
-		};
 		D6DE68B02D75775F000AAA77 /* Application */ = {
 			isa = PBXGroup;
 			children = (
 				04B5DCED2D7635D500CC6C48 /* AppDelegate.swift */,
 				A1CF0C000000000000000001 /* Configuration */,
 				A1CF0C000000000000000002 /* Dependency */,
-				A1CF0C00000000000000000B /* Compatibility */,
 				A1CF0C000000000000000003 /* Storage */,
 				A1CF0C000000000000000004 /* Session */,
 				A1CF0C000000000000000005 /* State */,
@@ -1326,7 +1321,7 @@
 				D6D4725F2E7C32E400FA2465 /* KeychainManager */,
 				D6771CAB2E6AFF0C0058A959 /* Customalert */,
 				D6640DAD2E4233D6000128E9 /* SettingView */,
-				04C4EF762DE78A560030769E /* DateFormateHelper */,
+				04C4EF762DE78A560030769E /* DateFormatHelper */,
 				D65109F72DC0AE7E0030C118 /* CustomLoaderView */,
 				D6F46C6D2DB65FA300EB45FA /* PaymentSheet */,
 				D6F7280A2DAFCA250027FEAA /* GlobalStateValues */,
@@ -1772,7 +1767,7 @@
 		D6DE69222D75775F000AAA77 /* View */ = {
 			isa = PBXGroup;
 			children = (
-				D6DE69212D75775F000AAA77 /* BusinessRegSepThree.swift */,
+				D6DE69212D75775F000AAA77 /* BusinessRegStepThreeView.swift */,
 			);
 			path = View;
 			sourceTree = "<group>";
@@ -2128,7 +2123,6 @@
 		D6DE69652D75775F000AAA77 /* Model */ = {
 			isa = PBXGroup;
 			children = (
-				D66B46B52D76FE5E0070678D /* VoyagerHomeModel.swift */,
 			);
 			path = Model;
 			sourceTree = "<group>";
@@ -2391,7 +2385,6 @@
 				D6DE696E2D75775F000AAA77 /* BoatSharingAppApp.swift in Sources */,
 				A1CF0B000000000000000001 /* AppConfiguration.swift in Sources */,
 				A1CF0B000000000000000002 /* AppServices.swift in Sources */,
-				A1CF0B000000000000000009 /* AppSessionSnapshot.swift in Sources */,
 				A1CF0B00000000000000000E /* ErrorHandler.swift in Sources */,
 				D6DE696F2D75775F000AAA77 /* ContentView.swift in Sources */,
 				D6B7BD952EABAAA700A61576 /* TrackRidePaymentPopup.swift in Sources */,
@@ -2441,7 +2434,7 @@
 				048736172DCA7F7F00533B21 /* SponsorRelationshipModel.swift in Sources */,
 				D66B46B82D76FE7F0070678D /* VoyagerHomeViewModel.swift in Sources */,
 				A1B2D3042F00000100AA0001 /* PrimaryButton.swift in Sources */,
-				04C4EF782DE78A770030769E /* DateFormateHelper.swift in Sources */,
+				04C4EF782DE78A770030769E /* DateFormatterHelper.swift in Sources */,
 				D6DE69862D75775F000AAA77 /* TermandConditionVC.swift in Sources */,
 				D6D472612E7C32FB00FA2465 /* KeychainManager.swift in Sources */,
 				0436A99B2DDBCB3B004483B1 /* VoyagerFeedbackViewModel.swift in Sources */,
@@ -2470,7 +2463,7 @@
 				D6DE69912D75775F000AAA77 /* BusinessStepThreeViewModel.swift in Sources */,
 				D61A0EE32DA7CBF300FC0E1F /* AddSponsorsModel.swift in Sources */,
 				045A5A122DD2983E00AA2995 /* CaptainActiveVoyageView.swift in Sources */,
-				D6DE69922D75775F000AAA77 /* BusinessRegSepThree.swift in Sources */,
+				D6DE69922D75775F000AAA77 /* BusinessRegStepThreeView.swift in Sources */,
 				045A5A102DD28C3000AA2995 /* CaptainActiveVoyageViewModel.swift in Sources */,
 				D6DE69932D75775F000AAA77 /* BusinessStepTwoModel.swift in Sources */,
 				D6F7280C2DAFCA4B0027FEAA /* GlobalValues.swift in Sources */,
@@ -2507,7 +2500,10 @@
 				D6DE69A22D75775F000AAA77 /* CreatePasswordModel.swift in Sources */,
 				0424CC092DEC953200261243 /* BActiveVoyageModel.swift in Sources */,
 				D68B05A92DBA408D005E68C2 /* SponsorsPaymentView.swift in Sources */,
-				D66B46B62D76FE670070678D /* VoyagerHomeModel.swift in Sources */,
+				A2B3C4D500000001000000B1 /* VoyagerDashboardDTO.swift in Sources */,
+				A2B3C4D500000001000000B2 /* VoyagerDashboardDomain.swift in Sources */,
+				A2B3C4D500000001000000B3 /* VoyagerDashboardMapping.swift in Sources */,
+				A2B3C4D500000001000000C2 /* BackendContractCoding.swift in Sources */,
 				D6DE69A32D75775F000AAA77 /* CreatePasswordViewModel.swift in Sources */,
 				D6DE69A42D75775F000AAA77 /* CreatePasswordVC.swift in Sources */,
 				D6DE69A52D75775F000AAA77 /* OTPModel.swift in Sources */,
@@ -2536,15 +2532,15 @@
 				E27AA97A66933EA84B8D4F4F /* UIFlowState.swift in Sources */,
 				521FA1F61AD87C7538CE3064 /* BusinessRepository.swift in Sources */,
 				77283CE1B25A8B9DA6F00555 /* SessionContracts.swift in Sources */,
-				278038175DEAD24026510E71 /* LegacyCompatibility.swift in Sources */,
 				9E01595F9EBC4158AC35860D /* VoyageBookingContext.swift in Sources */,
 				5F4385126696AF1A6B502F47 /* ViewModelPattern.swift in Sources */,
 				EF3F89C49B52E855DE592511 /* LoginAuthViewModelNew.swift in Sources */,
 				42F23D8EC78B6518AC588519 /* AppError.swift in Sources */,
 				D5329630C66BE2E2F175C239 /* BaseResponse.swift in Sources */,
+				A1CF0A0000000000000000C2 /* APIClientProtocol.swift in Sources */,
 				8747B00E66EC34CCE58CF152 /* APIClient.swift in Sources */,
 				8F8D34066933652F09E3349D /* AuthRepository.swift in Sources */,
-				DA17E37297EEA4282B83F363 /* VoyagerRepository.swift in Sources */,
+				E8019B000000000000000001 /* AppNetworkRepository.swift in Sources */,
 				1B9546A441D057F67743B64E /* LoginResponseModel.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

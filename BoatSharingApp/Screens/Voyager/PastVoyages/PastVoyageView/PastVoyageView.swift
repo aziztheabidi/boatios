@@ -6,7 +6,7 @@ struct PastVoyagesView: View {
 
     init(lastController: NSString, dependencies: AppDependencies = .live) {
         _viewModel = StateObject(wrappedValue: PastVoyageViewModel(
-            apiClient: dependencies.apiClient,
+            networkRepository: dependencies.networkRepository,
             identityProvider: dependencies.sessionPreferences,
             initialRole: lastController as String
         ))
@@ -458,4 +458,6 @@ struct PastVoyagesView_Previews: PreviewProvider {
         PastVoyagesView(lastController: "Voyager" as NSString)
     }
 }
+
+
 

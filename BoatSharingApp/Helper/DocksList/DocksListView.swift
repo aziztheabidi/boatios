@@ -2,8 +2,8 @@ import SwiftUI
 
 struct DockSelectionView: View {
     @Binding var showDockSelection: Bool
-    @Binding var currentLocation: Dock?
-    @Binding var dropoffLocation: Dock?
+    @Binding var currentLocation: DockLocation?
+    @Binding var dropoffLocation: DockLocation?
     @Binding var showFindBoatSheet: Bool
     let selectedField: DockFieldType?
     @State private var showDockList = false
@@ -133,7 +133,7 @@ enum DockFieldType {
 
 struct DockTextField: View {
     var placeholder: String
-    @Binding var selectedDock: Dock?
+    @Binding var selectedDock: DockLocation?
     var isSelected: Bool
     var action: () -> Void
 
@@ -164,10 +164,10 @@ struct DockTextField: View {
 }
 
 struct DockListView: View {
-    @Binding var selectedDock: Dock?
+    @Binding var selectedDock: DockLocation?
     @Binding var showDockList: Bool
-    var docks: [Dock]
-    var onDockSelected: (Dock) -> Void
+    var docks: [DockLocation]
+    var onDockSelected: (DockLocation) -> Void
 
     var body: some View {
         List(docks) { dock in

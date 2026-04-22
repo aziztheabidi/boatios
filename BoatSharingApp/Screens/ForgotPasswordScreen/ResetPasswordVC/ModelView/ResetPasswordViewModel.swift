@@ -40,10 +40,10 @@ final class ResetPasswordViewModel: ObservableObject {
 
     // MARK: - Dependencies
 
-    private let apiClient: APIClientProtocol
+    private let networkRepository: AppNetworkRepositoryProtocol
 
-    init(apiClient: APIClientProtocol) {
-        self.apiClient = apiClient
+    init(networkRepository: AppNetworkRepositoryProtocol) {
+        self.networkRepository = networkRepository
     }
 
     // MARK: - Private network
@@ -52,12 +52,7 @@ final class ResetPasswordViewModel: ObservableObject {
         isLoading = true
         Task {
             do {
-                let response: ResetPasswordModel = try await apiClient.request(
-                    endpoint: "/Account/ForgotPassword",
-                    method: .post,
-                    parameters: ["Email": email],
-                    requiresAuth: false
-                )
+                let response = try await networkRepository.account_forgotPassword(email: email)
                 self.isLoading    = false
                 self.isEmailSent  = true
                 self.Message      = response.Message
@@ -70,7 +65,8 @@ final class ResetPasswordViewModel: ObservableObject {
         }
     }
 
-    // MARK: - Legacy call-site compat
+    // MARK: - Public action helpers
 
     func forgotPassword(email: String) { send(.forgotPassword(email: email)) }
 }
+

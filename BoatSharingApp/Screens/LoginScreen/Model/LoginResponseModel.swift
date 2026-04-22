@@ -1,6 +1,5 @@
 import Foundation
 
-// ✅ Main response model
 struct LoginResponseModel: Codable {
     let status: Int
     let message: String
@@ -14,7 +13,6 @@ struct LoginResponseModel: Codable {
     }
 }
 
-// ✅ User Data model (Nested under "obj")
 struct UserData: Codable {
     let email: String?
     let userId: String?
@@ -36,4 +34,5 @@ struct UserData: Codable {
         case refreshToken = "Refreshtoken"
     }
 }
+
 

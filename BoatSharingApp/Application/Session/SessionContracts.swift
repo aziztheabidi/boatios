@@ -33,3 +33,19 @@ protocol PreferenceStoring: AnyObject {
     var userRole: String { get set }
     var missingStep: Int { get set }
 }
+
+/// Session-facing user preferences (identity, role, onboarding step). Implemented by `PreferenceStore`.
+protocol SessionPreferenceStoring: AnyObject {
+    var isLoggedIn: Bool { get set }
+    var userRole: String { get set }
+    var missingStep: Int { get set }
+    var userID: String { get set }
+    var username: String { get set }
+    var userEmail: String { get set }
+    func clearSessionPreferences()
+}
+
+/// Performs refresh-token HTTP using the same contract as `SessionManager` / `LiveRefreshTokenService`.
+protocol RefreshTokenServicing {
+    func refreshToken(accessToken: String, refreshToken: String) async throws -> SessionTokenData
+}

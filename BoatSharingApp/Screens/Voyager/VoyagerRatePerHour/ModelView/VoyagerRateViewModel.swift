@@ -3,19 +3,25 @@ import SwiftUI
 @MainActor
 final class VoyagerRateViewModel: ObservableObject {
 
-    private let apiClient: APIClientProtocol
+    private let networkRepository: AppNetworkRepositoryProtocol
+    private let sessionPreferences: SessionPreferenceStoring
 
-    init(apiClient: APIClientProtocol) {
-        self.apiClient = apiClient
+    init(networkRepository: AppNetworkRepositoryProtocol, sessionPreferences: SessionPreferenceStoring) {
+        self.networkRepository = networkRepository
+        self.sessionPreferences = sessionPreferences
+    }
+
+    var sessionUserId: String {
+        sessionPreferences.userID.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
     @Published var perHourRate: Double = 0.0
-    @Published var totalFair: Double = 0.0
+    @Published var totalFare: Double = 0.0
     @Published var isLoading: Bool = false
     @Published var errorMessage: String?
     @Published var isFindBoat: Bool = false
     @Published var isVoyageBooked: Bool = false
-    @Published var BookedVoyageID: String = ""
+    @Published var bookedVoyageId: String = ""
     @Published var showToast: Bool = false
     @Published var toastMessage: String = ""
 
@@ -31,19 +37,19 @@ final class VoyagerRateViewModel: ObservableObject {
             return
         }
         isLoading = true
-        let endpoint = "/Voyage/CaculateFair?FromDockId=\(fromDockId)&ToDockId=\(toDockId)&DurationInHours=\(estimatedHours)&NoOfVoyagers=\(numberOfVoyagers)&VoyageCategoryid=\(voyageCategoryID)"
         Task {
             do {
-                let response: VoyagerRateResponse = try await apiClient.request(
-                    endpoint: endpoint,
-                    method: .get,
-                    parameters: nil,
-                    requiresAuth: true
+                let response = try await networkRepository.voyage_calculateFare(
+                    fromDockId: fromDockId,
+                    toDockId: toDockId,
+                    durationHours: estimatedHours,
+                    numberOfVoyagers: numberOfVoyagers,
+                    voyageCategoryId: voyageCategoryID
                 )
                 self.isLoading = false
                 if response.status == 201, let obj = response.obj {
                     self.perHourRate = obj.perHourRate
-                    self.totalFair = obj.totalFair
+                    self.totalFare = obj.totalFare
                 } else {
                     self.errorMessage = response.message
                 }
@@ -54,22 +60,27 @@ final class VoyagerRateViewModel: ObservableObject {
         }
     }
 
-    func FindBoat_ApiCaAlling(VoyagerUserId: String, PickupDockId: String, DropOffDockId: String, EstimatedCost: String, NoOfVoyagers: String, IsImmediately: Bool, BookingDate: String, IsSplitPayment: Bool, voyageCategoryID: Int) {
+    func findBoat(
+        voyagerUserId: String,
+        pickupDockId: String,
+        dropOffDockId: String,
+        estimatedCost: String,
+        numberOfVoyagers: String,
+        isImmediately: Bool,
+        bookingDate: String,
+        isSplitPayment: Bool,
+        voyageCategoryID: Int
+    ) {
         let parameters: [String: Any] = [
-            "VoyagerUserId": VoyagerUserId, "PickupDockId": PickupDockId,
-            "DropOffDockId": DropOffDockId, "NoOfVoyagers": NoOfVoyagers,
-            "IsImmediately": IsImmediately, "BookingDate": BookingDate,
-            "IsSplitPayment": IsSplitPayment, "EstimatedCost": EstimatedCost,
-            "VoyageCategoryid": voyageCategoryID
+            "VoyagerUserId": voyagerUserId, "PickupDockId": pickupDockId,
+            "DropOffDockId": dropOffDockId, "NoOfVoyagers": numberOfVoyagers,
+            "IsImmediately": isImmediately, "BookingDate": bookingDate,
+            "IsSplitPayment": isSplitPayment, "EstimatedCost": estimatedCost,
+            BackendContractCoding.QueryParameter.voyageCategoryId: voyageCategoryID
         ]
         Task {
             do {
-                let _: FindBoatResponse = try await apiClient.request(
-                    endpoint: "/Voyage/FindBoat",
-                    method: .post,
-                    parameters: parameters,
-                    requiresAuth: true
-                )
+                _ = try await networkRepository.voyage_findBoat(parameters: parameters)
                 self.isFindBoat = true
             } catch {
                 self.errorMessage = error.localizedDescription
@@ -77,40 +88,49 @@ final class VoyagerRateViewModel: ObservableObject {
         }
     }
 
-    func BookVoyage_ApiCalling(
-        VoyagerUserId: String, PickupDockId: String, DropOffDockId: String,
-        NoOfVoyagers: String, IsImmediately: Bool, BookingDate: String,
-        StartTime: String, EndTime: String, IsStayOnWater: Bool,
-        IsSplitPayment: Bool, PerHourRate: Double, DurationInHours: Double,
-        numberOfSponsors: Int, EstimatedCost: Double, IndvidualAmount: Double,
-        sponsors: [String], voyageCategoryID: Int
+    func bookVoyage(
+        voyagerUserId: String,
+        pickupDockId: String,
+        dropOffDockId: String,
+        numberOfVoyagers: String,
+        isImmediately: Bool,
+        bookingDate: String,
+        startTime: String,
+        endTime: String,
+        isStayOnWater: Bool,
+        isSplitPayment: Bool,
+        perHourRate: Double,
+        durationInHours: Double,
+        numberOfSponsors: Int,
+        estimatedCost: Double,
+        individualAmount: Double,
+        sponsors: [String],
+        voyageCategoryID: Int
     ) {
         let sponsorsArray = sponsors.map { ["VoyagerUserId": $0] }
-        let newdate = convertDateFormat(from: BookingDate)
-        let starttime = convertTimeToFullFormat(from: StartTime)
-        let endtime = convertTimeToFullFormat(from: EndTime)
-        // `/Voyage/Book` expects both canonical and legacy JSON keys for sponsor fields.
+        let newdate = convertDateFormat(from: bookingDate)
+        let starttime = convertTimeToFullFormat(from: startTime)
+        let endtime = convertTimeToFullFormat(from: endTime)
+        // `/Voyage/Book` expects both canonical and backend-variant sponsor keys.
         let parameters: [String: Any] = [
-            "VoyagerUserId": VoyagerUserId, "PickupDockId": PickupDockId,
-            "DropOffDockId": DropOffDockId, "NoOfVoyagers": NoOfVoyagers,
-            "IsImmediately": IsImmediately, "IsSplitPayment": IsSplitPayment,
+            "VoyagerUserId": voyagerUserId, "PickupDockId": pickupDockId,
+            "DropOffDockId": dropOffDockId, "NoOfVoyagers": numberOfVoyagers,
+            "IsImmediately": isImmediately, "IsSplitPayment": isSplitPayment,
             "BookingDate": newdate, "StartTime": starttime, "EndTime": endtime,
-            "IsStayOnWater": IsStayOnWater, "PerHourRate": PerHourRate,
-            "DurationInHours": DurationInHours,
-            "NoOfSponsors": numberOfSponsors, "NoOfSponsers": numberOfSponsors,
-            "EstimatedCost": EstimatedCost, "IndvidualAmount": IndvidualAmount,
-            "Sponsors": sponsorsArray, "Sponsers": sponsorsArray,
-            "VoyageCategoryid": voyageCategoryID
+            "IsStayOnWater": isStayOnWater, "PerHourRate": perHourRate,
+            "DurationInHours": durationInHours,
+            BackendContractCoding.VoyageBookPayloadKey.noOfSponsors: numberOfSponsors,
+            BackendContractCoding.VoyageBookPayloadKey.noOfSponsorsMisspelled: numberOfSponsors,
+            "EstimatedCost": estimatedCost,
+            BackendContractCoding.VoyageBookPayloadKey.individualAmountMisspelled: individualAmount,
+            BackendContractCoding.VoyageBookPayloadKey.sponsors: sponsorsArray,
+            BackendContractCoding.VoyageBookPayloadKey.sponsorsMisspelled: sponsorsArray,
+            BackendContractCoding.QueryParameter.voyageCategoryId: voyageCategoryID
         ]
         Task {
             do {
-                let response: VoyageBookingResponse = try await apiClient.request(
-                    endpoint: "/Voyage/Book",
-                    method: .post,
-                    parameters: parameters,
-                    requiresAuth: true
-                )
-                self.BookedVoyageID = response.obj
+                let response = try await networkRepository.voyage_book(parameters: parameters)
+                self.bookedVoyageId = response.obj
                 self.isVoyageBooked = true
             } catch let error as APIError {
                 self.errorMessage = error.localizedDescription
@@ -144,3 +164,4 @@ final class VoyagerRateViewModel: ObservableObject {
         return inputFormatter.date(from: input).map { outputFormatter.string(from: $0) } ?? "Invalid time"
     }
 }
+

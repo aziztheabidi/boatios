@@ -17,3 +17,4 @@ struct RoleRegistrationData: Decodable {
         case refreshToken = "Refreshtoken"
     }
 }
+

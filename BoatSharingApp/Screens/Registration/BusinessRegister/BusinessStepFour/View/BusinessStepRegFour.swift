@@ -4,11 +4,16 @@ import PhotosUI
 struct BusinessStepRegFour: View {
     @State private var selectedItem: PhotosPickerItem?
     @State private var selectedImage: UIImage?
-    @State private var moveToNext: Bool = false
+    @State private var navigateToNext: Bool = false
     @StateObject private var viewModel: BusinessStepFourViewModel
 
     init(dependencies: AppDependencies = .live) {
-        _viewModel = StateObject(wrappedValue: BusinessStepFourViewModel(preferences: dependencies.preferences, routingNotifier: dependencies.routingNotifier, mediaUploader: dependencies.businessSaveMediaUploader))
+        _viewModel = StateObject(wrappedValue: BusinessStepFourViewModel(
+            preferences: dependencies.preferences,
+            sessionPreferences: dependencies.sessionPreferences,
+            routingNotifier: dependencies.routingNotifier,
+            mediaUploader: dependencies.businessSaveMediaUploader
+        ))
     }
     @State private var showToast: Bool = false
     @State private var toastMessage: String = ""
@@ -35,20 +40,20 @@ struct BusinessStepRegFour: View {
                 isLoading: viewModel.isLoading,
                 registerAction: {
                     guard let image = selectedImage else { return }
-                    let userId = AppSessionSnapshot.userID
+                    let userId = viewModel.sessionUserId
                     guard !userId.isEmpty else { return }
                     viewModel.uploadBusinesslogo(UserID: userId, image: image, images: selectedBusinessImages)
                 }
             )
             .overlay(ToastOverlayView(message: toastMessage, isPresented: $showToast))
-            .background(NavigationHandlerView(moveToNext: $moveToNext))
+            .background(NavigationHandlerView(navigateToNext: $navigateToNext))
             .onChange(of: selectedItem) { _, newValue in loadImage(from: newValue)  }
             .onChange(of: selectedBusinessItems) { _, newValue in loadBusinessImages(from: newValue)  }
             .onChange(of: viewModel.isSuccess) { _, newValue in handleSuccess(newValue)  }
             .onChange(of: viewModel.message) { _, newValue in handleMessage(newValue)  }
             .onChange(of: viewModel.shouldNavigateAfterSuccessDelay) { _, shouldNavigate in
                 if shouldNavigate {
-                    moveToNext = true
+                    navigateToNext = true
                     viewModel.shouldNavigateAfterSuccessDelay = false
                 }
             }
@@ -135,10 +140,10 @@ struct MainContentView: View {
 // MARK: - Navigation Handler
 
 struct NavigationHandlerView: View {
-    @Binding var moveToNext: Bool
+    @Binding var navigateToNext: Bool
 
     var body: some View {
-        NavigationLink(destination: DashboardVC(), isActive: $moveToNext) {
+        NavigationLink(destination: DashboardVC(), isActive: $navigateToNext) {
             EmptyView()
         }
     }
@@ -357,3 +362,5 @@ struct BusinessRegFour_Previews: PreviewProvider {
         BusinessStepRegFour()
     }
 }
+
+

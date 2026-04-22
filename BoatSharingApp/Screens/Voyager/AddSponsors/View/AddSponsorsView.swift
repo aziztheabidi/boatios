@@ -16,7 +16,7 @@ struct AddSponsorsView: View {
         _showAddSponsors = showAddSponsors
         self.onSponsorsSelected = onSponsorsSelected
         _viewModel = StateObject(wrappedValue: SponsorRelationshipViewModel(
-            apiClient: dependencies.apiClient,
+            networkRepository: dependencies.networkRepository,
             sessionPreferences: dependencies.sessionPreferences
         ))
     }
@@ -158,4 +158,6 @@ struct AddSponsorsView: View {
         }
     }
 }
+
+
 

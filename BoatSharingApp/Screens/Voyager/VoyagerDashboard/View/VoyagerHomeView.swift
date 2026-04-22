@@ -9,7 +9,7 @@ struct VoyagerHomeView: View {
     init(dependencies: AppDependencies = .live) {
         self.dependencies = dependencies
         _viewModel = StateObject(wrappedValue: VoyagerHomeViewModel(
-            apiClient: dependencies.apiClient,
+            networkRepository: dependencies.networkRepository,
             identityProvider: dependencies.sessionPreferences
         ))
     }
@@ -67,12 +67,8 @@ struct VoyagerHomeView: View {
                     
                     if viewModel.state.isVoyageLoading {
                         ProgressView("Loading...")
-                    } else if let voyage = viewModel.state.voyage {
-                        
-                        
-                     
-                        
-                        // Handle voyage display if needed
+                    } else if viewModel.state.voyage != nil {
+                        EmptyView()
                     } else if let error = viewModel.state.errorMessage {
                         Text("Error: \(error)")
                             .foregroundColor(.red)
@@ -83,11 +79,8 @@ struct VoyagerHomeView: View {
             .overlay {
                 if viewModel.state.showFindBoatSheet {
                     ZStack {
-                        // 🔹 Dim background overlay
                         Color.black.opacity(0.3)
-                            .ignoresSafeArea()   // full screen ignore safe area
-                        
-                            // touch ko block karne ke liye onTapGesture yahi lagao
+                            .ignoresSafeArea()
                             .onTapGesture {
                                 withAnimation(.easeInOut) {
                                     viewModel.send(.dismissFindBoat)
@@ -106,12 +99,11 @@ struct VoyagerHomeView: View {
                                     showSheet: $viewModel.showFindBoatSheet,
                                     pickupLocation: $viewModel.pickupLocation,
                                     dropoffLocation: $viewModel.dropoffLocation,
-                                    moveToNext: $viewModel.moveToNext,
-                                    moveToMenu: $viewModel.moveToMenu,
+                                    onNavigateToCreateVoyage: { viewModel.navigateToCreateVoyageAfterBooking() },
                                     dependencies: dependencies
                                 )
                                 .environmentObject(viewModel)
-                                .background(Color.white) // Better to keep white here
+                                .background(Color.white)
                                 .clipShape(RoundedRectangle(cornerRadius: 20))
                                 .transition(.move(edge: .bottom))
                                 .animation(.easeInOut(duration: 0.3), value: viewModel.state.showFindBoatSheet)
@@ -135,7 +127,7 @@ struct VoyagerHomeView: View {
                         .background(Color.clear)
                         .ignoresSafeArea(edges: .bottom)
                     }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity) // Make sure ZStack fills the screen
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .padding(.top, 0)
                     .zIndex(9999)
                     .animation(.easeInOut, value: viewModel.state.showFindBoatSheet)
@@ -146,7 +138,6 @@ struct VoyagerHomeView: View {
             .overlay {
                 if viewModel.state.isCaptainFind, let voyage = viewModel.state.voyage {
                     ZStack {
-                        // Dimmed background behind popup
                         Color.black.opacity(0.4)
                             .ignoresSafeArea()
                             .onTapGesture {
@@ -156,69 +147,50 @@ struct VoyagerHomeView: View {
                             }
 
                         VStack(spacing: 0) {
-                            Spacer() // push to bottom
+                            Spacer()
 
                             ZStack(alignment: .top) {
-                                // ✅ Popup main white card
                                 NewRequestFinal_PopUpVC(showSheet: $viewModel.isCaptainFind, voyage: voyage)
-                                    //.background(Color.white)
                                     .ignoresSafeArea(.container, edges: .bottom)
                                     .shadow(color: .black.opacity(0.1), radius: 8, y: -3)
                                     .transition(.move(edge: .bottom))
                                     .animation(.easeInOut(duration: 0.3), value: viewModel.isCaptainFind)
 
-                                // ✅ Floating wheel image — attached with popup top
                                 Button(action: {
                                     withAnimation(.easeInOut(duration: 0.25)) {
                                         viewModel.send(.captainOverlayWheelTapped(resetRoleMenus: resetCaptainAndBusinessMenus))
                                     }
                                 }) {
-                                                      Image("Group1")
-                                                          .resizable()
-                                                          .scaledToFit()
-                                                          .frame(width: 70, height: 70)
-                                                          .background(
-                                                              Circle()
-                                                                  .fill(Color.white)
-                                                                  .frame(width: 60, height: 60)
-                                                          )
-                                                          .shadow(radius: 6)
-                                                  }
-                                                  .offset(y: -35)
-                                              
+                                    Image("Group1")
+                                        .resizable()
+                                        .scaledToFit()
+                                        .frame(width: 70, height: 70)
+                                        .background(
+                                            Circle()
+                                                .fill(Color.white)
+                                                .frame(width: 60, height: 60)
+                                        )
+                                        .shadow(radius: 6)
+                                }
+                                .offset(y: -35)
                             }
                             .padding(.top, 50)
                         }
-//                        .background(
-//                                              RoundedRectangle(cornerRadius: 25)
-//                                                 .fill(Color.white)
-//                                          )
                         .ignoresSafeArea(edges: .bottom)
                     }
                 }
             }
-            
-            
-            // payment wala band kyia hn ...
-            
-//            .onChange(of: isCaptainFind) { _, newValue in
-//                if !newValue {
-//                    isConfirmPayment = true
-//                }
-//            }
             .background(Color.clear)
             .navigationBarBackButtonHidden(true)
-            .navigationDestination(isPresented: $viewModel.moveToMenu) {
-                SpinWheelMenu(username: "Voyager")
-            }
-            .navigationDestination(isPresented: $viewModel.moveToNext) {
-                CreateVoyageView()
-            }
-            .navigationDestination(isPresented: $viewModel.isConfirmPayment) {
-                PaymentPopUpVC(type: .VoyagerPayment)
-            }
-            .navigationDestination(isPresented: $viewModel.moveToLogin) {
-                LoginScreenView()
+            .navigationDestination(item: $viewModel.stackDestination) { destination in
+                switch destination {
+                case .spinMenu:
+                    SpinWheelMenu()
+                case .createVoyage:
+                    CreateVoyageView()
+                case .login:
+                    LoginScreenView()
+                }
             }
             .alert(isPresented: $viewModel.isTokenExpired) {
                 Alert(
@@ -248,7 +220,7 @@ import SwiftUI
 import GoogleMaps
 
 struct GoogleMapsView: UIViewRepresentable {
-    var docks: [Dock]
+    var docks: [DockLocation]
     
     func makeUIView(context: Context) -> GMSMapView {
         let defaultLatitude = 37.7749
@@ -299,7 +271,7 @@ struct GoogleMapsView: UIViewRepresentable {
                 marker.map = mapView
             }
         } else {
-            // No valid dock → show default marker at default location
+            // No valid dock, show default marker at default location.
             let camera = GMSCameraPosition.camera(
                 withLatitude: defaultLatitude,
                 longitude: defaultLongitude,
@@ -329,3 +301,5 @@ struct GoogleMapsView: UIViewRepresentable {
         return UIImage(systemName: "mappin.circle.fill")?.withTintColor(.systemBlue, renderingMode: .alwaysOriginal)
     }
 }
+
+

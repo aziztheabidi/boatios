@@ -5,16 +5,16 @@ import Combine
 final class CreatePasswordViewModel: ObservableObject {
 
     private let tokenStore: TokenStoring
-    private let apiClient: APIClientProtocol
+    private let networkRepository: AppNetworkRepositoryProtocol
     private let sessionPreferences: SessionPreferenceStoring
 
     init(
         tokenStore: TokenStoring,
-        apiClient: APIClientProtocol,
+        networkRepository: AppNetworkRepositoryProtocol,
         sessionPreferences: SessionPreferenceStoring
     ) {
         self.tokenStore = tokenStore
-        self.apiClient = apiClient
+        self.networkRepository = networkRepository
         self.sessionPreferences = sessionPreferences
     }
 
@@ -29,12 +29,7 @@ final class CreatePasswordViewModel: ObservableObject {
         isLoading = true
         Task {
             do {
-                let userdata: CreatePasswordModel = try await apiClient.request(
-                    endpoint: "/Account/Register",
-                    method: .post,
-                    parameters: parameters,
-                    requiresAuth: true
-                )
+                let userdata = try await networkRepository.account_register(parameters: parameters)
                 self.isLoading = false
                 self.isAuthenticated = true
                 self.message = userdata.message
@@ -69,3 +64,4 @@ final class CreatePasswordViewModel: ObservableObject {
         return description
     }
 }
+

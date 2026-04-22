@@ -57,3 +57,4 @@ struct VoyagerProfile: Codable, Identifiable {
         case changedBy = "ChangedBy"
     }
 }
+

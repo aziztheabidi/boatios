@@ -14,7 +14,7 @@ final class VoyagerHomeViewModelTests: XCTestCase {
         }
         let preferences = ViewModelSessionPreferenceStore()
         preferences.userID = "u-1"
-        let viewModel = VoyagerHomeViewModel(apiClient: apiClient, identityProvider: preferences)
+        let viewModel = VoyagerHomeViewModel(networkRepository: AppNetworkRepository(apiClient: apiClient), identityProvider: preferences)
 
         viewModel.getActiveDockList()
         await Task.yield()
@@ -32,7 +32,7 @@ final class VoyagerHomeViewModelTests: XCTestCase {
         }
         let preferences = ViewModelSessionPreferenceStore()
         preferences.userID = "u-1"
-        let viewModel = VoyagerHomeViewModel(apiClient: apiClient, identityProvider: preferences)
+        let viewModel = VoyagerHomeViewModel(networkRepository: AppNetworkRepository(apiClient: apiClient), identityProvider: preferences)
 
         viewModel.getActiveVoyager(userid: "u-1")
         await waitUntil { !viewModel.isVoyageLoading }

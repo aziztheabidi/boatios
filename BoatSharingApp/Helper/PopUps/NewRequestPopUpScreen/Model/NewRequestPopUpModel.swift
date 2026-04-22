@@ -26,17 +26,16 @@ struct PaymentInitiationData: Codable, Equatable {
     let customerId: String
     let ephemeralKey: String
     let clientSecret: String
-    let ephemeralKey_android: String
-    let PaymentIntentId: String
+    let ephemeralKeyAndroid: String
+    let paymentIntentId: String
 
     enum CodingKeys: String, CodingKey {
         case publishableKey = "PublishableKey"
         case customerId = "CustomerId"
         case ephemeralKey = "EphemeralKey"
         case clientSecret = "ClientSecret"
-        case ephemeralKey_android = "EphemeralKey_Secret"
-        case PaymentIntentId = "PaymentIntentId"
-        
+        case ephemeralKeyAndroid = "EphemeralKey_Secret"
+        case paymentIntentId = "PaymentIntentId"
     }
 }
 struct PaymentSuccessResponse: Codable {

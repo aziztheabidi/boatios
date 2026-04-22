@@ -2,20 +2,30 @@ import SwiftUI
 
 struct RoleSelectionView: View {
     @Environment(\.presentationMode) var presentationMode
+    private let dependencies: AppDependencies
     @StateObject private var viewModel: RoleSelectionViewModel
 
     init(dependencies: AppDependencies = .live) {
-        _viewModel = StateObject(wrappedValue: RoleSelectionViewModel(apiClient: dependencies.apiClient, sessionManager: dependencies.sessionManager))
+        self.dependencies = dependencies
+        _viewModel = StateObject(wrappedValue: RoleSelectionViewModel(
+            networkRepository: dependencies.networkRepository,
+            sessionManager: dependencies.sessionManager,
+            sessionPreferences: dependencies.sessionPreferences
+        ))
     }
 
     @State private var selectedType: RegistrationType?
-    @State private var navigateToNextView: Bool = false
-    @State private var navigateToBusiness: Bool = false
-    @State private var navigateToCaption: Bool = false
+
+    private enum RegistrationStack: Hashable {
+        case voyagerOrBusinessOnboarding
+        case captainOnboarding
+    }
+
+    @State private var registrationStack: RegistrationStack?
     @State private var showToast: Bool = false
     @State private var toastMessage: String = ""
-    @State private var isLoading: Bool = false  // ✅ Added loading state
-    
+    @State private var isLoading: Bool = false
+
 
     var body: some View {
         NavigationStack {
@@ -68,43 +78,40 @@ struct RoleSelectionView: View {
             .padding(.horizontal, 20)
             .background(AppTheme.Colors.background)
             .edgesIgnoringSafeArea(.all)
-            
-            // **Navigation Links**
-            NavigationLink(
-                destination: BusinessRegStepOne(registrationType: selectedType ?? .voyager, lastController: "Registration"),
-                isActive: $navigateToNextView
-            ) { EmptyView() }
-
-            NavigationLink(
-                destination: CaptainRegStepOne(lastController: ""),
-                isActive: $navigateToCaption
-            ) { EmptyView() }
+            .navigationDestination(item: $registrationStack) { stack in
+                switch stack {
+                case .voyagerOrBusinessOnboarding:
+                    BusinessRegStepOne(registrationType: selectedType ?? .voyager, lastController: "Registration", dependencies: dependencies)
+                case .captainOnboarding:
+                    CaptainRegStepOne(lastController: "", dependencies: dependencies)
+                }
+            }
         }
         .navigationBarBackButtonHidden(true)
-        .onChange(of: viewModel.isAuthenticated) { _, isAuth in
+        .onChange(of: viewModel.state.isAuthenticated) { _, isAuth in
             if isAuth {
                 isLoading = false
                 toastMessage = "Role updated successfully"
                 showToast = true
                 
-                if let role = viewModel.selectedRole {
+                if let role = viewModel.state.selectedRole {
                     switch role {
                     case "Voyager":
                         selectedType = .voyager
-                        navigateToNextView = true
+                        registrationStack = .voyagerOrBusinessOnboarding
                     case "Captain":
                         selectedType = .captain
-                        navigateToCaption = true
+                        registrationStack = .captainOnboarding
                     case "Business":
                         selectedType = .business
-                        navigateToNextView = true
+                        registrationStack = .voyagerOrBusinessOnboarding
                     default:
                         break
                     }
                 }
             }
         }
-        .onChange(of: viewModel.errorMessage) { _, errorMsg in
+        .onChange(of: viewModel.state.errorMessage) { _, errorMsg in
             if let error = errorMsg {
                 isLoading = false
                 toastMessage = error
@@ -158,16 +165,17 @@ struct RoleSelectionView: View {
     
     // **Handle Role Selection & Show Loader**
     private func handleRoleSelection(role: String) {
-        let userId = AppSessionSnapshot.userID
+        let userId = viewModel.roleSelectionUserId
         guard !userId.isEmpty else { return }
         
-        isLoading = true // ✅ Show loader
+        isLoading = true
         viewModel.updateRole(userId: userId, role: role)
-        // Navigation will be triggered by onChange(of: viewModel.isAuthenticated)
     }
 }
 
 #Preview {
     RoleSelectionView()
 }
+
+
 

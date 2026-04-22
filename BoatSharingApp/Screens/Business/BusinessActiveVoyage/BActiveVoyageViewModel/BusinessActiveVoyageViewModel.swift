@@ -45,12 +45,12 @@ final class BusinessActiveVoyageViewModel: ObservableObject {
 
     // MARK: - Dependencies
 
-    private let apiClient: APIClientProtocol
+    private let networkRepository: AppNetworkRepositoryProtocol
     private let sessionPreferences: SessionPreferenceStoring
     private var hasLoaded = false
 
-    init(apiClient: APIClientProtocol, sessionPreferences: SessionPreferenceStoring) {
-        self.apiClient = apiClient
+    init(networkRepository: AppNetworkRepositoryProtocol, sessionPreferences: SessionPreferenceStoring) {
+        self.networkRepository = networkRepository
         self.sessionPreferences = sessionPreferences
     }
 
@@ -80,12 +80,7 @@ final class BusinessActiveVoyageViewModel: ObservableObject {
         errorMessage = nil
         Task {
             do {
-                let response: VoyagerPaymentResponse = try await apiClient.request(
-                    endpoint: "/Business/GetActiveVoyages",
-                    method: .get,
-                    parameters: nil,
-                    requiresAuth: true
-                )
+                let response = try await networkRepository.business_getActiveVoyages()
                 self.isLoading = false
                 if response.status == 200 {
                     self.voyages = response.obj
@@ -99,9 +94,10 @@ final class BusinessActiveVoyageViewModel: ObservableObject {
         }
     }
 
-    // MARK: - Legacy call-site compat
+    // MARK: - Public action helpers
 
     func getVoyages() { fetchVoyages() }
     func retry() { send(.retry) }
     func resetInitialLoadForDismiss() { send(.onDisappear) }
 }
+
