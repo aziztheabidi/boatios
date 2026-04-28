@@ -1,0 +1,48 @@
+# Xcode
+*.xcuserstate
+*.xcuserdatad/
+xcuserdata/
+*.moved-aside
+*.pbxuser
+!default.pbxuser
+*.mode1v3
+!default.mode1v3
+*.mode2v3
+!default.mode2v3
+*.perspectivev3
+!default.perspectivev3
+DerivedData/
+*.hmap
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# CocoaPods
+Pods/
+
+# Swift Package Manager
+.build/
+.swiftpm/
+
+# Secrets - DO NOT COMMIT
+*Config.plist
+GoogleService-Info.plist
+
+# xcconfig: tracked `Config/Secrets.xcconfig` uses placeholders only.
+# Ignore local overrides with real keys (optional workflow).
+Config/Secrets.local.xcconfig
+
+# Environment files
+.env
+.env.local
+.env.development
+.env.production
+
+# macOS
+.DS_Store
+
+# Test coverage
+*.gcov
+*.gcno
+*.gcda
+coverage/
