@@ -2165,7 +2165,7 @@
 				D61A0ED92DA7CB2000FC0E1F /* AddSponsors */,
 				D68B05A62DBA408D005E68C2 /* SponsorsPayment */,
 				D61A0ECE2DA79CDC00FC0E1F /* VoyagerRatePerHour */,
-				D6E5BFC42DA67E10004EA3F9 /* Create Voyage */,
+				D6E5BFC42DA67E10004EA3F9 /* CreateVoyage */,
 				D6DE69692D75775F000AAA77 /* VoyagerDashboard */,
 			);
 			path = Voyager;
@@ -2204,14 +2204,15 @@
 			path = BoatSharingApp;
 			sourceTree = "<group>";
 		};
-		D6E5BFC42DA67E10004EA3F9 /* Create Voyage */ = {
+		D6E5BFC42DA67E10004EA3F9 /* CreateVoyage */ = {
 			isa = PBXGroup;
 			children = (
 				D6E5BFC72DA67E47004EA3F9 /* Model */,
 				D6E5BFC62DA67E3D004EA3F9 /* ModelView */,
 				D6E5BFC52DA67E37004EA3F9 /* View */,
 			);
-			path = "Create Voyage";
+			name = "Create Voyage";
+			path = CreateVoyage;
 			sourceTree = "<group>";
 		};
 		D6E5BFC52DA67E37004EA3F9 /* View */ = {
