@@ -1,3 +1,4 @@
 # Xcode / OpenStep project files: always LF so macOS Xcode parses reliably after Windows edits
 *.pbxproj text eol=lf
 *.xcscheme text eol=lf
+**/Package.resolved text eol=lf

@@ -2326,6 +2326,7 @@
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 1530;
 				LastUpgradeCheck = 1530;
+				minimizedProjectReferenceProxies = 1;
 				TargetAttributes = {
 					4FD8D8F62D477B3600FF6289 = {
 						CreatedOnToolsVersion = 15.3;
