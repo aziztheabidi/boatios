@@ -183,7 +183,6 @@
 		77283CE1B25A8B9DA6F00555 /* SessionContracts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A4539CAB92215599BAA940B; };
 		A1CF0A0000000000000000C2 /* APIClientProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1CF0A0000000000000000C1; };
 		9E01595F9EBC4158AC35860D /* VoyageBookingContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1801D79E6DA39F8158081AF9; };
-		5F4385126696AF1A6B502F47 /* ViewModelPattern.swift in Sources */ = {isa = PBXBuildFile; fileRef = 885A37BA1BFF5E433EFB329D; };
 		EF3F89C49B52E855DE592511 /* LoginAuthViewModelNew.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7757D43C4C831E9512C263CA; };
 		42F23D8EC78B6518AC588519 /* AppError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56E7DED8F0A731D034E4731E; };
 		D5329630C66BE2E2F175C239 /* BaseResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5557D510F57A4C83688818C6; };
@@ -359,7 +358,6 @@
 		0A4539CAB92215599BAA940B /* SessionContracts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "SessionContracts.swift"; path = "BoatSharingApp/Application/Session/SessionContracts.swift"; sourceTree = "<group>"; };
 		A1CF0A0000000000000000C1 /* APIClientProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "APIClientProtocol.swift"; path = "BoatSharingApp/Application/NetworkLayer/Core/APIClientProtocol.swift"; sourceTree = "<group>"; };
 		1801D79E6DA39F8158081AF9 /* VoyageBookingContext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "VoyageBookingContext.swift"; path = "BoatSharingApp/Application/Storage/VoyageBookingContext.swift"; sourceTree = "<group>"; };
-		885A37BA1BFF5E433EFB329D /* ViewModelPattern.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "ViewModelPattern.swift"; path = "BoatSharingApp/Application/Architecture/ViewModelPattern.swift"; sourceTree = "<group>"; };
 		7757D43C4C831E9512C263CA /* LoginAuthViewModelNew.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "LoginAuthViewModelNew.swift"; path = "BoatSharingApp/Screens/LoginScreen/Modelview/LoginAuthViewModelNew.swift"; sourceTree = "<group>"; };
 		56E7DED8F0A731D034E4731E /* AppError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "AppError.swift"; path = "BoatSharingApp/Application/NetworkLayer/Models/AppError.swift"; sourceTree = "<group>"; };
 		5557D510F57A4C83688818C6 /* BaseResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "BaseResponse.swift"; path = "BoatSharingApp/Application/NetworkLayer/Models/BaseResponse.swift"; sourceTree = "<group>"; };
@@ -652,7 +650,6 @@
 				9A2EC80F5A0969CC742F3757 /* BusinessRepository.swift */,
 				0A4539CAB92215599BAA940B /* SessionContracts.swift */,
 				1801D79E6DA39F8158081AF9 /* VoyageBookingContext.swift */,
-				885A37BA1BFF5E433EFB329D /* ViewModelPattern.swift */,
 				7757D43C4C831E9512C263CA /* LoginAuthViewModelNew.swift */,
 				56E7DED8F0A731D034E4731E /* AppError.swift */,
 				5557D510F57A4C83688818C6 /* BaseResponse.swift */,
@@ -2533,7 +2530,6 @@
 				521FA1F61AD87C7538CE3064 /* BusinessRepository.swift in Sources */,
 				77283CE1B25A8B9DA6F00555 /* SessionContracts.swift in Sources */,
 				9E01595F9EBC4158AC35860D /* VoyageBookingContext.swift in Sources */,
-				5F4385126696AF1A6B502F47 /* ViewModelPattern.swift in Sources */,
 				EF3F89C49B52E855DE592511 /* LoginAuthViewModelNew.swift in Sources */,
 				42F23D8EC78B6518AC588519 /* AppError.swift in Sources */,
 				D5329630C66BE2E2F175C239 /* BaseResponse.swift in Sources */,
