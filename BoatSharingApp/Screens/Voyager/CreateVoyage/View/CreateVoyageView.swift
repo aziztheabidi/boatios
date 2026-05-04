@@ -3,13 +3,13 @@ import SwiftUI
 struct CreateVoyageView: View {
     @Environment(\.presentationMode) var presentationMode
     @EnvironmentObject private var uiFlowState: UIFlowState
-    @StateObject private var viewModel: CreateVoyagerViewModel
+    @StateObject private var viewModel: CreateVoyageViewModel
     private let dependencies: AppDependencies
 
     init(dependencies: AppDependencies = .live) {
         self.dependencies = dependencies
         _viewModel = StateObject(
-            wrappedValue: CreateVoyagerViewModel(dateFormatter: dependencies.dateFormatter)
+            wrappedValue: CreateVoyageViewModel(dateFormatter: dependencies.dateFormatter)
         )
     }
     

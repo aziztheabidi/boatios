@@ -11,7 +11,7 @@
 		A1CF0B000000000000000002 /* AppServices.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1CF0A000000000000000002 /* AppServices.swift */; };
 		A1CF0B00000000000000000E /* ErrorHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1CF0A00000000000000000E /* ErrorHandler.swift */; };
 		A1CF0B000000000000000014 /* SpinWheelMenuViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1CF0A000000000000000014 /* SpinWheelMenuViewModel.swift */; };
-		A1CF0B000000000000000015 /* SplashScreenViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1CF0A000000000000000015 /* SplashScreenViewModel.swift */; };
+		A1CF0B000000000000000015 /* SplashViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1CF0A000000000000000015 /* SplashViewModel.swift */; };
 		0424CBFD2DEC7EF300261243 /* DashboardVCModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0424CBFC2DEC7EEB00261243 /* DashboardVCModel.swift */; };
 		0424CBFF2DEC7F1E00261243 /* DashboardVCViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0424CBFE2DEC7F1600261243 /* DashboardVCViewModel.swift */; };
 		0424CC022DEC885800261243 /* SDWebImageSwiftUI in Frameworks */ = {isa = PBXBuildFile; productRef = 0424CC012DEC885800261243 /* SDWebImageSwiftUI */; };
@@ -20,7 +20,7 @@
 		0424CC0D2DEC987100261243 /* BusinessActiveVoyageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0424CC0C2DEC986600261243 /* BusinessActiveVoyageView.swift */; };
 		0436A9992DDBCB2D004483B1 /* VoyagerFeedbackModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0436A9982DDBCB24004483B1 /* VoyagerFeedbackModel.swift */; };
 		0436A99B2DDBCB3B004483B1 /* VoyagerFeedbackViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0436A99A2DDBCB33004483B1 /* VoyagerFeedbackViewModel.swift */; };
-		044D1EB12DAD6D2000913FB7 /* SponsorsPaymentInvitationVc.swift in Sources */ = {isa = PBXBuildFile; fileRef = 044D1EB02DAD6D1500913FB7 /* SponsorsPaymentInvitationVc.swift */; };
+		044D1EB12DAD6D2000913FB7 /* SponsorPaymentInvitationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 044D1EB02DAD6D1500913FB7 /* SponsorPaymentInvitationView.swift */; };
 		045A5A0E2DD28B5800AA2995 /* CaptainActiveVoyageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 045A5A0D2DD28B4F00AA2995 /* CaptainActiveVoyageModel.swift */; };
 		045A5A102DD28C3000AA2995 /* CaptainActiveVoyageViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 045A5A0F2DD28C2300AA2995 /* CaptainActiveVoyageViewModel.swift */; };
 		045A5A122DD2983E00AA2995 /* CaptainActiveVoyageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 045A5A112DD2983300AA2995 /* CaptainActiveVoyageView.swift */; };
@@ -57,9 +57,9 @@
 		D6046C682E0032420045F2E0 /* FindBoatPopUpModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6046C672E0032380045F2E0 /* FindBoatPopUpModel.swift */; };
 		D608262F2E744AAE0080265F /* NewRequestPaidPopUpVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = D608262E2E744AAE0080265F /* NewRequestPaidPopUpVC.swift */; };
 		D60EE75A2DB10FCE004ED5DA /* Customloaderview.swift in Sources */ = {isa = PBXBuildFile; fileRef = D60EE7592DB10FC5004ED5DA /* Customloaderview.swift */; };
-		D61A0ED32DA79D1000FC0E1F /* VoyagerPerRateVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = D61A0ED22DA79D0700FC0E1F /* VoyagerPerRateVC.swift */; };
-		D61A0ED62DA79D2A00FC0E1F /* VoyagerPerRateModelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D61A0ED52DA79D1F00FC0E1F /* VoyagerPerRateModelView.swift */; };
-		D61A0ED82DA79D3900FC0E1F /* VoyagerRatePerModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D61A0ED72DA79D2E00FC0E1F /* VoyagerRatePerModel.swift */; };
+		D61A0ED32DA79D1000FC0E1F /* VoyagerRateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D61A0ED22DA79D0700FC0E1F /* VoyagerRateView.swift */; };
+		D61A0ED62DA79D2A00FC0E1F /* VoyagerRateViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D61A0ED52DA79D1F00FC0E1F /* VoyagerRateViewModel.swift */; };
+		D61A0ED82DA79D3900FC0E1F /* VoyagerRateResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = D61A0ED72DA79D2E00FC0E1F /* VoyagerRateResponse.swift */; };
 		D61A0EDE2DA7CB8000FC0E1F /* AddSponsorsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D61A0EDD2DA7CB6800FC0E1F /* AddSponsorsView.swift */; };
 		D61A0EE12DA7CB9500FC0E1F /* AddSponsorsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D61A0EE02DA7CB8D00FC0E1F /* AddSponsorsViewModel.swift */; };
 		D61A0EE32DA7CBF300FC0E1F /* AddSponsorsModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D61A0EE22DA7CBE400FC0E1F /* AddSponsorsModel.swift */; };
@@ -70,7 +70,7 @@
 		D62D7C932E17D79700502748 /* CaptainChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D62D7C922E17D79100502748 /* CaptainChatView.swift */; };
 		D65109EA2DBF5AA60030C118 /* FutureVoyageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D65109E92DBF5A9D0030C118 /* FutureVoyageModel.swift */; };
 		D65109EC2DBF5B460030C118 /* FutureVoyageViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D65109EB2DBF5B3B0030C118 /* FutureVoyageViewModel.swift */; };
-		D65109EE2DBF5D030030C118 /* FutureVoyageVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = D65109ED2DBF5CFB0030C118 /* FutureVoyageVC.swift */; };
+		D65109EE2DBF5D030030C118 /* FutureVoyageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D65109ED2DBF5CFB0030C118 /* FutureVoyageView.swift */; };
 		D65109F92DC0AE940030C118 /* FullScreenLoaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D65109F82DC0AE8D0030C118 /* FullScreenLoaderView.swift */; };
 		D6640DAF2E4233E2000128E9 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6640DAE2E4233DF000128E9 /* SettingsView.swift */; };
 		A2B3C4D500000001000000B1 /* VoyagerDashboardDTO.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2B3C4D500000001000000A1 /* VoyagerDashboardDTO.swift */; };
@@ -156,19 +156,19 @@
 		D6DE69A32D75775F000AAA77 /* CreatePasswordViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6DE694B2D75775F000AAA77 /* CreatePasswordViewModel.swift */; };
 		D6DE69A42D75775F000AAA77 /* CreatePasswordVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6DE694D2D75775F000AAA77 /* CreatePasswordVC.swift */; };
 		D6DE69A52D75775F000AAA77 /* OTPModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6DE69502D75775F000AAA77 /* OTPModel.swift */; };
-		D6DE69A62D75775F000AAA77 /* OTPModelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6DE69522D75775F000AAA77 /* OTPModelView.swift */; };
+		D6DE69A62D75775F000AAA77 /* OTPViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6DE69522D75775F000AAA77 /* OTPViewModel.swift */; };
 		D6DE69A72D75775F000AAA77 /* OTPVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6DE69542D75775F000AAA77 /* OTPVC.swift */; };
-		D6DE69A82D75775F000AAA77 /* RollSectionModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6DE69592D75775F000AAA77 /* RollSectionModel.swift */; };
-		D6DE69A92D75775F000AAA77 /* RollSelectionViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6DE695B2D75775F000AAA77 /* RollSelectionViewModel.swift */; };
-		D6DE69AA2D75775F000AAA77 /* RollSelectionVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6DE695D2D75775F000AAA77 /* RollSelectionVC.swift */; };
+		D6DE69A82D75775F000AAA77 /* RoleSectionModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6DE69592D75775F000AAA77 /* RoleSectionModel.swift */; };
+		D6DE69A92D75775F000AAA77 /* RoleSelectionViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6DE695B2D75775F000AAA77 /* RoleSelectionViewModel.swift */; };
+		D6DE69AA2D75775F000AAA77 /* RoleSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6DE695D2D75775F000AAA77 /* RoleSelectionView.swift */; };
 		D6DE69AB2D75775F000AAA77 /* SplashScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6DE69622D75775F000AAA77 /* SplashScreen.swift */; };
-		D6DE69AC2D75775F000AAA77 /* VoyagerHomeVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6DE69672D75775F000AAA77 /* VoyagerHomeVC.swift */; };
+		D6DE69AC2D75775F000AAA77 /* VoyagerHomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6DE69672D75775F000AAA77 /* VoyagerHomeView.swift */; };
 		D6DE69AD2D75775F000AAA77 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D6DE68AD2D75775F000AAA77 /* Assets.xcassets */; };
 		D6DE69AE2D75775F000AAA77 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D6DE68D62D75775F000AAA77 /* Preview Assets.xcassets */; };
 		D6E500C12D65C27400283A3D /* Alamofire in Frameworks */ = {isa = PBXBuildFile; productRef = D6E500C02D65C27400283A3D /* Alamofire */; };
-		D6E5BFC92DA67E8B004EA3F9 /* CreateVoyagerVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6E5BFC82DA67E7F004EA3F9 /* CreateVoyagerVC.swift */; };
-		D6E5BFCB2DA67E9C004EA3F9 /* CreateVoyagerModelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6E5BFCA2DA67E91004EA3F9 /* CreateVoyagerModelView.swift */; };
-		D6E5BFCD2DA67EAD004EA3F9 /* CreateVoyagerModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6E5BFCC2DA67EA3004EA3F9 /* CreateVoyagerModel.swift */; };
+		D6E5BFC92DA67E8B004EA3F9 /* CreateVoyageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6E5BFC82DA67E7F004EA3F9 /* CreateVoyageView.swift */; };
+		D6E5BFCB2DA67E9C004EA3F9 /* CreateVoyageViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6E5BFCA2DA67E91004EA3F9 /* CreateVoyageViewModel.swift */; };
+		D6E5BFCD2DA67EAD004EA3F9 /* CreateVoyageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6E5BFCC2DA67EA3004EA3F9 /* CreateVoyageModel.swift */; };
 		D6F46C6F2DB65FB300EB45FA /* PaymentSheetWrapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6F46C6E2DB65FAD00EB45FA /* PaymentSheetWrapper.swift */; };
 		D6F7280C2DAFCA4B0027FEAA /* GlobalValues.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6F7280B2DAFCA3F0027FEAA /* GlobalValues.swift */; };
 		D6FDC3662E5837D100CAAA1E /* PastVoyageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6FDC3652E5837CC00CAAA1E /* PastVoyageView.swift */; };
@@ -202,7 +202,7 @@
 		0433BDAE2D7667710002AE39 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		0436A9982DDBCB24004483B1 /* VoyagerFeedbackModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoyagerFeedbackModel.swift; sourceTree = "<group>"; };
 		0436A99A2DDBCB33004483B1 /* VoyagerFeedbackViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoyagerFeedbackViewModel.swift; sourceTree = "<group>"; };
-		044D1EB02DAD6D1500913FB7 /* SponsorsPaymentInvitationVc.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SponsorsPaymentInvitationVc.swift; sourceTree = "<group>"; };
+		044D1EB02DAD6D1500913FB7 /* SponsorPaymentInvitationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SponsorPaymentInvitationView.swift; sourceTree = "<group>"; };
 		045A5A0D2DD28B4F00AA2995 /* CaptainActiveVoyageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptainActiveVoyageModel.swift; sourceTree = "<group>"; };
 		045A5A0F2DD28C2300AA2995 /* CaptainActiveVoyageViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptainActiveVoyageViewModel.swift; sourceTree = "<group>"; };
 		045A5A112DD2983300AA2995 /* CaptainActiveVoyageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptainActiveVoyageView.swift; sourceTree = "<group>"; };
@@ -222,9 +222,9 @@
 		D6046C672E0032380045F2E0 /* FindBoatPopUpModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FindBoatPopUpModel.swift; sourceTree = "<group>"; };
 		D608262E2E744AAE0080265F /* NewRequestPaidPopUpVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewRequestPaidPopUpVC.swift; sourceTree = "<group>"; };
 		D60EE7592DB10FC5004ED5DA /* Customloaderview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Customloaderview.swift; sourceTree = "<group>"; };
-		D61A0ED22DA79D0700FC0E1F /* VoyagerPerRateVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoyagerPerRateVC.swift; sourceTree = "<group>"; };
-		D61A0ED52DA79D1F00FC0E1F /* VoyagerPerRateModelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoyagerPerRateModelView.swift; sourceTree = "<group>"; };
-		D61A0ED72DA79D2E00FC0E1F /* VoyagerRatePerModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoyagerRatePerModel.swift; sourceTree = "<group>"; };
+		D61A0ED22DA79D0700FC0E1F /* VoyagerRateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoyagerRateView.swift; sourceTree = "<group>"; };
+		D61A0ED52DA79D1F00FC0E1F /* VoyagerRateViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoyagerRateViewModel.swift; sourceTree = "<group>"; };
+		D61A0ED72DA79D2E00FC0E1F /* VoyagerRateResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoyagerRateResponse.swift; sourceTree = "<group>"; };
 		D61A0EDD2DA7CB6800FC0E1F /* AddSponsorsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddSponsorsView.swift; sourceTree = "<group>"; };
 		D61A0EE02DA7CB8D00FC0E1F /* AddSponsorsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddSponsorsViewModel.swift; sourceTree = "<group>"; };
 		D61A0EE22DA7CBE400FC0E1F /* AddSponsorsModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddSponsorsModel.swift; sourceTree = "<group>"; };
@@ -235,7 +235,7 @@
 		D62D7C922E17D79100502748 /* CaptainChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptainChatView.swift; sourceTree = "<group>"; };
 		D65109E92DBF5A9D0030C118 /* FutureVoyageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FutureVoyageModel.swift; sourceTree = "<group>"; };
 		D65109EB2DBF5B3B0030C118 /* FutureVoyageViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FutureVoyageViewModel.swift; sourceTree = "<group>"; };
-		D65109ED2DBF5CFB0030C118 /* FutureVoyageVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FutureVoyageVC.swift; sourceTree = "<group>"; };
+		D65109ED2DBF5CFB0030C118 /* FutureVoyageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FutureVoyageView.swift; sourceTree = "<group>"; };
 		D65109F82DC0AE8D0030C118 /* FullScreenLoaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FullScreenLoaderView.swift; sourceTree = "<group>"; };
 		D6640DAE2E4233DF000128E9 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		A2B3C4D500000001000000A1 /* VoyagerDashboardDTO.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "VoyagerDashboardDTO.swift"; path = "BoatSharingApp/Application/NetworkLayer/Models/VoyagerDashboardDTO.swift"; sourceTree = "<group>"; };
@@ -322,16 +322,16 @@
 		D6DE694B2D75775F000AAA77 /* CreatePasswordViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreatePasswordViewModel.swift; sourceTree = "<group>"; };
 		D6DE694D2D75775F000AAA77 /* CreatePasswordVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreatePasswordVC.swift; sourceTree = "<group>"; };
 		D6DE69502D75775F000AAA77 /* OTPModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OTPModel.swift; sourceTree = "<group>"; };
-		D6DE69522D75775F000AAA77 /* OTPModelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OTPModelView.swift; sourceTree = "<group>"; };
+		D6DE69522D75775F000AAA77 /* OTPViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OTPViewModel.swift; sourceTree = "<group>"; };
 		D6DE69542D75775F000AAA77 /* OTPVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OTPVC.swift; sourceTree = "<group>"; };
-		D6DE69592D75775F000AAA77 /* RollSectionModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RollSectionModel.swift; sourceTree = "<group>"; };
-		D6DE695B2D75775F000AAA77 /* RollSelectionViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RollSelectionViewModel.swift; sourceTree = "<group>"; };
-		D6DE695D2D75775F000AAA77 /* RollSelectionVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RollSelectionVC.swift; sourceTree = "<group>"; };
+		D6DE69592D75775F000AAA77 /* RoleSectionModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoleSectionModel.swift; sourceTree = "<group>"; };
+		D6DE695B2D75775F000AAA77 /* RoleSelectionViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoleSelectionViewModel.swift; sourceTree = "<group>"; };
+		D6DE695D2D75775F000AAA77 /* RoleSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoleSelectionView.swift; sourceTree = "<group>"; };
 		D6DE69622D75775F000AAA77 /* SplashScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SplashScreen.swift; sourceTree = "<group>"; };
-		D6DE69672D75775F000AAA77 /* VoyagerHomeVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoyagerHomeVC.swift; sourceTree = "<group>"; };
-		D6E5BFC82DA67E7F004EA3F9 /* CreateVoyagerVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateVoyagerVC.swift; sourceTree = "<group>"; };
-		D6E5BFCA2DA67E91004EA3F9 /* CreateVoyagerModelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateVoyagerModelView.swift; sourceTree = "<group>"; };
-		D6E5BFCC2DA67EA3004EA3F9 /* CreateVoyagerModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateVoyagerModel.swift; sourceTree = "<group>"; };
+		D6DE69672D75775F000AAA77 /* VoyagerHomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoyagerHomeView.swift; sourceTree = "<group>"; };
+		D6E5BFC82DA67E7F004EA3F9 /* CreateVoyageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateVoyageView.swift; sourceTree = "<group>"; };
+		D6E5BFCA2DA67E91004EA3F9 /* CreateVoyageViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateVoyageViewModel.swift; sourceTree = "<group>"; };
+		D6E5BFCC2DA67EA3004EA3F9 /* CreateVoyageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateVoyageModel.swift; sourceTree = "<group>"; };
 		D6F46C6E2DB65FAD00EB45FA /* PaymentSheetWrapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaymentSheetWrapper.swift; sourceTree = "<group>"; };
 		D6F7280B2DAFCA3F0027FEAA /* GlobalValues.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlobalValues.swift; sourceTree = "<group>"; };
 		D6FDC3652E5837CC00CAAA1E /* PastVoyageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PastVoyageView.swift; sourceTree = "<group>"; };
@@ -348,7 +348,7 @@
 		A1CF0A000000000000000002 /* AppServices.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppServices.swift; sourceTree = "<group>"; };
 		A1CF0A00000000000000000E /* ErrorHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ErrorHandler.swift; sourceTree = "<group>"; };
 		A1CF0A000000000000000014 /* SpinWheelMenuViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpinWheelMenuViewModel.swift; sourceTree = "<group>"; };
-		A1CF0A000000000000000015 /* SplashScreenViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SplashScreenViewModel.swift; sourceTree = "<group>"; };
+		A1CF0A000000000000000015 /* SplashViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SplashViewModel.swift; sourceTree = "<group>"; };
 		A8CCF29876164A2CF41E01A4 /* AppDependencies.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "AppDependencies.swift"; path = "BoatSharingApp/Application/Dependency/AppDependencies.swift"; sourceTree = "<group>"; };
 		E71FB5930540EAD81790FB95 /* SessionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "SessionManager.swift"; path = "BoatSharingApp/Application/NetworkLayer/Core/SessionManager.swift"; sourceTree = "<group>"; };
 		910CF7EBE862F5A068AFA3B7 /* TokenStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "TokenStore.swift"; path = "BoatSharingApp/Application/Storage/TokenStore.swift"; sourceTree = "<group>"; };
@@ -440,7 +440,7 @@
 		044D1EAD2DAD6CF100913FB7 /* View */ = {
 			isa = PBXGroup;
 			children = (
-				044D1EB02DAD6D1500913FB7 /* SponsorsPaymentInvitationVc.swift */,
+				044D1EB02DAD6D1500913FB7 /* SponsorPaymentInvitationView.swift */,
 			);
 			path = View;
 			sourceTree = "<group>";
@@ -698,7 +698,7 @@
 		D61A0ECF2DA79CF100FC0E1F /* View */ = {
 			isa = PBXGroup;
 			children = (
-				D61A0ED22DA79D0700FC0E1F /* VoyagerPerRateVC.swift */,
+				D61A0ED22DA79D0700FC0E1F /* VoyagerRateView.swift */,
 			);
 			path = View;
 			sourceTree = "<group>";
@@ -706,7 +706,7 @@
 		D61A0ED02DA79CF900FC0E1F /* ModelView */ = {
 			isa = PBXGroup;
 			children = (
-				D61A0ED52DA79D1F00FC0E1F /* VoyagerPerRateModelView.swift */,
+				D61A0ED52DA79D1F00FC0E1F /* VoyagerRateViewModel.swift */,
 			);
 			path = ModelView;
 			sourceTree = "<group>";
@@ -714,7 +714,7 @@
 		D61A0ED12DA79D0100FC0E1F /* Model */ = {
 			isa = PBXGroup;
 			children = (
-				D61A0ED72DA79D2E00FC0E1F /* VoyagerRatePerModel.swift */,
+				D61A0ED72DA79D2E00FC0E1F /* VoyagerRateResponse.swift */,
 			);
 			path = Model;
 			sourceTree = "<group>";
@@ -808,7 +808,7 @@
 		D65109E62DBF5A760030C118 /* FutureVoyageView */ = {
 			isa = PBXGroup;
 			children = (
-				D65109ED2DBF5CFB0030C118 /* FutureVoyageVC.swift */,
+				D65109ED2DBF5CFB0030C118 /* FutureVoyageView.swift */,
 			);
 			path = FutureVoyageView;
 			sourceTree = "<group>";
@@ -2015,7 +2015,7 @@
 		D6DE69532D75775F000AAA77 /* ModelView */ = {
 			isa = PBXGroup;
 			children = (
-				D6DE69522D75775F000AAA77 /* OTPModelView.swift */,
+				D6DE69522D75775F000AAA77 /* OTPViewModel.swift */,
 			);
 			path = ModelView;
 			sourceTree = "<group>";
@@ -2061,7 +2061,7 @@
 		D6DE695A2D75775F000AAA77 /* Model */ = {
 			isa = PBXGroup;
 			children = (
-				D6DE69592D75775F000AAA77 /* RollSectionModel.swift */,
+				D6DE69592D75775F000AAA77 /* RoleSectionModel.swift */,
 			);
 			path = Model;
 			sourceTree = "<group>";
@@ -2069,7 +2069,7 @@
 		D6DE695C2D75775F000AAA77 /* ModelView */ = {
 			isa = PBXGroup;
 			children = (
-				D6DE695B2D75775F000AAA77 /* RollSelectionViewModel.swift */,
+				D6DE695B2D75775F000AAA77 /* RoleSelectionViewModel.swift */,
 			);
 			path = ModelView;
 			sourceTree = "<group>";
@@ -2077,7 +2077,7 @@
 		D6DE695E2D75775F000AAA77 /* View */ = {
 			isa = PBXGroup;
 			children = (
-				D6DE695D2D75775F000AAA77 /* RollSelectionVC.swift */,
+				D6DE695D2D75775F000AAA77 /* RoleSelectionView.swift */,
 			);
 			path = View;
 			sourceTree = "<group>";
@@ -2095,7 +2095,7 @@
 		D6DE69612D75775F000AAA77 /* ModelView */ = {
 			isa = PBXGroup;
 			children = (
-				A1CF0A000000000000000015 /* SplashScreenViewModel.swift */,
+				A1CF0A000000000000000015 /* SplashViewModel.swift */,
 			);
 			path = ModelView;
 			sourceTree = "<group>";
@@ -2135,7 +2135,7 @@
 		D6DE69682D75775F000AAA77 /* View */ = {
 			isa = PBXGroup;
 			children = (
-				D6DE69672D75775F000AAA77 /* VoyagerHomeVC.swift */,
+				D6DE69672D75775F000AAA77 /* VoyagerHomeView.swift */,
 			);
 			path = View;
 			sourceTree = "<group>";
@@ -2217,7 +2217,7 @@
 		D6E5BFC52DA67E37004EA3F9 /* View */ = {
 			isa = PBXGroup;
 			children = (
-				D6E5BFC82DA67E7F004EA3F9 /* CreateVoyagerVC.swift */,
+				D6E5BFC82DA67E7F004EA3F9 /* CreateVoyageView.swift */,
 			);
 			path = View;
 			sourceTree = "<group>";
@@ -2225,7 +2225,7 @@
 		D6E5BFC62DA67E3D004EA3F9 /* ModelView */ = {
 			isa = PBXGroup;
 			children = (
-				D6E5BFCA2DA67E91004EA3F9 /* CreateVoyagerModelView.swift */,
+				D6E5BFCA2DA67E91004EA3F9 /* CreateVoyageViewModel.swift */,
 			);
 			path = ModelView;
 			sourceTree = "<group>";
@@ -2233,7 +2233,7 @@
 		D6E5BFC72DA67E47004EA3F9 /* Model */ = {
 			isa = PBXGroup;
 			children = (
-				D6E5BFCC2DA67EA3004EA3F9 /* CreateVoyagerModel.swift */,
+				D6E5BFCC2DA67EA3004EA3F9 /* CreateVoyageModel.swift */,
 			);
 			path = Model;
 			sourceTree = "<group>";
@@ -2385,7 +2385,7 @@
 				A1CF0B00000000000000000E /* ErrorHandler.swift in Sources */,
 				D6DE696F2D75775F000AAA77 /* ContentView.swift in Sources */,
 				D6B7BD952EABAAA700A61576 /* TrackRidePaymentPopup.swift in Sources */,
-				D6E5BFCB2DA67E9C004EA3F9 /* CreateVoyagerModelView.swift in Sources */,
+				D6E5BFCB2DA67E9C004EA3F9 /* CreateVoyageViewModel.swift in Sources */,
 				D6DE69702D75775F000AAA77 /* CustomColor.swift in Sources */,
 				D6DE69712D75775F000AAA77 /* CustomLabeledTextField.swift in Sources */,
 				D6DE69722D75775F000AAA77 /* CustomToastVC.swift in Sources */,
@@ -2395,7 +2395,7 @@
 				D6DE69742D75775F000AAA77 /* CustomPageIndictor.swift in Sources */,
 				D6B70AB62EB37465002B6C78 /* NewRequestFinal_PopUpVC.swift in Sources */,
 				048736212DCA9A7C00533B21 /* VoyagerFeedbackView.swift in Sources */,
-				D65109EE2DBF5D030030C118 /* FutureVoyageVC.swift in Sources */,
+				D65109EE2DBF5D030030C118 /* FutureVoyageView.swift in Sources */,
 				D68B05A72DBA408D005E68C2 /* SponsorsPaymentViewModel.swift in Sources */,
 				04B5DCEE2D7635DD00CC6C48 /* AppDelegate.swift in Sources */,
 				D6DE69752D75775F000AAA77 /* IntroPageController.swift in Sources */,
@@ -2437,13 +2437,13 @@
 				0436A99B2DDBCB3B004483B1 /* VoyagerFeedbackViewModel.swift in Sources */,
 				D6DE69872D75775F000AAA77 /* OnboardingFirstVC.swift in Sources */,
 				D6DE69882D75775F000AAA77 /* OnboardingSecondVC.swift in Sources */,
-				D6E5BFCD2DA67EAD004EA3F9 /* CreateVoyagerModel.swift in Sources */,
+				D6E5BFCD2DA67EAD004EA3F9 /* CreateVoyageModel.swift in Sources */,
 				D6C523C52DFD86BE00D82443 /* BusinessVoyageView.swift in Sources */,
 				D6BDFB132DE7393200005786 /* TravelNowViewModel.swift in Sources */,
 				D6DE69892D75775F000AAA77 /* OnboardingThirdVC.swift in Sources */,
 				D6DE698A2D75775F000AAA77 /* BusinessStepFourModel.swift in Sources */,
 				D66E7D662DB12A4000500A14 /* NewRequestPopUpModel.swift in Sources */,
-				D6E5BFC92DA67E8B004EA3F9 /* CreateVoyagerVC.swift in Sources */,
+				D6E5BFC92DA67E8B004EA3F9 /* CreateVoyageView.swift in Sources */,
 				D6DE698B2D75775F000AAA77 /* BusinessStepFourViewModel.swift in Sources */,
 				D66E7D682DB12A5200500A14 /* NewRequestPopUpViewModel.swift in Sources */,
 				D6DE698C2D75775F000AAA77 /* BusinessStepRegFour.swift in Sources */,
@@ -2474,9 +2474,9 @@
 				0424CBFD2DEC7EF300261243 /* DashboardVCModel.swift in Sources */,
 				D6DE69962D75775F000AAA77 /* CaptainRegStepOneModel.swift in Sources */,
 				D6DE69972D75775F000AAA77 /* CaptainRegStepOneViewModel.swift in Sources */,
-				D61A0ED82DA79D3900FC0E1F /* VoyagerRatePerModel.swift in Sources */,
+				D61A0ED82DA79D3900FC0E1F /* VoyagerRateResponse.swift in Sources */,
 				D6DE69982D75775F000AAA77 /* CaptainRegStepOne.swift in Sources */,
-				044D1EB12DAD6D2000913FB7 /* SponsorsPaymentInvitationVc.swift in Sources */,
+				044D1EB12DAD6D2000913FB7 /* SponsorPaymentInvitationView.swift in Sources */,
 				D61A0EDE2DA7CB8000FC0E1F /* AddSponsorsView.swift in Sources */,
 				D6DE69992D75775F000AAA77 /* CaptainRegStepThreeModel.swift in Sources */,
 				048736192DCA802100533B21 /* SponsorRelationshipViewModel.swift in Sources */,
@@ -2490,7 +2490,7 @@
 				D679E5682D7821A400E926C1 /* DocksListView.swift in Sources */,
 				0424CC0D2DEC987100261243 /* BusinessActiveVoyageView.swift in Sources */,
 				D6DE69A02D75775F000AAA77 /* BasicInfoViewModel.swift in Sources */,
-				D61A0ED62DA79D2A00FC0E1F /* VoyagerPerRateModelView.swift in Sources */,
+				D61A0ED62DA79D2A00FC0E1F /* VoyagerRateViewModel.swift in Sources */,
 				D679E56F2D785E5900E926C1 /* LocationManager.swift in Sources */,
 				D6DE69A12D75775F000AAA77 /* BasicInfoVC.swift in Sources */,
 				D68B05A82DBA408D005E68C2 /* SponsorsPaymentModel.swift in Sources */,
@@ -2504,24 +2504,24 @@
 				D6DE69A32D75775F000AAA77 /* CreatePasswordViewModel.swift in Sources */,
 				D6DE69A42D75775F000AAA77 /* CreatePasswordVC.swift in Sources */,
 				D6DE69A52D75775F000AAA77 /* OTPModel.swift in Sources */,
-				D6DE69A62D75775F000AAA77 /* OTPModelView.swift in Sources */,
+				D6DE69A62D75775F000AAA77 /* OTPViewModel.swift in Sources */,
 				D6DE69A72D75775F000AAA77 /* OTPVC.swift in Sources */,
-				D6DE69A82D75775F000AAA77 /* RollSectionModel.swift in Sources */,
+				D6DE69A82D75775F000AAA77 /* RoleSectionModel.swift in Sources */,
 				0424CBFF2DEC7F1E00261243 /* DashboardVCViewModel.swift in Sources */,
 				045A5A0E2DD28B5800AA2995 /* CaptainActiveVoyageModel.swift in Sources */,
 				D65109EC2DBF5B460030C118 /* FutureVoyageViewModel.swift in Sources */,
-				D61A0ED32DA79D1000FC0E1F /* VoyagerPerRateVC.swift in Sources */,
-				D6DE69A92D75775F000AAA77 /* RollSelectionViewModel.swift in Sources */,
+				D61A0ED32DA79D1000FC0E1F /* VoyagerRateView.swift in Sources */,
+				D6DE69A92D75775F000AAA77 /* RoleSelectionViewModel.swift in Sources */,
 				A1B2D3062F00000100AA0001 /* SectionCard.swift in Sources */,
 				A1B2D3072F00000100AA0001 /* UIApplication+DismissKeyboard.swift in Sources */,
 				D608262F2E744AAE0080265F /* NewRequestPaidPopUpVC.swift in Sources */,
 				A1B2D3052F00000100AA0001 /* PopupCard.swift in Sources */,
 				D6BDFB152DE7394A00005786 /* TravelNowView.swift in Sources */,
-				D6DE69AA2D75775F000AAA77 /* RollSelectionVC.swift in Sources */,
-				A1CF0B000000000000000015 /* SplashScreenViewModel.swift in Sources */,
+				D6DE69AA2D75775F000AAA77 /* RoleSelectionView.swift in Sources */,
+				A1CF0B000000000000000015 /* SplashViewModel.swift in Sources */,
 				D6DE69AB2D75775F000AAA77 /* SplashScreen.swift in Sources */,
 				D65109F92DC0AE940030C118 /* FullScreenLoaderView.swift in Sources */,
-				D6DE69AC2D75775F000AAA77 /* VoyagerHomeVC.swift in Sources */,
+				D6DE69AC2D75775F000AAA77 /* VoyagerHomeView.swift in Sources */,
 				DCA1E0C29D483672E7AD86B0 /* AppDependencies.swift in Sources */,
 				F3038B877891EC5CB4598F70 /* SessionManager.swift in Sources */,
 				0B86F51F96436F1A8C286A0B /* TokenStore.swift in Sources */,

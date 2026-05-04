@@ -2,9 +2,9 @@ import XCTest
 @testable import BoatSharingApp
 
 @MainActor
-final class CreateVoyagerViewModelTests: XCTestCase {
+final class CreateVoyageViewModelTests: XCTestCase {
     func testSaveAndProceedWithoutDateOrStartTimeShowsToast() {
-        let viewModel = CreateVoyagerViewModel(dateFormatter: DateFormatterHelper())
+        let viewModel = CreateVoyageViewModel(dateFormatter: DateFormatterHelper())
         let flowState = UIFlowState()
 
         viewModel.send(.saveAndProceed(flowState))
@@ -15,7 +15,7 @@ final class CreateVoyagerViewModelTests: XCTestCase {
     }
 
     func testSaveAndProceedWithSpendOnWaterWithoutEndTimeShowsToast() {
-        let viewModel = CreateVoyagerViewModel(dateFormatter: DateFormatterHelper())
+        let viewModel = CreateVoyageViewModel(dateFormatter: DateFormatterHelper())
         let flowState = UIFlowState()
         viewModel.selectedDate = Date()
         viewModel.selectedStartTime = Date()
@@ -30,7 +30,7 @@ final class CreateVoyagerViewModelTests: XCTestCase {
     }
 
     func testSaveAndProceedSetsDraftAndRoutesToRate() {
-        let viewModel = CreateVoyagerViewModel(dateFormatter: DateFormatterHelper())
+        let viewModel = CreateVoyageViewModel(dateFormatter: DateFormatterHelper())
         let flowState = UIFlowState()
         let start = Date()
         let end = start.addingTimeInterval(3600)
