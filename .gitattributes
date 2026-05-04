@@ -1,4 +1,11 @@
-# Xcode / OpenStep project files: always LF so macOS Xcode parses reliably after Windows edits
+# Cross-platform: repo is edited on Windows, built in Xcode on macOS.
+# Xcode project data must use LF only (CRLF from Windows editors can confuse Xcode’s parsers).
+# Paths inside project.pbxproj are always POSIX (/) and relative to the repo — same on Windows and Mac.
+
 *.pbxproj text eol=lf
 *.xcscheme text eol=lf
+**/contents.xcworkspacedata text eol=lf
+**/IDEWorkspaceChecks.plist text eol=lf
+**/*.xcsettings text eol=lf
 **/Package.resolved text eol=lf
+*.xcconfig text eol=lf
