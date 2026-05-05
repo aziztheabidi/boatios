@@ -90,7 +90,7 @@ final class APIClient: APIClientProtocol {
             "Refreshtoken": refreshToken
         ]
 
-        return try await withCheckedThrowingContinuation { continuation in
+        return try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<SessionTokenData, Error>) in
             Self.refreshSession
                 .request(url, method: .post, parameters: parameters, encoding: JSONEncoding.default)
                 .validate(statusCode: 200..<600)
@@ -98,12 +98,18 @@ final class APIClient: APIClientProtocol {
                     switch response.result {
                     case .success(let data):
                         guard data.Status == 200 else {
-                            continuation.resume(throwing: APIError.serverError(statusCode: data.Status, message: data.Message))
+                            Task { @MainActor in
+                                continuation.resume(throwing: APIError.serverError(statusCode: data.Status, message: data.Message))
+                            }
                             return
                         }
-                        continuation.resume(returning: data.obj)
+                        Task { @MainActor in
+                            continuation.resume(returning: data.obj)
+                        }
                     case .failure(let error):
-                        continuation.resume(throwing: error)
+                        Task { @MainActor in
+                            continuation.resume(throwing: error)
+                        }
                     }
                 }
         }
@@ -142,12 +148,14 @@ final class APIClient: APIClientProtocol {
             headers.add(.authorization(bearerToken: token))
         }
 
-        return try await withCheckedThrowingContinuation { continuation in
+        return try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<T, Error>) in
             session.request(url, method: method, parameters: parameters, encoding: encoding, headers: headers)
                 .validate(statusCode: 200..<600)
                 .responseData { response in
                     if let statusCode = response.response?.statusCode, statusCode == 401, requiresAuth {
-                        continuation.resume(throwing: APIError.unauthorized)
+                        Task { @MainActor in
+                            continuation.resume(throwing: APIError.unauthorized)
+                        }
                         return
                     }
 
@@ -155,17 +163,25 @@ final class APIClient: APIClientProtocol {
                     case .success(let data):
                         do {
                             let decoded = try JSONDecoder().decode(T.self, from: data)
-                            continuation.resume(returning: decoded)
+                            Task { @MainActor in
+                                continuation.resume(returning: decoded)
+                            }
                         } catch {
-                            continuation.resume(throwing: APIError.decodingFailed(error))
+                            Task { @MainActor in
+                                continuation.resume(throwing: APIError.decodingFailed(error))
+                            }
                         }
 
                     case .failure(let error):
                         if let statusCode = response.response?.statusCode, statusCode == 401, requiresAuth {
-                            continuation.resume(throwing: APIError.unauthorized)
+                            Task { @MainActor in
+                                continuation.resume(throwing: APIError.unauthorized)
+                            }
                             return
                         }
-                        continuation.resume(throwing: self.handleAFError(error))
+                        Task { @MainActor in
+                            continuation.resume(throwing: self.handleAFError(error))
+                        }
                     }
                 }
         }
