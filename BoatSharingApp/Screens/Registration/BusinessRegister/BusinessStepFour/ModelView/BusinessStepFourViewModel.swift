@@ -1,6 +1,7 @@
 ﻿import Foundation
 import UIKit
 import Combine
+import Alamofire
 
 // MARK: - Business media upload (Alamofire multipart, off the ViewModel)
 
@@ -43,7 +44,7 @@ final class AlamofireBusinessSaveMediaUploader: BusinessSaveMediaUploading {
                 }
             }, to: url, headers: headers)
             .validate(statusCode: 200..<600)
-            .responseDecodable(of: BusinessStepFourModel.self) { response in
+            .responseDecodable(of: BusinessStepFourModel.self, decoder: JSONDecoder()) { response in
                 if let error = response.error {
                     continuation.resume(throwing: error)
                     return
