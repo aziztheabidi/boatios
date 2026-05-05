@@ -1,8 +1,9 @@
-import Foundation
+﻿import Foundation
+import Alamofire
 
 /// Repository for authentication-related operations.
 /// Networking: `apiClient.request` only (in production the shared `APIClientWithRetry` to base `APIClient` path).
-/// Encoding is derived automatically inside APIClient from the HTTP method — no Alamofire encoding types here.
+/// Encoding is derived automatically inside APIClient from the HTTP method â€” no Alamofire encoding types here.
 protocol AuthRepositoryProtocol {
     func login(email: String, password: String) async throws -> LoginUserData
     /// Same login endpoint as `login`, decoded as `BaseResponse<UserData>` for existing `LoginAuthViewModel` flows.
@@ -26,7 +27,7 @@ final class AuthRepository: AuthRepositoryProtocol {
     func login(email: String, password: String) async throws -> LoginUserData {
         let response: LoginResponse = try await apiClient.request(
             endpoint: AppConfiguration.API.Endpoints.login,
-            method: .post,
+            method: HTTPMethod.post,
             parameters: ["Email": email, "Password": password],
             requiresAuth: false
         )
@@ -55,7 +56,7 @@ final class AuthRepository: AuthRepositoryProtocol {
     func loginDecodedUserData(email: String, password: String) async throws -> UserData {
         let response: BaseResponse<UserData> = try await apiClient.request(
             endpoint: AppConfiguration.API.Endpoints.login,
-            method: .post,
+            method: HTTPMethod.post,
             parameters: ["Email": email, "Password": password],
             requiresAuth: false
         )
@@ -65,7 +66,7 @@ final class AuthRepository: AuthRepositoryProtocol {
     func register(userData: RegistrationData) async throws -> RegistrationResult {
         let response: BaseResponse<RegistrationResult> = try await apiClient.request(
             endpoint: AppConfiguration.API.Endpoints.register,
-            method: .post,
+            method: HTTPMethod.post,
             parameters: userData.toDictionary(),
             requiresAuth: false
         )
@@ -78,7 +79,7 @@ final class AuthRepository: AuthRepositoryProtocol {
     func forgotPassword(email: String) async throws -> Bool {
         let response: EmptyResponse = try await apiClient.request(
             endpoint: AppConfiguration.API.Endpoints.forgotPassword,
-            method: .post,
+            method: HTTPMethod.post,
             parameters: ["Email": email],
             requiresAuth: false
         )
@@ -88,7 +89,7 @@ final class AuthRepository: AuthRepositoryProtocol {
     func resetPassword(email: String, otp: String, newPassword: String) async throws -> Bool {
         let response: EmptyResponse = try await apiClient.request(
             endpoint: AppConfiguration.API.Endpoints.resetPassword,
-            method: .post,
+            method: HTTPMethod.post,
             parameters: ["Email": email, "OTP": otp, "NewPassword": newPassword],
             requiresAuth: false
         )
@@ -98,7 +99,7 @@ final class AuthRepository: AuthRepositoryProtocol {
     func updateDeviceToken(userId: String, token: String) async throws -> Bool {
         let response: DeviceTokenResponse = try await apiClient.request(
             endpoint: AppConfiguration.API.Endpoints.updateDeviceToken,
-            method: .post,
+            method: HTTPMethod.post,
             parameters: ["UserId": userId, "DeviceToken": token],
             requiresAuth: true
         )
@@ -128,3 +129,4 @@ struct RegistrationResult: Codable {
     let UserId: String?
     let Message: String?
 }
+

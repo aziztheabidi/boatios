@@ -1,4 +1,5 @@
-import Foundation
+﻿import Foundation
+import Alamofire
 
 /// Single application networking surface for feature code: ViewModel to AppNetworkRepository to `APIClientWithRetry`.
 /// ViewModels must not call `APIClientProtocol` directly. Encoding, retries, and 401 refresh stay in the client stack.
@@ -106,7 +107,7 @@ final class AppNetworkRepository: AppNetworkRepositoryProtocol {
     func voyager_getActiveVoyageList() async throws -> VoyageData? {
         let response: BaseResponse<VoyageData> = try await apiClient.request(
             endpoint: AppConfiguration.API.Endpoints.voyagerActiveVoyage,
-            method: .get,
+            method: HTTPMethod.get,
             parameters: nil,
             requiresAuth: true
         )
@@ -116,7 +117,7 @@ final class AppNetworkRepository: AppNetworkRepositoryProtocol {
     func voyager_getPastVoyageList() async throws -> [VoyageData] {
         let response: BaseResponse<[VoyageData]> = try await apiClient.request(
             endpoint: AppConfiguration.API.Endpoints.voyagerPastVoyages,
-            method: .get,
+            method: HTTPMethod.get,
             parameters: nil,
             requiresAuth: true
         )
@@ -126,7 +127,7 @@ final class AppNetworkRepository: AppNetworkRepositoryProtocol {
     func voyager_getFutureVoyageList(userId: String) async throws -> [VoyageData] {
         let response: BaseResponse<[VoyageData]> = try await apiClient.request(
             endpoint: AppConfiguration.API.Endpoints.voyagerFutureVoyages,
-            method: .get,
+            method: HTTPMethod.get,
             parameters: ["UserId": userId],
             requiresAuth: true
         )
@@ -136,7 +137,7 @@ final class AppNetworkRepository: AppNetworkRepositoryProtocol {
     func voyager_getRelationshipList() async throws -> [RelationshipData] {
         let response: BaseResponse<[RelationshipData]> = try await apiClient.request(
             endpoint: AppConfiguration.API.Endpoints.voyagerRelationship,
-            method: .get,
+            method: HTTPMethod.get,
             parameters: nil,
             requiresAuth: true
         )
@@ -146,7 +147,7 @@ final class AppNetworkRepository: AppNetworkRepositoryProtocol {
     func voyager_follow(parameters: [String: Any]) async throws -> FollowResponseModel {
         try await apiClient.request(
             endpoint: "/Voyager/Follow",
-            method: .post,
+            method: HTTPMethod.post,
             parameters: parameters,
             requiresAuth: true
         )
@@ -155,7 +156,7 @@ final class AppNetworkRepository: AppNetworkRepositoryProtocol {
     func voyager_unfollow(parameters: [String: Any]) async throws -> FollowResponseModel {
         try await apiClient.request(
             endpoint: "/Voyager/UnFollow",
-            method: .post,
+            method: HTTPMethod.post,
             parameters: parameters,
             requiresAuth: true
         )
@@ -166,7 +167,7 @@ final class AppNetworkRepository: AppNetworkRepositoryProtocol {
     func dock_getActive() async throws -> ActiveDocks {
         let dto: ActiveDocksResponseDTO = try await apiClient.request(
             endpoint: "/Dock/GetActive",
-            method: .get,
+            method: HTTPMethod.get,
             parameters: nil,
             requiresAuth: true
         )
@@ -176,7 +177,7 @@ final class AppNetworkRepository: AppNetworkRepositoryProtocol {
     func voyagerDashboard_getActiveVoyage(voyagerUserId: String) async throws -> VoyageSession {
         let dto: ActiveVoyagerResponseDTO = try await apiClient.request(
             endpoint: "/VoyagerDashboard/GetActiveVoyage",
-            method: .get,
+            method: HTTPMethod.get,
             parameters: ["VoyagerUserId": voyagerUserId],
             requiresAuth: true
         )
@@ -186,7 +187,7 @@ final class AppNetworkRepository: AppNetworkRepositoryProtocol {
     func voyagerDashboard_getPastVoyages(userId: String) async throws -> PastVoyageResponse {
         try await apiClient.request(
             endpoint: AppConfiguration.API.Endpoints.voyagerPastVoyages,
-            method: .get,
+            method: HTTPMethod.get,
             parameters: ["UserId": userId],
             requiresAuth: true
         )
@@ -195,7 +196,7 @@ final class AppNetworkRepository: AppNetworkRepositoryProtocol {
     func captain_getPastVoyages() async throws -> CaptainCompletedVoyagesResponse {
         try await apiClient.request(
             endpoint: AppConfiguration.API.Endpoints.captainPastVoyages,
-            method: .get,
+            method: HTTPMethod.get,
             parameters: nil,
             requiresAuth: true
         )
@@ -206,7 +207,7 @@ final class AppNetworkRepository: AppNetworkRepositoryProtocol {
     func voyager_getImmediatelyBookedVoyage() async throws -> TravelVoyageResponse {
         try await apiClient.request(
             endpoint: "/Voyager/GetImmediatelyBookedVoyage",
-            method: .get,
+            method: HTTPMethod.get,
             parameters: nil,
             requiresAuth: true
         )
@@ -215,7 +216,7 @@ final class AppNetworkRepository: AppNetworkRepositoryProtocol {
     func voyage_cancel(voyageId: String) async throws -> VoyageValidationResponse {
         try await apiClient.request(
             endpoint: "/Voyage/Cancel",
-            method: .post,
+            method: HTTPMethod.post,
             parameters: ["Id": voyageId],
             requiresAuth: true
         )
@@ -224,7 +225,7 @@ final class AppNetworkRepository: AppNetworkRepositoryProtocol {
     func voyage_confirm(voyageId: String) async throws -> VoyageConfirmationResponse {
         try await apiClient.request(
             endpoint: "/Voyage/Confirm",
-            method: .post,
+            method: HTTPMethod.post,
             parameters: ["Id": voyageId],
             requiresAuth: true
         )
@@ -233,7 +234,7 @@ final class AppNetworkRepository: AppNetworkRepositoryProtocol {
     func voyage_sponsorPaymentConfirm(voyageId: String, paymentIntentId: String) async throws -> PaymentSuccessResponse {
         try await apiClient.request(
             endpoint: AppConfiguration.API.Endpoints.sponsorPaymentConfirmation,
-            method: .post,
+            method: HTTPMethod.post,
             parameters: ["Id": voyageId, "PaymentIntentId": paymentIntentId],
             requiresAuth: true
         )
@@ -242,7 +243,7 @@ final class AppNetworkRepository: AppNetworkRepositoryProtocol {
     func voyager_getFutureBookedVoyages(userId: String) async throws -> FutureVoyageResponse {
         try await apiClient.request(
             endpoint: AppConfiguration.API.Endpoints.voyagerFutureVoyages,
-            method: .get,
+            method: HTTPMethod.get,
             parameters: ["UserId": userId],
             requiresAuth: true
         )
@@ -260,7 +261,7 @@ final class AppNetworkRepository: AppNetworkRepositoryProtocol {
             "FromDockId=\(fromDockId)&ToDockId=\(toDockId)&DurationInHours=\(durationHours)&NoOfVoyagers=\(numberOfVoyagers)&\(BackendContractCoding.QueryParameter.voyageCategoryId)=\(voyageCategoryId)"
         return try await apiClient.request(
             endpoint: "\(path)?\(query)",
-            method: .get,
+            method: HTTPMethod.get,
             parameters: nil,
             requiresAuth: true
         )
@@ -269,7 +270,7 @@ final class AppNetworkRepository: AppNetworkRepositoryProtocol {
     func voyage_findBoat(parameters: [String: Any]) async throws -> FindBoatResponse {
         try await apiClient.request(
             endpoint: "/Voyage/FindBoat",
-            method: .post,
+            method: HTTPMethod.post,
             parameters: parameters,
             requiresAuth: true
         )
@@ -278,7 +279,7 @@ final class AppNetworkRepository: AppNetworkRepositoryProtocol {
     func voyage_book(parameters: [String: Any]) async throws -> VoyageBookingResponse {
         try await apiClient.request(
             endpoint: "/Voyage/Book",
-            method: .post,
+            method: HTTPMethod.post,
             parameters: parameters,
             requiresAuth: true
         )
@@ -287,7 +288,7 @@ final class AppNetworkRepository: AppNetworkRepositoryProtocol {
     func lookup_voyageCategories() async throws -> VoyageCategoryResponse {
         try await apiClient.request(
             endpoint: "/Lookup/VoyageCategory",
-            method: .get,
+            method: HTTPMethod.get,
             parameters: nil,
             requiresAuth: true
         )
@@ -298,7 +299,7 @@ final class AppNetworkRepository: AppNetworkRepositoryProtocol {
     func captainProfile_setAvailability(userId: String, isAvailable: String) async throws -> DeviceTokenResponse {
         try await apiClient.request(
             endpoint: "/CaptainProfile/Availability",
-            method: .post,
+            method: HTTPMethod.post,
             parameters: ["UserId": userId, "IsAvailable": isAvailable],
             requiresAuth: true
         )
@@ -307,7 +308,7 @@ final class AppNetworkRepository: AppNetworkRepositoryProtocol {
     func captain_getActiveVoyages() async throws -> CaptainActiveVoyagesResponse {
         try await apiClient.request(
             endpoint: "/Captain/GetActiveVoyages",
-            method: .get,
+            method: HTTPMethod.get,
             parameters: nil,
             requiresAuth: true
         )
@@ -316,7 +317,7 @@ final class AppNetworkRepository: AppNetworkRepositoryProtocol {
     func voyage_accept(parameters: [String: Any]) async throws -> AcceptVoyageResponse {
         try await apiClient.request(
             endpoint: "/Voyage/Accept",
-            method: .post,
+            method: HTTPMethod.post,
             parameters: parameters,
             requiresAuth: true
         )
@@ -325,7 +326,7 @@ final class AppNetworkRepository: AppNetworkRepositoryProtocol {
     func voyage_start(parameters: [String: Any]) async throws -> VoyageValidationResponse {
         try await apiClient.request(
             endpoint: "/Voyage/Start",
-            method: .post,
+            method: HTTPMethod.post,
             parameters: parameters,
             requiresAuth: true
         )
@@ -334,7 +335,7 @@ final class AppNetworkRepository: AppNetworkRepositoryProtocol {
     func voyage_complete(parameters: [String: Any]) async throws -> VoyageValidationResponse {
         try await apiClient.request(
             endpoint: "/Voyage/Complete",
-            method: .post,
+            method: HTTPMethod.post,
             parameters: parameters,
             requiresAuth: true
         )
@@ -345,7 +346,7 @@ final class AppNetworkRepository: AppNetworkRepositoryProtocol {
     func voyager_getBusinessRelationship() async throws -> BusinessVoyageModel {
         try await apiClient.request(
             endpoint: "/Voyager/GetBusinessRelationship",
-            method: .get,
+            method: HTTPMethod.get,
             parameters: nil,
             requiresAuth: true
         )
@@ -354,7 +355,7 @@ final class AppNetworkRepository: AppNetworkRepositoryProtocol {
     func voyager_followBusiness(businessDockId: Int) async throws -> FollowBusinessUpdateResponse {
         try await apiClient.request(
             endpoint: "/Voyager/FollowBusiness",
-            method: .post,
+            method: HTTPMethod.post,
             parameters: ["BusinessDockId": businessDockId],
             requiresAuth: true
         )
@@ -363,7 +364,7 @@ final class AppNetworkRepository: AppNetworkRepositoryProtocol {
     func voyager_unfollowBusiness(businessDockId: Int) async throws -> FollowBusinessUpdateResponse {
         try await apiClient.request(
             endpoint: "/Voyager/UnFollowBusiness",
-            method: .post,
+            method: HTTPMethod.post,
             parameters: ["BusinessDockId": businessDockId],
             requiresAuth: true
         )
@@ -372,7 +373,7 @@ final class AppNetworkRepository: AppNetworkRepositoryProtocol {
     func business_getActiveVoyages() async throws -> VoyagerPaymentResponse {
         try await apiClient.request(
             endpoint: "/Business/GetActiveVoyages",
-            method: .get,
+            method: HTTPMethod.get,
             parameters: nil,
             requiresAuth: true
         )
@@ -383,7 +384,7 @@ final class AppNetworkRepository: AppNetworkRepositoryProtocol {
     func voyage_paymentInitiate(voyagerId: String) async throws -> PaymentInitiationResponse {
         try await apiClient.request(
             endpoint: "/Voyage/PaymentInitiate",
-            method: .post,
+            method: HTTPMethod.post,
             parameters: ["Id": voyagerId],
             requiresAuth: true
         )
@@ -392,7 +393,7 @@ final class AppNetworkRepository: AppNetworkRepositoryProtocol {
     func voyage_paymentConfirm(voyageId: String, paymentIntentId: String) async throws -> PaymentSuccessResponse {
         try await apiClient.request(
             endpoint: "/Voyage/PaymentConfirmation",
-            method: .post,
+            method: HTTPMethod.post,
             parameters: ["Id": voyageId, "PaymentIntentId": paymentIntentId],
             requiresAuth: true
         )
@@ -401,7 +402,7 @@ final class AppNetworkRepository: AppNetworkRepositoryProtocol {
     func voyage_sponsorPaymentInitiate(parameters: [String: Any]) async throws -> PaymentInitiationResponse {
         try await apiClient.request(
             endpoint: AppConfiguration.API.Endpoints.sponsorPaymentInitiate,
-            method: .post,
+            method: HTTPMethod.post,
             parameters: parameters,
             requiresAuth: true
         )
@@ -412,7 +413,7 @@ final class AppNetworkRepository: AppNetworkRepositoryProtocol {
     func voyagerProfile_save(parameters: [String: Any]) async throws -> BusinessStepOneModel {
         try await apiClient.request(
             endpoint: "/VoyagerProfile/Save",
-            method: .post,
+            method: HTTPMethod.post,
             parameters: parameters,
             requiresAuth: true
         )
@@ -421,7 +422,7 @@ final class AppNetworkRepository: AppNetworkRepositoryProtocol {
     func businessProfile_save(parameters: [String: Any]) async throws -> BusinessStepOneModel {
         try await apiClient.request(
             endpoint: "/BusinessProfile/Save",
-            method: .post,
+            method: HTTPMethod.post,
             parameters: parameters,
             requiresAuth: true
         )
@@ -430,7 +431,7 @@ final class AppNetworkRepository: AppNetworkRepositoryProtocol {
     func businessProfile_getByUserId(userId: String) async throws -> GetBusinessFirstResponse {
         try await apiClient.request(
             endpoint: "/BusinessProfile/GetByUserId",
-            method: .get,
+            method: HTTPMethod.get,
             parameters: ["UserId": userId],
             requiresAuth: true
         )
@@ -439,7 +440,7 @@ final class AppNetworkRepository: AppNetworkRepositoryProtocol {
     func voyagerProfile_getByUserId(userId: String) async throws -> GetBusinessFirstResponse {
         try await apiClient.request(
             endpoint: "/VoyagerProfile/GetByUserId",
-            method: .get,
+            method: HTTPMethod.get,
             parameters: ["UserId": userId],
             requiresAuth: true
         )
@@ -448,7 +449,7 @@ final class AppNetworkRepository: AppNetworkRepositoryProtocol {
     func businessInfo_save(parameters: [String: Any]) async throws -> BusinessStepTwoModel {
         try await apiClient.request(
             endpoint: "/BusinessInfo/Save",
-            method: .post,
+            method: HTTPMethod.post,
             parameters: parameters,
             requiresAuth: true
         )
@@ -457,7 +458,7 @@ final class AppNetworkRepository: AppNetworkRepositoryProtocol {
     func businessInfo_getByUserId(userId: String) async throws -> GetBusinessInfoResponse {
         try await apiClient.request(
             endpoint: "/BusinessInfo/GetByUserId",
-            method: .get,
+            method: HTTPMethod.get,
             parameters: ["UserId": userId],
             requiresAuth: true
         )
@@ -466,7 +467,7 @@ final class AppNetworkRepository: AppNetworkRepositoryProtocol {
     func businessInfo_saveAbout(parameters: [String: Any]) async throws -> BusinessStepThreeModel {
         try await apiClient.request(
             endpoint: "/BusinessInfo/SaveAbout",
-            method: .post,
+            method: HTTPMethod.post,
             parameters: parameters,
             requiresAuth: true
         )
@@ -475,7 +476,7 @@ final class AppNetworkRepository: AppNetworkRepositoryProtocol {
     func captainProfile_save(parameters: [String: Any]) async throws -> CaptainRegStepOneModel {
         try await apiClient.request(
             endpoint: "/CaptainProfile/Save",
-            method: .post,
+            method: HTTPMethod.post,
             parameters: parameters,
             requiresAuth: true
         )
@@ -484,7 +485,7 @@ final class AppNetworkRepository: AppNetworkRepositoryProtocol {
     func captainProfile_getByUserId(userId: String) async throws -> CaptainProfileOneResponse {
         try await apiClient.request(
             endpoint: "/CaptainProfile/GetByUserId",
-            method: .get,
+            method: HTTPMethod.get,
             parameters: ["UserId": userId],
             requiresAuth: true
         )
@@ -493,7 +494,7 @@ final class AppNetworkRepository: AppNetworkRepositoryProtocol {
     func captainDocument_save(parameters: [String: Any]) async throws -> CaptainRegStepTwoModel {
         try await apiClient.request(
             endpoint: "/CaptainDocument/Save",
-            method: .post,
+            method: HTTPMethod.post,
             parameters: parameters,
             requiresAuth: true
         )
@@ -502,7 +503,7 @@ final class AppNetworkRepository: AppNetworkRepositoryProtocol {
     func captainDocument_getByUserId(userId: String) async throws -> CaptainDocumentResponse {
         try await apiClient.request(
             endpoint: "/CaptainDocument/GetByUserId",
-            method: .get,
+            method: HTTPMethod.get,
             parameters: ["UserId": userId],
             requiresAuth: true
         )
@@ -511,7 +512,7 @@ final class AppNetworkRepository: AppNetworkRepositoryProtocol {
     func captainBoat_save(parameters: [String: Any]) async throws -> CaptainRegStepThreeModel {
         try await apiClient.request(
             endpoint: "/CaptainBoat/Save",
-            method: .post,
+            method: HTTPMethod.post,
             parameters: parameters,
             requiresAuth: true
         )
@@ -520,7 +521,7 @@ final class AppNetworkRepository: AppNetworkRepositoryProtocol {
     func captainBoat_getByUserId(userId: String) async throws -> CaptainBoatResponse {
         try await apiClient.request(
             endpoint: "/CaptainBoat/GetByUserId",
-            method: .get,
+            method: HTTPMethod.get,
             parameters: ["UserId": userId],
             requiresAuth: true
         )
@@ -529,7 +530,7 @@ final class AppNetworkRepository: AppNetworkRepositoryProtocol {
     func registrationTemp_add(parameters: [String: Any]) async throws -> BasicInfoModel {
         try await apiClient.request(
             endpoint: "/RegistrationTemp/Add",
-            method: .post,
+            method: HTTPMethod.post,
             parameters: parameters,
             requiresAuth: false
         )
@@ -538,7 +539,7 @@ final class AppNetworkRepository: AppNetworkRepositoryProtocol {
     func registrationTemp_verify(parameters: [String: Any]) async throws -> OTPModel {
         try await apiClient.request(
             endpoint: "/RegistrationTemp/Verify",
-            method: .post,
+            method: HTTPMethod.post,
             parameters: parameters,
             requiresAuth: false
         )
@@ -547,7 +548,7 @@ final class AppNetworkRepository: AppNetworkRepositoryProtocol {
     func account_register(parameters: [String: Any]) async throws -> CreatePasswordModel {
         try await apiClient.request(
             endpoint: "/Account/Register",
-            method: .post,
+            method: HTTPMethod.post,
             parameters: parameters,
             requiresAuth: true
         )
@@ -556,7 +557,7 @@ final class AppNetworkRepository: AppNetworkRepositoryProtocol {
     func account_updateRole(parameters: [String: Any]) async throws -> RoleSectionModel {
         try await apiClient.request(
             endpoint: "/Account/UpdateRole",
-            method: .post,
+            method: HTTPMethod.post,
             parameters: parameters,
             requiresAuth: true
         )
@@ -565,7 +566,7 @@ final class AppNetworkRepository: AppNetworkRepositoryProtocol {
     func account_forgotPassword(email: String) async throws -> ResetPasswordModel {
         try await apiClient.request(
             endpoint: "/Account/ForgotPassword",
-            method: .post,
+            method: HTTPMethod.post,
             parameters: ["Email": email],
             requiresAuth: false
         )
@@ -576,7 +577,7 @@ final class AppNetworkRepository: AppNetworkRepositoryProtocol {
     func voyager_getRelationship() async throws -> SponsorRelationshipModel {
         try await apiClient.request(
             endpoint: "/Voyager/GetRelationship",
-            method: .get,
+            method: HTTPMethod.get,
             parameters: nil,
             requiresAuth: true
         )
@@ -585,7 +586,7 @@ final class AppNetworkRepository: AppNetworkRepositoryProtocol {
     func voyagerDashboard_getFollowedVoyagers(userId: String) async throws -> AddSponsorsModel {
         try await apiClient.request(
             endpoint: "/VoyagerDashboard/GetFollowedVoyagers",
-            method: .get,
+            method: HTTPMethod.get,
             parameters: ["UserId": userId],
             requiresAuth: true
         )
@@ -595,7 +596,7 @@ final class AppNetworkRepository: AppNetworkRepositoryProtocol {
         let endpoint = "\(AppConfiguration.API.Endpoints.voyagerSponsorPaymentsByUserId)?UserId=\(userId)"
         return try await apiClient.request(
             endpoint: endpoint,
-            method: .get,
+            method: HTTPMethod.get,
             parameters: nil,
             requiresAuth: true
         )
@@ -604,7 +605,7 @@ final class AppNetworkRepository: AppNetworkRepositoryProtocol {
     func voyage_voyagerFeedback(parameters: [String: Any]) async throws -> FeedbackResponse {
         try await apiClient.request(
             endpoint: "/Voyage/VoyagerFeedback",
-            method: .post,
+            method: HTTPMethod.post,
             parameters: parameters,
             requiresAuth: true
         )
@@ -613,7 +614,7 @@ final class AppNetworkRepository: AppNetworkRepositoryProtocol {
     func voyage_captainFeedback(parameters: [String: Any]) async throws -> FeedbackResponse {
         try await apiClient.request(
             endpoint: "/Voyage/CaptainFeedback",
-            method: .post,
+            method: HTTPMethod.post,
             parameters: parameters,
             requiresAuth: true
         )
@@ -622,7 +623,7 @@ final class AppNetworkRepository: AppNetworkRepositoryProtocol {
     func voyager_complain(parameters: [String: Any]) async throws -> TagChatMessage {
         try await apiClient.request(
             endpoint: "/Voyager/Complain",
-            method: .post,
+            method: HTTPMethod.post,
             parameters: parameters,
             requiresAuth: true
         )
@@ -668,3 +669,4 @@ struct RelationshipData: Codable {
         case isFollowing = "IsFollowing"
     }
 }
+
