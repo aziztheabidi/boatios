@@ -1,4 +1,5 @@
 import SwiftUI
+import Combine
 import CoreLocation
 
 // MARK: - Location protocol (preserved)
@@ -75,19 +76,19 @@ final class CaptainActiveVoyageViewModel: ObservableObject {
 
     func send(_ action: Action) {
         switch action {
-        case .onAppear:                           onAppearLoad()
+        case .onAppear:                           performOnAppearLoad()
         case .onDisappear:                        hasLoaded = false
         case .retry:                              fetchActiveVoyages()
         case .selectSection(let s):               selectedSection = s
         case .accept(let v):                      performAccept(v)
         case .prepareStartFlow(let v):            prepareStartFlow(for: v)
-        case .handleTrackRidePin(let pin):        handleTrackRidePin(pin)
+        case .handleTrackRidePin(let pin):        performHandleTrackRidePin(pin)
         case .clearTrackRideSelection:            trackRideSession = nil
         case .requestCompleteVoyage(let id):      selectedVoyageIdForCompletion = id; showCompletePopup = true
         case .cancelCompletePrompt:               showCompletePopup = false
-        case .confirmCompleteVoyage:              confirmCompleteVoyage()
+        case .confirmCompleteVoyage:              performConfirmCompleteVoyage()
         case .requestDeclineVoyage(let id):       declineVoyageId = id; showDeclineAlert = true
-        case .confirmDeclineVoyage:               confirmDeclineVoyage()
+        case .confirmDeclineVoyage:               performConfirmDeclineVoyage()
         case .handleSessionExpiredAcknowledged:   shouldNavigateToLogin = true; route = .login
         }
     }
@@ -163,7 +164,7 @@ final class CaptainActiveVoyageViewModel: ObservableObject {
 
     // MARK: - Private lifecycle
 
-    private func onAppearLoad() {
+    private func performOnAppearLoad() {
         guard !hasLoaded else { return }
         hasLoaded = true
         fetchActiveVoyages()
@@ -171,14 +172,14 @@ final class CaptainActiveVoyageViewModel: ObservableObject {
 
     // MARK: - Private action handlers
 
-    private func confirmCompleteVoyage() {
+    private func performConfirmCompleteVoyage() {
         guard !selectedVoyageIdForCompletion.isEmpty else { return }
         let id = selectedVoyageIdForCompletion
         showCompletePopup = false
         performVoyageComplete(voyageId: id)
     }
 
-    private func confirmDeclineVoyage() {
+    private func performConfirmDeclineVoyage() {
         guard !declineVoyageId.isEmpty else { return }
         let id = declineVoyageId
         showDeclineAlert = false
@@ -191,7 +192,7 @@ final class CaptainActiveVoyageViewModel: ObservableObject {
         voyageIdForStart = trackRideSession != nil ? voyage.id : ""
     }
 
-    private func handleTrackRidePin(_ pin: String) {
+    private func performHandleTrackRidePin(_ pin: String) {
         guard !voyageIdForStart.isEmpty else { return }
         let id = voyageIdForStart
         trackRideSession = nil

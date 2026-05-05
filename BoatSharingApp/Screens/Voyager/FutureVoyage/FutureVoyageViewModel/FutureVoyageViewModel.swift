@@ -67,16 +67,16 @@ final class FutureVoyageViewModel: ObservableObject {
 
     func send(_ action: Action) {
         switch action {
-        case .onAppear:                         onAppearLoadVoyagesIfNeeded()
-        case .dismissForBackNavigation:         resetInitialLoadForDismiss()
+        case .onAppear:                         performOnAppearLoad()
+        case .dismissForBackNavigation:         performResetInitialLoadForDismiss()
         case .retry:                            loadVoyagesWithMissingUserToast()
         case .selectSection(let s):             selectedSection = s
         case .dismissPaymentPopup:              withAnimation { showPaymentPopup = false }
         case .payNow:                           startSponsorPaymentOnBehalf()
         case .presentCancelConfirmation(let id): selectedVoyageIdForCancel = id; showCancelPopup = true
         case .confirmCancel:                    performVoyageCancellation(voyageId: selectedVoyageIdForCancel)
-        case .pendingPrimaryConfirm(let id):    handlePendingPrimaryConfirm(voyageId: id)
-        case .handleStripeResult(let result):   handleStripePaymentResult(result)
+        case .pendingPrimaryConfirm(let id):    performHandlePendingPrimaryConfirm(voyageId: id)
+        case .handleStripeResult(let result):   performHandleStripePaymentResult(result)
         case .dismissToast:                    isShowToast = false
         }
     }
@@ -150,13 +150,13 @@ final class FutureVoyageViewModel: ObservableObject {
 
     // MARK: - Private lifecycle
 
-    private func onAppearLoadVoyagesIfNeeded() {
+    private func performOnAppearLoad() {
         guard !hasCompletedInitialAppear else { return }
         hasCompletedInitialAppear = true
         loadVoyagesWithMissingUserToast()
     }
 
-    private func resetInitialLoadForDismiss() {
+    private func performResetInitialLoadForDismiss() {
         hasCompletedInitialAppear = false
         stripePaymentCompletionTask?.cancel()
         stripePaymentCompletionTask = nil
@@ -187,7 +187,7 @@ final class FutureVoyageViewModel: ObservableObject {
         }
     }
 
-    private func handlePendingPrimaryConfirm(voyageId: String) {
+    private func performHandlePendingPrimaryConfirm(voyageId: String) {
         voyageIdForPayment = voyageId
         performVoyageConfirmation(voyageId: voyageId)
         showPendingText = true
@@ -200,7 +200,7 @@ final class FutureVoyageViewModel: ObservableObject {
         return PaymentSheet(paymentIntentClientSecret: secret, configuration: config)
     }
 
-    private func handleStripePaymentResult(_ result: PaymentSheetResult) {
+    private func performHandleStripePaymentResult(_ result: PaymentSheetResult) {
         showStripeSheet = false
         stripeClientSecret = nil
         let intentId = stripePaymentIntentId

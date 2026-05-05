@@ -1,4 +1,5 @@
-import Foundation
+﻿import Foundation
+import Combine
 
 /// In-memory **cross-screen flow** state only (SwiftUI `EnvironmentObject`). Not persisted; never read from
 /// `UserDefaults` / Keychain. Reset on logout via `resetAfterLogout()` so booking / voyage UI is not rebuilt
@@ -28,7 +29,7 @@ struct VoyageDraft {
     var isTravelNow: Bool = false
     /// Whether the voyager wants to spend time on (stay on) water. Canonical name throughout the app.
     var isStayOnWater: Bool = false
-    /// Back-compat alias: some writers use `isSpendOnWater` — redirect here.
+    /// Back-compat alias: some writers use `isSpendOnWater` â€” redirect here.
     var isSpendOnWater: Bool {
         get { isStayOnWater }
         set { isStayOnWater = newValue }
@@ -43,7 +44,7 @@ final class UIFlowState: ObservableObject {
     @Published var showBusinessMenu: Bool = false
 
     /// Transient navigation flag: view arrived here via a Business Detail screen tap.
-    /// NOT persisted — resets on every app launch automatically.
+    /// NOT persisted â€” resets on every app launch automatically.
     @Published var fromBusinessDetail: Bool = false
 
     func clearBusinessSelection() {

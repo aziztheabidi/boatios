@@ -1,4 +1,4 @@
-//
+﻿//
 //  BoatSharingAppApp.swift
 //  BoatSharingApp
 //
@@ -7,6 +7,7 @@
 
 import SwiftUI
 import Firebase
+import Combine
 
 final class AppState: ObservableObject {
     private let preferences: PreferenceStoring

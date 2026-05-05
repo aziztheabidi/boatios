@@ -1,4 +1,5 @@
 import Foundation
+import Combine
 
 @MainActor
 final class SplashViewModel: ObservableObject {
@@ -9,7 +10,7 @@ final class SplashViewModel: ObservableObject {
         var route: Route?
     }
 
-    enum Action: Equatable {
+    enum Action {
         case onAppear
         case didReceiveFcmToken(String)
         case didReceivePushNotification(Any?)

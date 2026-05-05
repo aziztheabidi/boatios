@@ -1,4 +1,5 @@
 import SwiftUI
+import Alamofire
 
 // MARK: - Blur helper (UIKit bridge)
 

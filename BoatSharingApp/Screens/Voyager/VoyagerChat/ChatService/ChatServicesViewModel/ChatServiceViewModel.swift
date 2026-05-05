@@ -1,4 +1,4 @@
-//  Untitled.swift
+﻿//  Untitled.swift
 //  BoatSharingApp
 //
 //  Created by Mac User on 25/05/2025.
@@ -7,6 +7,7 @@
 import FirebaseFirestore
 import Foundation
 import SwiftUI
+import Combine
 
 @MainActor
 class ChatServiceViewModel: ObservableObject {

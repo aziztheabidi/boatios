@@ -48,13 +48,13 @@ final class VoyagerHomeViewModel: ObservableObject {
     func send(_ action: Action) {
         switch action {
         case .onAppear(let flowState):
-            onAppearLoad(uiFlowState: flowState)
+            performOnAppearLoad(uiFlowState: flowState)
         case .onDisappear:
-            onDisappearReset()
+            performOnDisappearReset()
         case .ensureDocksLoaded:
             fetchActiveDocks()
         case .menuTapped(let reset):
-            handleMenuTapped(resetRoleMenus: reset)
+            performHandleMenuTapped(resetRoleMenus: reset)
         case .findBoatTapped:
             showFindBoatSheet = true
         case .dismissFindBoat:
@@ -118,7 +118,7 @@ final class VoyagerHomeViewModel: ObservableObject {
 
     // MARK: - Private lifecycle
 
-    private func onAppearLoad(uiFlowState: UIFlowState) {
+    private func performOnAppearLoad(uiFlowState: UIFlowState) {
         guard !isViewActive else { return }
         isViewActive = true
 
@@ -141,7 +141,7 @@ final class VoyagerHomeViewModel: ObservableObject {
         startActiveVoyagePolling()
     }
 
-    private func onDisappearReset() {
+    private func performOnDisappearReset() {
         isViewActive = false
         initialVoyageLoadCancellable?.cancel()
         initialVoyageLoadCancellable = nil
@@ -171,7 +171,7 @@ final class VoyagerHomeViewModel: ObservableObject {
             }
     }
 
-    private func handleMenuTapped(resetRoleMenus: () -> Void) {
+    private func performHandleMenuTapped(resetRoleMenus: () -> Void) {
         resetRoleMenus()
         stackDestination = .spinMenu
     }
