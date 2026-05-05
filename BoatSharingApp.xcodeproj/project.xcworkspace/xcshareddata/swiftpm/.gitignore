@@ -1,2 +1,0 @@
-# Let each machine/Xcode version write its own resolved graph (avoids stale or incompatible Package.resolved).
-Package.resolved
