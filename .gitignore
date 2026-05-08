@@ -46,3 +46,7 @@ Config/Secrets.local.xcconfig
 *.gcno
 *.gcda
 coverage/
+
+# Cursor / local analysis artifacts
+.cursor/
+graphify-out/
