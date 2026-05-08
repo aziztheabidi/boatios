@@ -146,10 +146,8 @@ final class BusinessStepFourViewModel: ObservableObject {
     // MARK: - Private
 
     private func performUpload(userID: String, image: UIImage, images: [UIImage]) {
-        isLoading = true
-        isSuccess = false
-        message = ""
-        Task { [weak self] in
+        beginUpload()
+        Task { @MainActor [weak self] in
             guard let self else { return }
             do {
                 let model = try await mediaUploader.uploadBusinessMedia(
@@ -157,28 +155,36 @@ final class BusinessStepFourViewModel: ObservableObject {
                     logoImage: image,
                     businessImages: images
                 )
-                await MainActor.run { [weak self] in
-                    guard let self else { return }
-                    self.isLoading = false
-                    if model.Status == 200 {
-                        self.message = model.Message.isEmpty ? "Images uploaded successfully" : model.Message
-                        self.isSuccess = true
-                        self.preferences.isLoggedIn = true
-                        self.routingNotifier.setRoutingIsLoggedIn(true)
-                    } else {
-                        self.message = model.Message.isEmpty ? "Upload failed" : model.Message
-                        self.isSuccess = false
-                    }
-                }
+                handleUploadResponse(model)
             } catch {
-                await MainActor.run { [weak self] in
-                    guard let self else { return }
-                    self.isLoading = false
-                    self.message = "Upload failed: \(error.localizedDescription)"
-                    self.isSuccess = false
-                }
+                handleUploadFailure(error)
             }
         }
+    }
+
+    private func beginUpload() {
+        isLoading = true
+        isSuccess = false
+        message = ""
+    }
+
+    private func handleUploadResponse(_ model: BusinessStepFourModel) {
+        isLoading = false
+        if model.Status == 200 {
+            message = model.Message.isEmpty ? "Images uploaded successfully" : model.Message
+            isSuccess = true
+            preferences.isLoggedIn = true
+            routingNotifier.setRoutingIsLoggedIn(true)
+        } else {
+            message = model.Message.isEmpty ? "Upload failed" : model.Message
+            isSuccess = false
+        }
+    }
+
+    private func handleUploadFailure(_ error: Error) {
+        isLoading = false
+        message = "Upload failed: \(error.localizedDescription)"
+        isSuccess = false
     }
 }
 

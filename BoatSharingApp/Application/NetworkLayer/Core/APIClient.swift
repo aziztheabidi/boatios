@@ -90,23 +90,16 @@ final class APIClient: APIClientProtocol {
             "Refreshtoken": refreshToken
         ]
 
-        return try await Swift.withCheckedThrowingContinuation { (continuation: CheckedContinuation<SessionTokenData, Error>) in
-            Self.refreshSession
-                .request(url, method: .post, parameters: parameters, encoding: JSONEncoding.default)
-                .validate(statusCode: 200..<600)
-                .responseDecodable(of: RefreshTokenResponse.self, decoder: JSONDecoder()) { response in
-                    switch response.result {
-                    case .success(let data):
-                        guard data.Status == 200 else {
-                            continuation.resume(throwing: APIError.serverError(statusCode: data.Status, message: data.Message))
-                            return
-                        }
-                        continuation.resume(returning: data.obj)
-                    case .failure(let error):
-                        continuation.resume(throwing: error)
-                    }
-                }
+        let response = try await Self.refreshSession
+            .request(url, method: .post, parameters: parameters, encoding: JSONEncoding.default)
+            .validate(statusCode: 200..<600)
+            .serializingDecodable(RefreshTokenResponse.self, decoder: JSONDecoder())
+            .value
+
+        guard response.Status == 200 else {
+            throw APIError.serverError(statusCode: response.Status, message: response.Message)
         }
+        return response.obj
     }
 
     /// Central request entry point.
@@ -142,32 +135,28 @@ final class APIClient: APIClientProtocol {
             headers.add(.authorization(bearerToken: token))
         }
 
-        return try await Swift.withCheckedThrowingContinuation { (continuation: CheckedContinuation<T, Error>) in
-            session.request(url, method: method, parameters: parameters, encoding: encoding, headers: headers)
-                .validate(statusCode: 200..<600)
-                .responseData { response in
-                    if let statusCode = response.response?.statusCode, statusCode == 401, requiresAuth {
-                        continuation.resume(throwing: APIError.unauthorized)
-                        return
-                    }
+        let request = session.request(url, method: method, parameters: parameters, encoding: encoding, headers: headers)
+        let response = await request
+            .validate(statusCode: 200..<600)
+            .serializingData()
+            .response
 
-                    switch response.result {
-                    case .success(let data):
-                        do {
-                            let decoded = try JSONDecoder().decode(T.self, from: data)
-                            continuation.resume(returning: decoded)
-                        } catch {
-                            continuation.resume(throwing: APIError.decodingFailed(error))
-                        }
+        if let statusCode = response.response?.statusCode, statusCode == 401, requiresAuth {
+            throw APIError.unauthorized
+        }
 
-                    case .failure(let error):
-                        if let statusCode = response.response?.statusCode, statusCode == 401, requiresAuth {
-                            continuation.resume(throwing: APIError.unauthorized)
-                            return
-                        }
-                        continuation.resume(throwing: self.handleAFError(error))
-                    }
-                }
+        switch response.result {
+        case .success(let data):
+            do {
+                return try JSONDecoder().decode(T.self, from: data)
+            } catch {
+                throw APIError.decodingFailed(error)
+            }
+        case .failure(let error):
+            if let statusCode = response.response?.statusCode, statusCode == 401, requiresAuth {
+                throw APIError.unauthorized
+            }
+            throw handleAFError(error)
         }
     }
 
@@ -191,6 +180,7 @@ final class APIClient: APIClientProtocol {
 final class APIClientWithRetry: APIClientProtocol {
     private let baseClient: APIClient
     private let sessionManager: SessionManaging
+    private let refreshCoordinator = TokenRefreshCoordinator()
 
     var routingNotifier: AppRoutingNotifying { baseClient.routingNotifier }
 
@@ -205,22 +195,59 @@ final class APIClientWithRetry: APIClientProtocol {
         parameters: Parameters?,
         requiresAuth: Bool
     ) async throws -> T {
-        do {
-            return try await baseClient.request(
-                endpoint: endpoint, method: method,
-                parameters: parameters, requiresAuth: requiresAuth
-            )
-        } catch APIError.unauthorized {
-            guard requiresAuth else { throw APIError.unauthorized }
-
-            let refreshed = await sessionManager.refreshToken()
-            guard refreshed else { throw APIError.sessionExpired }
-
-            return try await baseClient.request(
-                endpoint: endpoint, method: method,
-                parameters: parameters, requiresAuth: requiresAuth
+        try await executeWithRetryIfNeeded(requiresAuth: requiresAuth) {
+            try await self.baseClient.request(
+                endpoint: endpoint,
+                method: method,
+                parameters: parameters,
+                requiresAuth: requiresAuth
             )
         }
+    }
+
+    private func executeWithRetryIfNeeded<T: Decodable>(
+        requiresAuth: Bool,
+        operation: () async throws -> T
+    ) async throws -> T {
+        do {
+            return try await operation()
+        } catch APIError.unauthorized {
+            guard requiresAuth else { throw APIError.unauthorized }
+            let refreshed = await refreshCoordinator.refresh(using: sessionManager)
+            guard refreshed else { throw APIError.sessionExpired }
+            return try await operation()
+        }
+    }
+}
+
+private final class TokenRefreshCoordinator {
+    private let lock = NSLock()
+    private var isRefreshing = false
+    private var waiters: [CheckedContinuation<Bool, Never>] = []
+
+    func refresh(using sessionManager: SessionManaging) async -> Bool {
+        lock.lock()
+        if isRefreshing {
+            lock.unlock()
+            return await withCheckedContinuation { continuation in
+                lock.lock()
+                waiters.append(continuation)
+                lock.unlock()
+            }
+        }
+        isRefreshing = true
+        lock.unlock()
+
+        let result = await sessionManager.refreshToken()
+
+        lock.lock()
+        isRefreshing = false
+        let continuations = waiters
+        waiters.removeAll()
+        lock.unlock()
+
+        continuations.forEach { $0.resume(returning: result) }
+        return result
     }
 }
 

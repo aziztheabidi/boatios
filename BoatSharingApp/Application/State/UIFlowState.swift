@@ -29,22 +29,30 @@ struct VoyageDraft {
     var isTravelNow: Bool = false
     /// Whether the voyager wants to spend time on (stay on) water. Canonical name throughout the app.
     var isStayOnWater: Bool = false
-    /// Back-compat alias: some writers use `isSpendOnWater` â€” redirect here.
+    /// Back-compat alias: some writers use `isSpendOnWater` - redirect here.
     var isSpendOnWater: Bool {
         get { isStayOnWater }
         set { isStayOnWater = newValue }
     }
 }
 
+@MainActor
 final class UIFlowState: ObservableObject {
+    // MARK: - Voyage and cross-screen flow state (transient, non-persisted)
+
     @Published var businessVoyageSelection: BusinessVoyageSelection?
     @Published var voyageDraft = VoyageDraft()
     @Published var isFindingBoat: Bool = false
+
+    // MARK: - UI-only menu presentation state (transient)
+
     @Published var showCaptainMenu: Bool = false
     @Published var showBusinessMenu: Bool = false
 
+    // MARK: - Navigation source hints (transient)
+
     /// Transient navigation flag: view arrived here via a Business Detail screen tap.
-    /// NOT persisted â€” resets on every app launch automatically.
+    /// NOT persisted - resets on every app launch automatically.
     @Published var fromBusinessDetail: Bool = false
 
     func clearBusinessSelection() {
@@ -58,12 +66,20 @@ final class UIFlowState: ObservableObject {
 
     /// Clears voyage / booking flow state when the user logs out so nothing carries across sessions in-memory.
     func resetAfterLogout() {
+        resetVoyageFlowState()
+        resetMenuState()
+        resetTransientFlags()
+    }
+
+    private func resetVoyageFlowState() {
         clearBusinessSelection()
         voyageDraft = VoyageDraft()
         isFindingBoat = false
+    }
+
+    private func resetMenuState() {
         showCaptainMenu = false
         showBusinessMenu = false
-        resetTransientFlags()
     }
 }
 

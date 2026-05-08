@@ -65,6 +65,36 @@ struct AppDependencies {
 
     /// Single composition root: one Alamofire-backed client and one retry wrapper shared by all call sites.
     static let live: AppDependencies = {
+        let graph = DependencyGraph.make()
+        return AppDependencies(
+            apiClient: graph.apiClient,
+            sessionManager: graph.sessionManager,
+            preferences: graph.preferencesStore,
+            sessionPreferences: graph.preferencesStore,
+            tokenStore: graph.tokenStore,
+            dateFormatter: DateFormatterHelper(),
+            routingNotifier: graph.routingNotifier,
+            businessSaveMediaUploader: graph.businessSaveMediaUploader,
+            businessRepository: graph.businessRepository,
+            authRepository: graph.authRepository,
+            networkRepository: graph.networkRepository,
+            deviceIdentifierStore: graph.preferencesStore
+        )
+    }()
+}
+
+private struct DependencyGraph {
+    let preferencesStore: PreferenceStore
+    let tokenStore: TokenStore
+    let sessionManager: SessionManager
+    let routingNotifier: AppRoutingNotifier
+    let apiClient: APIClientProtocol
+    let businessSaveMediaUploader: BusinessSaveMediaUploading
+    let businessRepository: BusinessRepositoryProtocol
+    let authRepository: AuthRepositoryProtocol
+    let networkRepository: AppNetworkRepositoryProtocol
+
+    static func make() -> DependencyGraph {
         let preferencesStore = PreferenceStore()
         let keychainStore = KeychainManager()
         let tokenStore = TokenStore(keychain: keychainStore)
@@ -74,25 +104,20 @@ struct AppDependencies {
             refreshService: LiveRefreshTokenService()
         )
         let routingNotifier = AppRoutingNotifier()
-        let businessSaveMediaUploader = AlamofireBusinessSaveMediaUploader(tokenStore: tokenStore)
         let baseHTTPClient = APIClient(sessionManager: sessionManager, routingNotifier: routingNotifier)
         let apiClient = APIClientWithRetry(baseClient: baseHTTPClient, sessionManager: sessionManager)
-        let businessRepository = BusinessRepository(apiClient: apiClient)
-        let authRepository = AuthRepository(apiClient: apiClient, sessionManager: sessionManager)
-        let networkRepository = AppNetworkRepository(apiClient: apiClient)
-        return AppDependencies(
-            apiClient: apiClient,
-            sessionManager: sessionManager,
-            preferences: preferencesStore,
-            sessionPreferences: preferencesStore,
+        let businessSaveMediaUploader = AlamofireBusinessSaveMediaUploader(tokenStore: tokenStore)
+
+        return DependencyGraph(
+            preferencesStore: preferencesStore,
             tokenStore: tokenStore,
-            dateFormatter: DateFormatterHelper(),
+            sessionManager: sessionManager,
             routingNotifier: routingNotifier,
+            apiClient: apiClient,
             businessSaveMediaUploader: businessSaveMediaUploader,
-            businessRepository: businessRepository,
-            authRepository: authRepository,
-            networkRepository: networkRepository,
-            deviceIdentifierStore: preferencesStore
+            businessRepository: BusinessRepository(apiClient: apiClient),
+            authRepository: AuthRepository(apiClient: apiClient, sessionManager: sessionManager),
+            networkRepository: AppNetworkRepository(apiClient: apiClient)
         )
-    }()
+    }
 }

@@ -134,46 +134,57 @@ final class LoginAuthViewModel: ObservableObject {
             $0.errorMessage = nil
         }
 
-        Task { @MainActor in
-            do {
-                let user = try await authRepository.loginDecodedUserData(email: email, password: password)
+        Task {
+            await runLoginFlow(email: email, password: password)
+        }
+    }
 
-                sessionManager.saveTokens(
-                    accessToken: user.accessToken ?? "",
-                    refreshToken: user.refreshToken ?? ""
-                )
-                sessionManager.saveUserData(
-                    userID: user.userId ?? "",
-                    username: user.username ?? "",
-                    email: user.email ?? "",
-                    role: user.role ?? "",
-                    missingStep: user.MissingStep
-                )
+    private func runLoginFlow(email: String, password: String) async {
+        do {
+            let user = try await authRepository.loginDecodedUserData(email: email, password: password)
+            applySuccessfulLogin(user: user)
+        } catch {
+            applyLoginFailure(error: error)
+        }
+    }
 
-                let role = user.role ?? ""
-                let userId = user.userId ?? ""
-                let missing = user.MissingStep ?? 1
+    private func applySuccessfulLogin(user: UserData) {
+        sessionManager.saveTokens(
+            accessToken: user.accessToken ?? "",
+            refreshToken: user.refreshToken ?? ""
+        )
+        sessionManager.saveUserData(
+            userID: user.userId ?? "",
+            username: user.username ?? "",
+            email: user.email ?? "",
+            role: user.role ?? "",
+            missingStep: user.MissingStep
+        )
 
-                preferences.isLoggedIn = true
-                preferences.userRole = role
-                preferences.missingStep = missing
-                routingNotifier.syncRoutingFromStorageIfNeeded()
+        let role = user.role ?? ""
+        let userId = user.userId ?? ""
+        let missing = user.MissingStep ?? 1
 
-                mutate {
-                    $0.role = role
-                    $0.userId = userId
-                    $0.missingStep = missing
-                    $0.isAuthenticated = true
-                    $0.isLoading = false
-                    $0.route = .authenticatedHome
-                }
-            } catch {
-                mutate {
-                    $0.errorMessage = ErrorHandler.extractErrorMessage(from: error)
-                    $0.isAuthenticated = false
-                    $0.isLoading = false
-                }
-            }
+        preferences.isLoggedIn = true
+        preferences.userRole = role
+        preferences.missingStep = missing
+        routingNotifier.syncRoutingFromStorageIfNeeded()
+
+        mutate {
+            $0.role = role
+            $0.userId = userId
+            $0.missingStep = missing
+            $0.isAuthenticated = true
+            $0.isLoading = false
+            $0.route = .authenticatedHome
+        }
+    }
+
+    private func applyLoginFailure(error: Error) {
+        mutate {
+            $0.errorMessage = ErrorHandler.extractErrorMessage(from: error)
+            $0.isAuthenticated = false
+            $0.isLoading = false
         }
     }
 
@@ -183,11 +194,8 @@ final class LoginAuthViewModel: ObservableObject {
     }
 
     private func performUpdateFcmToken(userId: String, token: String) {
-        Task { @MainActor in
-            do {
-                _ = try await authRepository.updateDeviceToken(userId: userId, token: token)
-            } catch {
-            }
+        Task {
+            _ = try? await authRepository.updateDeviceToken(userId: userId, token: token)
         }
     }
 

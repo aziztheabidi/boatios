@@ -1,5 +1,4 @@
 import Foundation
-import Alamofire
 import Combine
 
 // MARK: - Session Event
@@ -20,9 +19,7 @@ class SessionManager: ObservableObject {
     private let tokenStore: TokenStoring
     private let preferences: SessionPreferenceStoring
     private let refreshService: RefreshTokenServicing
-    private var isRefreshing = false
-    private var refreshContinuations: [CheckedContinuation<Bool, Never>] = []
-    private let refreshLock = NSLock()
+    private let refreshCoordinator = RefreshCoordinator()
     
     init(
         tokenStore: TokenStoring,
@@ -86,23 +83,14 @@ class SessionManager: ObservableObject {
     }
     
     func refreshToken() async -> Bool {
-        refreshLock.lock()
-        if isRefreshing {
-            refreshLock.unlock()
-            return await withCheckedContinuation { continuation in
-                refreshLock.lock()
-                refreshContinuations.append(continuation)
-                refreshLock.unlock()
-            }
+        if let sharedResult = await refreshCoordinator.waitForOngoingRefreshOrMarkRunning() {
+            return sharedResult
         }
-        isRefreshing = true
-        refreshLock.unlock()
 
         guard let accessToken = self.accessToken,
               let refreshToken = self.refreshToken else {
             expireSessionForRefreshFailure()
-            completeRefresh(success: false)
-            return false
+            return await completeRefreshAndReturn(false)
         }
 
         do {
@@ -115,22 +103,11 @@ class SessionManager: ObservableObject {
                 refreshToken: refreshed.Refreshtoken
             )
             eventPublisher.send(.tokenRefreshed)
-            completeRefresh(success: true)
-            return true
+            return await completeRefreshAndReturn(true)
         } catch {
             expireSessionForRefreshFailure()
-            completeRefresh(success: false)
-            return false
+            return await completeRefreshAndReturn(false)
         }
-    }
-
-    private func completeRefresh(success: Bool) {
-        refreshLock.lock()
-        isRefreshing = false
-        let waiters = refreshContinuations
-        refreshContinuations.removeAll()
-        refreshLock.unlock()
-        waiters.forEach { $0.resume(returning: success) }
     }
     
     /// Force-expire session with storage clearing first, then event emission.
@@ -142,6 +119,11 @@ class SessionManager: ObservableObject {
             self.eventPublisher.send(.sessionExpired)
         }
     }
+
+    private func completeRefreshAndReturn(_ success: Bool) async -> Bool {
+        await refreshCoordinator.completeRefresh(success: success)
+        return success
+    }
     
     func logout() {
         clearTokens()
@@ -151,6 +133,29 @@ class SessionManager: ObservableObject {
 }
 
 extension SessionManager: SessionManaging {}
+
+private actor RefreshCoordinator {
+    private var isRefreshing = false
+    private var refreshContinuations: [CheckedContinuation<Bool, Never>] = []
+
+    /// Atomically decides whether caller should wait for an in-flight refresh or start a new one.
+    func waitForOngoingRefreshOrMarkRunning() async -> Bool? {
+        guard isRefreshing else {
+            isRefreshing = true
+            return nil
+        }
+        return await withCheckedContinuation { continuation in
+            refreshContinuations.append(continuation)
+        }
+    }
+
+    func completeRefresh(success: Bool) {
+        isRefreshing = false
+        let waiters = refreshContinuations
+        refreshContinuations.removeAll()
+        waiters.forEach { $0.resume(returning: success) }
+    }
+}
 
 struct LiveRefreshTokenService: RefreshTokenServicing {
     func refreshToken(accessToken: String, refreshToken: String) async throws -> SessionTokenData {

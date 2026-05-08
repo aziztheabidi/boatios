@@ -94,35 +94,47 @@ final class CaptainHomeViewModel: ObservableObject {
 
     private func goOnline() {
         isLoading = true
-        let userId = preferences.userID.isEmpty ? "User ID" : preferences.userID
-        Task {
-            let success = await performUpdateCaptainStatus(userId: userId, isAvailable: "true")
-            self.isLoading = false
-            if success {
-                self.isButtonBlue = true
-                self.preferences.captainStatus = true
-            }
+        Task { @MainActor in
+            await updateAvailability(isAvailable: "true")
         }
     }
 
     private func goOffline() {
         isUpdatingStatus = true
-        let userId = preferences.userID.isEmpty ? "User ID" : preferences.userID
-        Task {
-            let success = await performUpdateCaptainStatus(userId: userId, isAvailable: "false")
-            self.isUpdatingStatus = false
-            if success {
-                self.isButtonBlue = false
-                self.preferences.captainStatus = false
-                self.showWelcomeScreen = true
-                self.showOfflinePopup = false
-            }
+        Task { @MainActor in
+            await updateAvailability(isAvailable: "false")
         }
     }
 
     // MARK: - Private network
 
     /// Returns true on success, false on failure. Sets errorMessage on failure.
+    private func updateAvailability(isAvailable: String) async {
+        let userId = resolvedUserId
+        let success = await performUpdateCaptainStatus(userId: userId, isAvailable: isAvailable)
+
+        if isAvailable == "true" {
+            isLoading = false
+            if success {
+                isButtonBlue = true
+                preferences.captainStatus = true
+            }
+            return
+        }
+
+        isUpdatingStatus = false
+        if success {
+            isButtonBlue = false
+            preferences.captainStatus = false
+            showWelcomeScreen = true
+            showOfflinePopup = false
+        }
+    }
+
+    private var resolvedUserId: String {
+        preferences.userID.isEmpty ? "User ID" : preferences.userID
+    }
+
     @discardableResult
     private func performUpdateCaptainStatus(userId: String, isAvailable: String) async -> Bool {
         do {
