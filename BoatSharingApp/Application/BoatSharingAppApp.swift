@@ -86,13 +86,13 @@ struct ContentView1: View {
                     }
                 case "Captain":
                     if appState.missingStep == 0 {
-                        CaptainHomeVC(dependencies: dependencies)
+                        CaptainHomeView(dependencies: dependencies)
                     } else {
                         RoleSelectionView(dependencies: dependencies)
                     }
                 default:
                     if appState.missingStep == 0 {
-                        DashboardVC(dependencies: dependencies)
+                        DashboardView(dependencies: dependencies)
                     } else {
                         RoleSelectionView(dependencies: dependencies)
                     }
