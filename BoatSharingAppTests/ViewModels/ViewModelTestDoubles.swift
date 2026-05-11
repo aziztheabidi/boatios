@@ -68,6 +68,7 @@ final class ViewModelSessionPreferenceStore: SessionPreferenceStoring, Preferenc
     var userID: String = ""
     var username: String = ""
     var userEmail: String = ""
+    var captainStatus: Bool = false
     var fromBusinessDetail: Bool = false
 
     func clearSessionPreferences() {
@@ -77,6 +78,7 @@ final class ViewModelSessionPreferenceStore: SessionPreferenceStoring, Preferenc
         userID = ""
         username = ""
         userEmail = ""
+        captainStatus = false
     }
 }
 

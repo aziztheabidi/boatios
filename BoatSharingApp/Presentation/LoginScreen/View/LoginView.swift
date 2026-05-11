@@ -1,6 +1,8 @@
 import SwiftUI
 
 struct LoginScreenView: View {
+    private let dependencies: AppDependencies
+
     @Environment(\.presentationMode) var presentationMode
     @Environment(\.openURL) private var openURL
     @State private var email: String = ""
@@ -14,6 +16,7 @@ struct LoginScreenView: View {
     @State private var navigateToIntro: Bool = false
 
     init(dependencies: AppDependencies = .live) {
+        self.dependencies = dependencies
         _viewModel = StateObject(
             wrappedValue: LoginAuthViewModel(
                 authRepository: dependencies.authRepository,
@@ -162,7 +165,7 @@ struct LoginScreenView: View {
             .edgesIgnoringSafeArea(.all)
             .navigationBarHidden(false)
             .navigationBarBackButtonHidden(true)
-            .onChange(of: viewModel.state.isAuthenticated) { _, isAuthenticated in
+            .onChange(of: viewModel.state.isAuthenticated) { isAuthenticated in
                 if isAuthenticated {
                     ToastMsg = "Login Successful!"
                     ShowToast = true
@@ -170,7 +173,7 @@ struct LoginScreenView: View {
                     viewModel.send(.updateFcmForAuthenticatedUser)
                 }
             }
-            .onChange(of: viewModel.state.errorMessage) { _, errorMessage in
+            .onChange(of: viewModel.state.errorMessage) { errorMessage in
                 if let errorMessage = errorMessage {
                     ToastMsg = errorMessage
                     ShowToast = true

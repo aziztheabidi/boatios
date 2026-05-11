@@ -74,13 +74,13 @@ final class CaptainHomeViewModel: ObservableObject {
 
     // MARK: - Dependencies
 
-    private let preferences: PreferenceStoring
+    private let sessionPreferences: SessionPreferenceStoring
     private let captainRepository: CaptainRepositoryProtocol
 
-    init(preferences: PreferenceStoring, captainRepository: CaptainRepositoryProtocol) {
-        self.preferences = preferences
+    init(sessionPreferences: SessionPreferenceStoring, captainRepository: CaptainRepositoryProtocol) {
+        self.sessionPreferences = sessionPreferences
         self.captainRepository = captainRepository
-        let isCaptainOnline = preferences.captainStatus
+        let isCaptainOnline = sessionPreferences.captainStatus
         showWelcomeScreen = !isCaptainOnline
         isButtonBlue = isCaptainOnline
     }
@@ -117,7 +117,7 @@ final class CaptainHomeViewModel: ObservableObject {
             isLoading = false
             if success {
                 isButtonBlue = true
-                preferences.captainStatus = true
+                sessionPreferences.captainStatus = true
             }
             return
         }
@@ -125,14 +125,14 @@ final class CaptainHomeViewModel: ObservableObject {
         isUpdatingStatus = false
         if success {
             isButtonBlue = false
-            preferences.captainStatus = false
+            sessionPreferences.captainStatus = false
             showWelcomeScreen = true
             showOfflinePopup = false
         }
     }
 
     private var resolvedUserId: String {
-        preferences.userID.isEmpty ? "User ID" : preferences.userID
+        sessionPreferences.userID.isEmpty ? "User ID" : sessionPreferences.userID
     }
 
     @discardableResult

@@ -42,6 +42,8 @@ protocol SessionPreferenceStoring: AnyObject {
     var userID: String { get set }
     var username: String { get set }
     var userEmail: String { get set }
+    /// Captain availability persisted for dashboard welcome / online UI.
+    var captainStatus: Bool { get set }
     func clearSessionPreferences()
 }
 

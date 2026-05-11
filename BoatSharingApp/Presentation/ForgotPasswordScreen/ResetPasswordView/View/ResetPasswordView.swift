@@ -106,13 +106,11 @@ struct ResetPasswordView: View {
             }
             .padding()
             .overlay(
-                Group {
-                    // Success Toast
+                ZStack {
                     ToastView(message: viewModel.Message, isPresented: $viewModel.isEmailSent)
-                        .offset(y: -50) // Position above bottom
-                    // Failure Toast
-                    if let errorMessage = viewModel.errorMessage {
-                        ToastView(message: errorMessage, isPresented: .constant(true))
+                        .offset(y: -50)
+                    if let serverError = viewModel.errorMessage {
+                        ToastView(message: serverError, isPresented: .constant(true))
                             .offset(y: -50)
                             .onAppear {
                                 viewModel.clearErrorAfterDelay()
@@ -120,12 +118,6 @@ struct ResetPasswordView: View {
                     }
                 }
             )
-            .onChange(of: viewModel.shouldClearErrorAfterDelay) { _, shouldClear in
-                if shouldClear {
-                    viewModel.errorMessage = nil
-                    viewModel.shouldClearErrorAfterDelay = false
-                }
-            }
             // Move to Next Screen when API is successful
             .navigationDestination(isPresented: $viewModel.isEmailSent) {
                 SentResetPasswordView()

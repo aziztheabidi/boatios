@@ -36,12 +36,9 @@ final class VoyagerHomeViewModel: ObservableObject {
         case onAppear(UIFlowState)
         case onDisappear
         case ensureDocksLoaded
-        case menuTapped(resetRoleMenus: () -> Void)
         case findBoatTapped
         case dismissFindBoat
-        case dismissFindBoatToMenu(resetRoleMenus: () -> Void)
         case dismissCaptainOverlay
-        case captainOverlayWheelTapped(resetRoleMenus: () -> Void)
         case tokenExpiredAcknowledged
     }
 
@@ -53,18 +50,12 @@ final class VoyagerHomeViewModel: ObservableObject {
             performOnDisappearReset()
         case .ensureDocksLoaded:
             fetchActiveDocks()
-        case .menuTapped(let reset):
-            performHandleMenuTapped(resetRoleMenus: reset)
         case .findBoatTapped:
             showFindBoatSheet = true
         case .dismissFindBoat:
             showFindBoatSheet = false
-        case .dismissFindBoatToMenu(let reset):
-            reset(); showFindBoatSheet = false; stackDestination = .spinMenu
         case .dismissCaptainOverlay:
             isCaptainFind = false
-        case .captainOverlayWheelTapped(let reset):
-            reset(); isCaptainFind = false; stackDestination = .spinMenu
         case .tokenExpiredAcknowledged:
             stackDestination = .login
         }
@@ -171,8 +162,20 @@ final class VoyagerHomeViewModel: ObservableObject {
             }
     }
 
-    private func performHandleMenuTapped(resetRoleMenus: () -> Void) {
+    private func performHandleMenuTapped(resetRoleMenus: @escaping () -> Void) {
         resetRoleMenus()
+        stackDestination = .spinMenu
+    }
+
+    private func performDismissFindBoatToMenu(resetRoleMenus: @escaping () -> Void) {
+        resetRoleMenus()
+        showFindBoatSheet = false
+        stackDestination = .spinMenu
+    }
+
+    private func performCaptainOverlayWheelTapped(resetRoleMenus: @escaping () -> Void) {
+        resetRoleMenus()
+        isCaptainFind = false
         stackDestination = .spinMenu
     }
 
@@ -230,12 +233,16 @@ final class VoyagerHomeViewModel: ObservableObject {
     func getActiveDockList() { fetchActiveDocks() }
     func resetDockCache() { hasFetchedDocks = false; docks = [] }
     func getActiveVoyager(userid: String) { fetchActiveVoyage(userid: userid) }
-    func handleMenuTapped(resetRoleMenus: () -> Void) { send(.menuTapped(resetRoleMenus: resetRoleMenus)) }
+    func handleMenuTapped(resetRoleMenus: @escaping () -> Void) { performHandleMenuTapped(resetRoleMenus: resetRoleMenus) }
     func handleFindBoatTapped() { send(.findBoatTapped) }
     func handleFindBoatOverlayDismiss() { send(.dismissFindBoat) }
-    func handleFindBoatWheelDismissToMenu(resetRoleMenus: () -> Void) { send(.dismissFindBoatToMenu(resetRoleMenus: resetRoleMenus)) }
+    func handleFindBoatWheelDismissToMenu(resetRoleMenus: @escaping () -> Void) {
+        performDismissFindBoatToMenu(resetRoleMenus: resetRoleMenus)
+    }
     func handleCaptainOverlayDismiss() { send(.dismissCaptainOverlay) }
-    func handleCaptainOverlayWheelTapped(resetRoleMenus: () -> Void) { send(.captainOverlayWheelTapped(resetRoleMenus: resetRoleMenus)) }
+    func handleCaptainOverlayWheelTapped(resetRoleMenus: @escaping () -> Void) {
+        performCaptainOverlayWheelTapped(resetRoleMenus: resetRoleMenus)
+    }
     func handleTokenExpiredAcknowledged() { send(.tokenExpiredAcknowledged) }
     func onAppearLoad(uiFlowState: UIFlowState) { send(.onAppear(uiFlowState)) }
     func onDisappearReset() { send(.onDisappear) }

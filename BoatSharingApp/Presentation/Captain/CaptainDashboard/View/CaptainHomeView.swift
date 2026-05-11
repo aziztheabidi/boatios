@@ -10,7 +10,7 @@ struct CaptainHomeView: View {
     init(dependencies: AppDependencies = .live) {
         _viewModel = StateObject(
             wrappedValue: CaptainHomeViewModel(
-                preferences: dependencies.preferences,
+                sessionPreferences: dependencies.sessionPreferences,
                 captainRepository: LiveCaptainRepository(network: dependencies.networkRepository)
             )
         )

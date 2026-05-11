@@ -144,6 +144,7 @@ private final class MockSessionPreferenceStore: SessionPreferenceStoring {
     var userID: String = ""
     var username: String = ""
     var userEmail: String = ""
+    var captainStatus: Bool = false
 
     func clearSessionPreferences() {
         userID = ""
@@ -152,6 +153,7 @@ private final class MockSessionPreferenceStore: SessionPreferenceStoring {
         userRole = ""
         missingStep = 1
         isLoggedIn = false
+        captainStatus = false
     }
 }
 

@@ -493,8 +493,12 @@ private final class PreviewSessionPreferences: SessionPreferenceStoring, Prefere
     var isLoggedIn: Bool = false; var userRole: String = ""
     var missingStep: Int = 1;     var userID: String = ""
     var username: String = "";    var userEmail: String = ""
+    var captainStatus: Bool = false
     var fromBusinessDetail: Bool = false
     var fcmToken: String?
-    func clearSessionPreferences() { isLoggedIn = false; userRole = ""; missingStep = 1; userID = ""; username = ""; userEmail = "" }
+    func clearSessionPreferences() {
+        isLoggedIn = false; userRole = ""; missingStep = 1; userID = ""; username = ""; userEmail = ""
+        captainStatus = false
+    }
 }
 

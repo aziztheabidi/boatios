@@ -68,5 +68,12 @@ final class ResetPasswordViewModel: ObservableObject {
     // MARK: - Public action helpers
 
     func forgotPassword(email: String) { send(.forgotPassword(email: email)) }
+
+    func clearErrorAfterDelay(seconds: UInt64 = 3) {
+        Task {
+            try? await Task.sleep(nanoseconds: seconds * 1_000_000_000)
+            await MainActor.run { self.send(.clearError) }
+        }
+    }
 }
 

@@ -32,7 +32,7 @@ struct VoyagerHomeView: View {
                 VStack {
                     HStack {
                         Button(action: {
-                            viewModel.send(.menuTapped(resetRoleMenus: resetCaptainAndBusinessMenus))
+                            viewModel.handleMenuTapped(resetRoleMenus: resetCaptainAndBusinessMenus)
                         }) {
                             Image("Group1")
                                 .resizable()
@@ -110,7 +110,7 @@ struct VoyagerHomeView: View {
 
                                 Button(action: {
                                     withAnimation(.easeInOut) {
-                                        viewModel.send(.dismissFindBoatToMenu(resetRoleMenus: resetCaptainAndBusinessMenus))
+                                        viewModel.handleFindBoatWheelDismissToMenu(resetRoleMenus: resetCaptainAndBusinessMenus)
                                     }
                                 }) {
                                     Image("Group1")
@@ -158,7 +158,7 @@ struct VoyagerHomeView: View {
 
                                 Button(action: {
                                     withAnimation(.easeInOut(duration: 0.25)) {
-                                        viewModel.send(.captainOverlayWheelTapped(resetRoleMenus: resetCaptainAndBusinessMenus))
+                                        viewModel.handleCaptainOverlayWheelTapped(resetRoleMenus: resetCaptainAndBusinessMenus)
                                     }
                                 }) {
                                     Image("Group1")

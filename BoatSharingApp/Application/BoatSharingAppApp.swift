@@ -6,7 +6,7 @@
 //
 
 import SwiftUI
-import Firebase
+import FirebaseCore
 import Combine
 
 final class AppState: ObservableObject {

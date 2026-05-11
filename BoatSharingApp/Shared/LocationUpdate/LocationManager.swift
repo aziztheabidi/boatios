@@ -4,7 +4,7 @@
 //
 //  Created by Gamex Global on 05/03/2025.
 //
-import Firebase
+import FirebaseCore
 import FirebaseFirestore
 import CoreLocation
 import Combine
