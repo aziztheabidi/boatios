@@ -1,4 +1,7 @@
 import SwiftUI
+#if canImport(StripePaymentSheet)
+import StripePaymentSheet
+#endif
 
 struct NewRequestPaidPopUpView: View {
     @Binding var showSheet: Bool

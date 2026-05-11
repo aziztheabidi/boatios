@@ -1,4 +1,7 @@
 import SwiftUI
+#if canImport(StripePaymentSheet)
+import StripePaymentSheet
+#endif
 
 struct SponsorPaymentsView: View {
     private let dependencies: AppDependencies

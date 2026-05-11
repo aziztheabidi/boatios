@@ -1,5 +1,8 @@
 import Combine
 import SwiftUI
+#if canImport(StripePaymentSheet)
+import StripePaymentSheet
+#endif
 
 @MainActor
 final class FutureVoyageViewModel: ObservableObject {

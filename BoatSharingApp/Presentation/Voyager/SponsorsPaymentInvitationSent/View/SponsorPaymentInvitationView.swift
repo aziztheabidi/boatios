@@ -1,4 +1,7 @@
 import SwiftUI
+#if canImport(StripePaymentSheet)
+import StripePaymentSheet
+#endif
 
 struct SponsorPaymentInvitationView: View {
     @Environment(\.presentationMode) var presentationMode

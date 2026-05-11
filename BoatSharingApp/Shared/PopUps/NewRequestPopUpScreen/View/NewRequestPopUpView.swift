@@ -1,4 +1,7 @@
 import SwiftUI
+#if canImport(StripePaymentSheet)
+import StripePaymentSheet
+#endif
 
 struct DeclineAlertView: View {
     @Binding var isPresented: Bool
